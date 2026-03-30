@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kinematic_controller"
+version = "0.1.0"
+description = "Stability-aware controler for Unitree Go2"
+dependencies = []
+
+[tool.hatch.build.targets.wheel]
+packages = ["py_src/kinematic_controller"]
+
+[project.scripts]
+run-dog = "kinematic_controller.main:main"
