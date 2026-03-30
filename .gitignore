@@ -1,0 +1,19 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Shared Objects (Compiled binaries)
+*.so
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs and Editors
+.vscode/
+.idea/
+.DS_Store
+*.code-workspace
