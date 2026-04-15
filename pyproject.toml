@@ -6,7 +6,9 @@ build-backend = "hatchling.build"
 name = "kinematic_controller"
 version = "0.1.0"
 description = "Stability-aware controler for Unitree Go2"
-dependencies = []
+dependencies = [
+    "numpy"
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["py_src/kinematic_controller"]
