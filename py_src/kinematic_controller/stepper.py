@@ -9,6 +9,7 @@ def step(gait:Gait, step_num:int) -> npt.NDArray[np.float64]:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
 
     steps_in_gait = 2  # TODO: Calculate and attach to gait (can be found by duty factor)
+    step_num %= steps_in_gait  # Wrap step
 
     # TODO: Fix, not using duty factor
     for i in range(LEG_COUNT):
