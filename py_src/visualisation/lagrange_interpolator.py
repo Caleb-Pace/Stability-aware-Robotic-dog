@@ -1,10 +1,19 @@
 import numpy as np
 import numpy.typing as npt
+from typing import Annotated
 
-# TODO: Make clearer comments
-def lagrange_basis(t, t_values, i):
-    """Compute the i-th Lagrange basis polynomial at t."""
-    """0 at all other points except i"""
+type Point3D = Annotated[npt.NDArray[np.float64], (3,)]  # (A Coordinate) 1D array with 3 elements
+type PointList = Annotated[npt.NDArray[np.float64], (None, 3)]  # 2D array of points/coordinates
+
+def lagrange_basis(i:int, t:np.float64|float, t_values:npt.NDArray[np.float64]) -> float:
+    """
+    Compute the i-th Lagrange basis polynomial weight at time t.
+    
+    Args:
+        i: The control point index we are calculating weight for.
+        t: The time-step we are evaluating.
+        t_values: The array of time-anchors for each control point.
+    """
     basis = 1.0
 
     for j, t_j in enumerate(t_values):
@@ -13,32 +22,22 @@ def lagrange_basis(t, t_values, i):
     
     return basis
 
-def lagrange_interpolate(points, t_values, t):
-    """Interpolate 3D points at parameter t using Lagrange interpolation."""
+def lagrange_interpolate(t:np.float64|float, t_values:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+    """
+    Interpolates a single point at time t.
+    
+    Args:
+        t: The time-step we are evaluating.
+        t_values: The array of time-anchors for each control point.
+        control_points: The array of control points.
+    """
     x, y, z = 0.0, 0.0, 0.0
 
     # Combine lagrange polynomials
-    for i in range(len(points)):
-        Li = lagrange_basis(t, t_values, i)
-        x += points[i, 0] * Li
-        y += points[i, 1] * Li
-        z += points[i, 2] * Li
+    for i in range(len(control_points)):
+        weight = lagrange_basis(i, t, t_values)
+        x += control_points[i, 0] * weight
+        y += control_points[i, 1] * weight
+        z += control_points[i, 2] * weight
     
     return np.array([x, y, z])
-
-
-def test():
-    # Example: 3 points
-    points = np.array([
-        [0, 0, 0],
-        [1, 1, 1],
-        [2, 0, 2]
-    ])
-
-    # Evenly spaced t_values
-    t_values = np.linspace(0, 1, len(points))
-
-    # Interpolate at t = 0.25, 0.5, 0.75
-    t_test = [0.25, 0.5, 0.75]
-    for t in t_test:
-        print(f"Interpolated point at t={t}: {lagrange_interpolate(points, t_values, t)}")

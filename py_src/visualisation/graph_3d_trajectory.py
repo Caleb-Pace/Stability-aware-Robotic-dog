@@ -1,7 +1,6 @@
 import numpy as np
-import numpy.typing as npt
 import matplotlib.pyplot as plt
-from visualisation.lagrange_interpolator import lagrange_interpolate
+from visualisation.lagrange_interpolator import lagrange_interpolate, PointList
 
 # Show plot
 # TODO: Rename
@@ -10,7 +9,7 @@ def show_trajectory():
 
     # Note: Linked to amount of points
     node_count = 16  # sample rate / accuracy
-    t_sample = np.linspace(0, 1, node_count)  # Nodes
+    t_samples = np.linspace(0, 1, node_count)  # Nodes
 
     control_points = np.array([
         [0, 0, 0],
@@ -26,8 +25,8 @@ def show_trajectory():
     t_original = np.linspace(0, 1, len(control_points))  # Base t values
 
     interpolated_points = np.empty((node_count, 3))  # Pre-allocate 2D array
-    for i, t in enumerate(t_sample):
-        interpolated_points[i] = lagrange_interpolate(control_points, t_original, t)
+    for i, t in enumerate(t_samples):
+        interpolated_points[i] = lagrange_interpolate(t, t_original, control_points)
 
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
 
@@ -39,7 +38,7 @@ def show_trajectory():
     ax.legend()
     plt.show()
 
-def draw_parametric_function(ax, points:npt.NDArray[np.float64], colour:str, label:str):
+def draw_parametric_function(ax, points:PointList, colour:str, label:str):
     tx = points[:, 0]
     ty = points[:, 1]
     tz = points[:, 2]
@@ -47,7 +46,7 @@ def draw_parametric_function(ax, points:npt.NDArray[np.float64], colour:str, lab
     # Draw curve
     ax.plot(tx, ty, tz, c=colour, label=label)
 
-def plot_points(ax, points:npt.NDArray[np.float64], colour:str, label:str):
+def plot_points(ax, points:PointList, colour:str, label:str):
     x = points[:, 0]
     y = points[:, 1]
     z = points[:, 2]
