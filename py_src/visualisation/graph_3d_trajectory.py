@@ -51,17 +51,17 @@ def show_trajectory():
 
     ## Original path
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
-    # draw_parametric_function(ax, interpolated_points, '#F5D60A', 'Foot trajectory')
-    draw_parametric_function(ax, control_points, "#1EE1C887", 'Directly connection')
-    # plot_points(ax, interpolated_points[new_points_mask], '#9233A0', 'Interpolated points')
-    plot_points(ax, control_points, '#D94CEE', 'Control points')
+    draw_parametric_function(ax, interpolated_points, '#FF8C00', 'Foot trajectory')
+    draw_parametric_function(ax, control_points, "#8B000090", 'Directly connection')
+    plot_points(ax, interpolated_points[new_points_mask], '#FF7F50', 'Interpolated points')
+    plot_points(ax, control_points, '#BC8F8F', 'Control points')
 
     ## Path switch
     new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((control_points, interpolated_points))).all(axis=1)
-    # draw_parametric_function(ax, interpolated_points_alt, "#F5680A", 'Foot trajectory Alt')
-    draw_parametric_function(ax, control_points_alt, "#1EE16D87", 'Directly connection Alt')
-    # plot_points(ax, interpolated_points_alt[new_points_mask], '#5F33A0', 'Interpolated points Alt')
-    plot_points(ax, ctrl_pts_set_b, "#8D4CEE", 'Control points Alt')
+    draw_parametric_function(ax, interpolated_points_alt, "#003366", 'Foot trajectory Alt')
+    draw_parametric_function(ax, control_points_alt, "#55555590", 'Directly connection Alt')
+    plot_points(ax, interpolated_points_alt[new_points_mask], '#4682B4', 'Interpolated points Alt')
+    plot_points(ax, ctrl_pts_set_b, "#A9A9A9", 'Control points Alt')
     
     ax.legend()
     plt.show()
