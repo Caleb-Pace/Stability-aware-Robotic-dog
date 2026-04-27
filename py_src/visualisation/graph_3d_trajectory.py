@@ -13,19 +13,19 @@ def show_trajectory():
     print(repr(t_samples))
 
     control_points = np.array([
-        [0, 0, 0],
-        [1, 1, 1],
-        [2, 0, 2],
-        [4, 0, 3],
-        # [4.25, 0, 3.25],
-        # [4.5, 0, 3.5],
-        # [4.75, 0, 3.25],
-        [5, 0, 3],
-        [4, 0, 3],
-        [2, 2, 2],
-        [3, 2, 3],
-        [4, 3, 3],
-        [3.5, 3, 2.5]
+        [-9.0, -2.5, -8.5],
+        [-8.4, -6.8, -5.1],
+        [-4.5, -8.2, -4.2],
+        [-2.1, -4.9, -1.8],
+        [ 1.9, -2.4,  1.2],
+        [ 4.1,  3.1,  1.7],
+        [ 1.2,  8.0,  3.9],
+        [ 2.8,  6.4,  7.8],
+        [ 7.2,  4.9,  9.3],
+        [ 9.4,  0.5,  8.1],
+        [ 8.7, -4.1,  8.8],
+        [ 6.5, -7.9,  4.2],
+        [ 3.1, -9.2,  2.8]
     ])
     # TODO: Research more
     t_original = np.linspace(0, 1, len(control_points))  # Base t values
@@ -36,8 +36,9 @@ def show_trajectory():
 
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
 
-    draw_parametric_function(ax, interpolated_points, '#f5d60a', 'Foot trajectory')
-    plot_points(ax, interpolated_points[new_points_mask], '#00deff', 'Interpolated points')
+    draw_parametric_function(ax, control_points, "#56f43e87", 'Directly connection')
+    # draw_parametric_function(ax, interpolated_points, '#f5d60a', 'Foot trajectory')
+    # plot_points(ax, interpolated_points[new_points_mask], '#00deff', 'Interpolated points')
     plot_points(ax, control_points, '#ff50a5', 'Control points')
     
     ax.legend()
