@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from interpolation.lagrange import lagrange_interpolate, PointList
+from interpolation.lagrange import lagrange_interpolate
+from data_structures.points import PointList
 
 # Show plot
 # TODO: Rename
@@ -43,10 +44,10 @@ def show_trajectory():
     # TODO: Research more
     t_original = np.linspace(0, 1, len(control_points))  # Base t values
 
-    interpolated_points = np.empty((node_count, 3))  # Pre-allocate 2D array
+    interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
-        interpolated_points[i] = lagrange_interpolate(t, t_original, control_points)
+        interpolated_points[i]     = lagrange_interpolate(t, t_original, control_points)
         interpolated_points_alt[i] = lagrange_interpolate(t, t_original, control_points_alt)
 
     ## Original path
