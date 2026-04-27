@@ -1,17 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from interpolation.lagrange import lagrange_interpolate
+from interpolation.base import Interpolator
 from data_structures.points import PointList
 
 # Show plot
 # TODO: Rename
-def show_trajectory():
+def show_trajectory(interpolator:Interpolator):
     ax = plt.figure().add_subplot(projection='3d')
 
     # Note: Linked to amount of points
     node_count = 32  # sample rate / accuracy
     t_samples = np.linspace(0, 1, node_count)  # Nodes
-    print(repr(t_samples))
 
     ctrl_pts_base = np.array([
         [-9.0, -2.5, -8.5],
@@ -47,8 +46,8 @@ def show_trajectory():
     interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
-        interpolated_points[i]     = lagrange_interpolate(t, t_original, control_points)
-        interpolated_points_alt[i] = lagrange_interpolate(t, t_original, control_points_alt)
+        interpolated_points[i]     = interpolator.interpolate_point(t, t_original, control_points)
+        interpolated_points_alt[i] = interpolator.interpolate_point(t, t_original, control_points_alt)
 
     ## Original path
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
