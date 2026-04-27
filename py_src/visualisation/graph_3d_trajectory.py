@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from visualisation.lagrange_interpolator import lagrange_interpolate, PointList
+from interpolation.lagrange import lagrange_interpolate, PointList
 
 # Show plot
 # TODO: Rename
