@@ -8,8 +8,9 @@ def show_trajectory():
     ax = plt.figure().add_subplot(projection='3d')
 
     # Note: Linked to amount of points
-    node_count = 16  # sample rate / accuracy
+    node_count = 32  # sample rate / accuracy
     t_samples = np.linspace(0, 1, node_count)  # Nodes
+    print(repr(t_samples))
 
     control_points = np.array([
         [0, 0, 0],
@@ -19,7 +20,12 @@ def show_trajectory():
         # [4.25, 0, 3.25],
         # [4.5, 0, 3.5],
         # [4.75, 0, 3.25],
-        # [5, 0, 3]
+        [5, 0, 3],
+        [4, 0, 3],
+        [2, 2, 2],
+        [3, 2, 3],
+        [4, 3, 3],
+        [3.5, 3, 2.5]
     ])
     # TODO: Research more
     t_original = np.linspace(0, 1, len(control_points))  # Base t values
@@ -31,7 +37,6 @@ def show_trajectory():
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
 
     draw_parametric_function(ax, interpolated_points, '#f5d60a', 'Foot trajectory')
-    draw_parametric_function(ax, control_points, "#56f43e87", 'Directly connection')
     plot_points(ax, interpolated_points[new_points_mask], '#00deff', 'Interpolated points')
     plot_points(ax, control_points, '#ff50a5', 'Control points')
     
