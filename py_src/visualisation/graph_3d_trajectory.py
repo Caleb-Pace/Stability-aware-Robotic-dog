@@ -12,14 +12,16 @@ def show_trajectory():
     t_samples = np.linspace(0, 1, node_count)  # Nodes
     print(repr(t_samples))
 
-    control_points = np.array([
+    ctrl_pts_base = np.array([
         [-9.0, -2.5, -8.5],
         [-8.4, -6.8, -5.1],
         [-4.5, -8.2, -4.2],
         [-2.1, -4.9, -1.8],
         [ 1.9, -2.4,  1.2],
         [ 4.1,  3.1,  1.7],
-        [ 1.2,  8.0,  3.9],
+        [ 1.2,  8.0,  3.9]
+    ])
+    ctrl_pts_set_a = np.array([
         [ 2.8,  6.4,  7.8],
         [ 7.2,  4.9,  9.3],
         [ 9.4,  0.5,  8.1],
@@ -27,19 +29,39 @@ def show_trajectory():
         [ 6.5, -7.9,  4.2],
         [ 3.1, -9.2,  2.8]
     ])
+    ctrl_pts_set_b = np.array([
+        [ 1.2,  8.0,  3.9],  # Anchor: Matches end of ctrl_pts_base
+        [-1.5,  8.5,  5.0],  # Smooth transition heading toward -X
+        [-4.0,  7.0,  7.5],  # Climbing and curving
+        [-6.5,  4.0,  9.0],  # Maintaining height while moving away
+        [-8.0,  0.0,  8.5],  # Curving back down the X-axis
+        [-7.0, -4.0,  6.0]   # Final point tucked into the -X, -Y, +Z quadrant
+    ])
+    control_points = np.concatenate((ctrl_pts_base, ctrl_pts_set_a))
+    control_points_alt = np.concatenate((ctrl_pts_base, ctrl_pts_set_b))
+
     # TODO: Research more
     t_original = np.linspace(0, 1, len(control_points))  # Base t values
 
     interpolated_points = np.empty((node_count, 3))  # Pre-allocate 2D array
+    interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
         interpolated_points[i] = lagrange_interpolate(t, t_original, control_points)
+        interpolated_points_alt[i] = lagrange_interpolate(t, t_original, control_points_alt)
 
+    ## Original path
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
+    # draw_parametric_function(ax, interpolated_points, '#F5D60A', 'Foot trajectory')
+    draw_parametric_function(ax, control_points, "#1EE1C887", 'Directly connection')
+    # plot_points(ax, interpolated_points[new_points_mask], '#9233A0', 'Interpolated points')
+    plot_points(ax, control_points, '#D94CEE', 'Control points')
 
-    draw_parametric_function(ax, control_points, "#56f43e87", 'Directly connection')
-    # draw_parametric_function(ax, interpolated_points, '#f5d60a', 'Foot trajectory')
-    # plot_points(ax, interpolated_points[new_points_mask], '#00deff', 'Interpolated points')
-    plot_points(ax, control_points, '#ff50a5', 'Control points')
+    ## Path switch
+    new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((control_points, interpolated_points))).all(axis=1)
+    # draw_parametric_function(ax, interpolated_points_alt, "#F5680A", 'Foot trajectory Alt')
+    draw_parametric_function(ax, control_points_alt, "#1EE16D87", 'Directly connection Alt')
+    # plot_points(ax, interpolated_points_alt[new_points_mask], '#5F33A0', 'Interpolated points Alt')
+    plot_points(ax, ctrl_pts_set_b, "#8D4CEE", 'Control points Alt')
     
     ax.legend()
     plt.show()
