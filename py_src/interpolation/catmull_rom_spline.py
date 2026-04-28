@@ -18,39 +18,36 @@ class CatmullRomSpline(Interpolator):
 
         return (weight_prev * point_prev) + (weight_next * point_next)
 
-    def barry_goldman_pyramid(self, t:float, windowed_t_values:npt.NDArray[np.float64],  windowed_points:PointList) -> Point3D:
-        if len(windowed_t_values) != 4:
-            raise IndexError(f"{{windowed_t_values}} must be of length 4! (length: {len(windowed_t_values)})")
+    def barry_goldman_pyramid(self, t:float, windowed_t_anchors:npt.NDArray[np.float64],  windowed_points:PointList) -> Point3D:
+        if len(windowed_t_anchors) != 4:
+            raise IndexError(f"{{windowed_t_anchors}} must be of length 4! (length: {len(windowed_t_anchors)})")
         if len(windowed_points) != 4:
             raise IndexError(f"{{windowed_points}} must be of length 4! (length: {len(windowed_points)})")
 
         # Linear (Tier 1)
-        a_1 = self.linear_interpolation(t, windowed_points[0], windowed_t_values[0], windowed_points[1], windowed_t_values[1])
-        a_2 = self.linear_interpolation(t, windowed_points[1], windowed_t_values[1], windowed_points[2], windowed_t_values[2])
-        a_3 = self.linear_interpolation(t, windowed_points[2], windowed_t_values[2], windowed_points[3], windowed_t_values[3])
+        a_1 = self.linear_interpolation(t, windowed_points[0], windowed_t_anchors[0], windowed_points[1], windowed_t_anchors[1])
+        a_2 = self.linear_interpolation(t, windowed_points[1], windowed_t_anchors[1], windowed_points[2], windowed_t_anchors[2])
+        a_3 = self.linear_interpolation(t, windowed_points[2], windowed_t_anchors[2], windowed_points[3], windowed_t_anchors[3])
 
         # Parabolic (Tier 2) 
-        b_1 = self.linear_interpolation(t, a_1, windowed_t_values[0], a_2, windowed_t_values[2])
-        b_2 = self.linear_interpolation(t, a_2, windowed_t_values[1], a_3, windowed_t_values[3])
+        b_1 = self.linear_interpolation(t, a_1, windowed_t_anchors[0], a_2, windowed_t_anchors[2])
+        b_2 = self.linear_interpolation(t, a_2, windowed_t_anchors[1], a_3, windowed_t_anchors[3])
 
         # Cubic (Tier 3)
-        c = self.linear_interpolation(t, b_1, windowed_t_values[1], b_2, windowed_t_values[2])
-        print(f"C {{{t}}} dt: {(windowed_t_values[2] - windowed_t_values[1])} ({windowed_t_values[2]} - {windowed_t_values[1]})")  # TODO: Remove, for debugging
+        c = self.linear_interpolation(t, b_1, windowed_t_anchors[1], b_2, windowed_t_anchors[2])
+        print(f"C {{{t}}} dt: {(windowed_t_anchors[2] - windowed_t_anchors[1])} ({windowed_t_anchors[2]} - {windowed_t_anchors[1]})")  # TODO: Remove, for debugging
         return c
 
-    def get_time(self):
-        pass
-
-    def get_active_window(self, t:float, t_values:npt.NDArray[np.float64],  points:PointList):
-        if len(t_values) != len(points):
-            raise IndexError(f"Length mismatch between {{t_values}} and {{points}}! ({len(t_values)} != {len(points)})")
+    def get_active_window(self, t:float, t_anchors:npt.NDArray[np.float64],  points:PointList):
+        if len(t_anchors) != len(points):
+            raise IndexError(f"Length mismatch between {{t_anchors}} and {{points}}! ({len(t_anchors)} != {len(points)})")
        
         # Find active window/curve segment
-        idx = np.searchsorted(t_values, t) - 1     # Find index of previous knot
-        idx = max(0, min(idx, len(t_values) - 2))  # Clamp index
+        idx = np.searchsorted(t_anchors, t) - 1     # Find index of previous knot
+        idx = max(0, min(idx, len(t_anchors) - 2))  # Clamp index
 
         # Pre-allocate the window
-        windowed_t_values:npt.NDArray[np.float64] = np.empty(4)
+        windowed_t_anchors:npt.NDArray[np.float64] = np.empty(4)
         windowed_points:PointList = np.empty((4, 3))
 
         # Calculate copy ranges
@@ -61,32 +58,39 @@ class CatmullRomSpline(Interpolator):
 
         # Handle Start Boundary
         if src_start < 0:
-            windowed_t_values[0] = t_values[0] - (t_values[1] - t_values[0])
+            windowed_t_anchors[0] = t_anchors[0] - (t_anchors[1] - t_anchors[0])  # Extrapolate backwards
             windowed_points[0]   = points[0]
             dest_start = 1
             src_start  = 0
 
         # Handle End Boundary
-        if src_end > len(t_values):
-            windowed_t_values[3] = t_values[-1] + (t_values[-1] - t_values[-2])
+        if src_end > len(t_anchors):
+            windowed_t_anchors[3] = t_anchors[-1] + (t_anchors[-1] - t_anchors[-2])  # Extrapolate forwards
             windowed_points[3]   = points[-1]
             dest_end = 3
-            src_end  = len(t_values)  # Exclusive stop
+            src_end  = len(t_anchors)  # Exclusive stop
 
         print(f"Window:\n\tsrc_start = {src_start}\n\tsrc_end = {src_end}\n\tdest_start = {dest_start}\n\tdest_end = {dest_end}")  # TODO: Remove, for debugging
-        # print(f"\tRaw: {repr(t_values)}\n\tRanged: {repr(t_values[src_start:src_end])}")  # TODO: Remove, for debugging
+        # print(f"\tRaw: {repr(t_anchors)}\n\tRanged: {repr(t_anchors[src_start:src_end])}")  # TODO: Remove, for debugging
 
         # Finish loading window
-        windowed_t_values[dest_start:dest_end] = t_values[src_start:src_end]
+        windowed_t_anchors[dest_start:dest_end] = t_anchors[src_start:src_end]
         windowed_points[dest_start:dest_end]   = points[src_start:src_end]
 
-        print(f"\n\tt_values = {repr(windowed_t_values)}\n\tpoints = {repr(windowed_points)}")  # TODO: Remove, for debugging
-        return (windowed_t_values, windowed_points)
+        print(f"\n\tt_anchors = {repr(windowed_t_anchors)}\n\tpoints = {repr(windowed_points)}")  # TODO: Remove, for debugging
+        return (windowed_t_anchors, windowed_points)
 
     # TODO: rename control points to knots for accuracy.
     @override
-    def interpolate_point(self, t:float|np.float64, t_values:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
-        # print(f"interpolate_point(\n\tt = {t},\n\tt_values = {repr(t_values)},\n\tcontrol_points = {repr(control_points)}\n);")  # TODO: Remove, for debugging
-        windowed_t_values, windowed_points = self.get_active_window(t, t_values, control_points)
+    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+        # print(f"interpolate_point(\n\tt = {t},\n\tt_anchors = {repr(t_anchors)},\n\tcontrol_points = {repr(control_points)}\n);")  # TODO: Remove, for debugging
+        windowed_t_anchors, windowed_points = self.get_active_window(t, t_anchors, control_points)
 
-        return self.barry_goldman_pyramid(t, windowed_t_values, windowed_points)
+        return self.barry_goldman_pyramid(t, windowed_t_anchors, windowed_points)
+    
+    def get_time(self):
+        pass
+
+    @override
+    def calculate_time_anchors(self, control_points: PointList) -> npt.NDArray[np.float64]:
+        raise NotImplementedError()
