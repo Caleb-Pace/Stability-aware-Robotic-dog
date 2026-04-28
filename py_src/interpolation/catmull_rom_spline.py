@@ -56,11 +56,13 @@ class CatmullRomSpline(Interpolator):
         # Get window
         windowed_t_values:npt.NDArray[np.float64] = t_values[w_start:w_end]
         windowed_points:PointList = points[w_start:w_end]
+        print(f"Window:\n\tw_start = {w_start}\n\tw_end = {w_end}\n\tt_values = {repr(windowed_t_values)}\n\tpoints = {repr(windowed_points)}")  # TODO: Remove, for debugging
         return (windowed_t_values, windowed_points)
 
     # TODO: rename control points to knots for accuracy.
     @override
     def interpolate_point(self, t:float|np.float64, t_values:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+        print(f"interpolate_point(\n\tt = {t},\n\tt_values = {repr(t_values)},\n\tcontrol_points = {repr(control_points)}\n);")  # TODO: Remove, for debugging
         windowed_t_values, windowed_points = self.get_active_window(t, t_values, control_points)
 
         return self.barry_goldman_pyramid(t, windowed_t_values, windowed_points)

@@ -46,8 +46,11 @@ def show_trajectory(interpolator:Interpolator):
     interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
+        if i <= 2 or i >= (len(t_samples) - 3):
+            continue
+        print(f"[{i}] t = {t}")  # TODO: Remove, for debugging
         interpolated_points[i]     = interpolator.interpolate_point(t, t_original, control_points)
-        interpolated_points_alt[i] = interpolator.interpolate_point(t, t_original, control_points_alt)
+        # interpolated_points_alt[i] = interpolator.interpolate_point(t, t_original, control_points_alt)
 
     ## Original path
     new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
@@ -56,12 +59,12 @@ def show_trajectory(interpolator:Interpolator):
     plot_points(ax, interpolated_points[new_points_mask], '#FF7F50', 'Interpolated points')
     plot_points(ax, control_points, '#BC8F8F', 'Control points')
 
-    ## Path switch
-    new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((control_points, interpolated_points))).all(axis=1)
-    draw_parametric_function(ax, interpolated_points_alt, "#003366", 'Foot trajectory Alt')
-    draw_parametric_function(ax, control_points_alt, "#55555590", 'Directly connection Alt')
-    plot_points(ax, interpolated_points_alt[new_points_mask], '#4682B4', 'Interpolated points Alt')
-    plot_points(ax, ctrl_pts_set_b, "#A9A9A9", 'Control points Alt')
+    # ## Path switch
+    # new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((control_points, interpolated_points))).all(axis=1)
+    # draw_parametric_function(ax, interpolated_points_alt, "#003366", 'Foot trajectory Alt')
+    # draw_parametric_function(ax, control_points_alt, "#55555590", 'Directly connection Alt')
+    # plot_points(ax, interpolated_points_alt[new_points_mask], '#4682B4', 'Interpolated points Alt')
+    # plot_points(ax, ctrl_pts_set_b, "#A9A9A9", 'Control points Alt')
     
     ax.legend()
     plt.show()
