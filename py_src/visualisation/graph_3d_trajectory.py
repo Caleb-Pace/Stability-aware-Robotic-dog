@@ -8,7 +8,7 @@ from data_structures import PointList
 def show_trajectory(interpolator:Interpolator):
     ax = plt.figure().add_subplot(projection='3d')
 
-    ctrl_pts_base = np.array([
+    knots_base = np.array([
         [-9.0, -2.5, -8.5],
         [-8.4, -6.8, -5.1],
         [-4.5, -8.2, -4.2],
@@ -17,7 +17,7 @@ def show_trajectory(interpolator:Interpolator):
         # [ 4.1,  3.1,  1.7],
         # [ 1.2,  8.0,  3.9]
     ])
-    ctrl_pts_set_a = np.array([
+    knots_set_a = np.array([
         [ 2.8,  6.4,  7.8],
         [ 7.2,  4.9,  9.3],
         [ 9.4,  0.5,  8.1],
@@ -25,7 +25,7 @@ def show_trajectory(interpolator:Interpolator):
         [ 6.5, -7.9,  4.2],
         [ 3.1, -9.2,  2.8]
     ])
-    ctrl_pts_set_b = np.array([
+    knots_set_b = np.array([
         [ 1.2,  8.0,  3.9],  # Anchor: Matches end of ctrl_pts_base
         [-1.5,  8.5,  5.0],  # Smooth transition heading toward -X
         [-4.0,  7.0,  7.5],  # Climbing and curving
@@ -33,36 +33,37 @@ def show_trajectory(interpolator:Interpolator):
         [-8.0,  0.0,  8.5],  # Curving back down the X-axis
         [-7.0, -4.0,  6.0]   # Final point tucked into the -X, -Y, +Z quadrant
     ])
-    # control_points = np.concatenate((ctrl_pts_base, ctrl_pts_set_a))
-    control_points = ctrl_pts_base
-    control_points_alt = np.concatenate((ctrl_pts_base, ctrl_pts_set_b))
+    # knots = np.concatenate((knots_base, knots_set_a))
+    knots = knots_base
+    knots_alt = np.concatenate((knots_base, knots_set_b))
 
     # Note: Linked to amount of points
     node_count = 12  # sample rate / accuracy
     t_samples = np.linspace(0, 1, node_count)  # Nodes
-    t_original = np.linspace(0, 1, len(control_points))  # Base t values
+    t_anchors = interpolator.calculate_time_anchors(knots)
+    t_anchors_alt = interpolator.calculate_time_anchors(knots_alt)
 
     interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
-        interpolated_points[i]     = interpolator.interpolate_point(t, t_original, control_points)
-        # interpolated_points_alt[i] = interpolator.interpolate_point(t, t_original, control_points_alt)
+        interpolated_points[i]     = interpolator.interpolate_point(t, t_anchors, knots)
+        # interpolated_points_alt[i] = interpolator.interpolate_point(t, t_anchors_alt, knots_alt)
 
     ## Original path
-    new_points_mask = ~np.isin(interpolated_points, control_points).all(axis=1)
+    new_points_mask = ~np.isin(interpolated_points, knots).all(axis=1)
     draw_parametric_function(ax, interpolated_points, '#FF8C00', 'Foot trajectory')
-    draw_parametric_function(ax, control_points, "#8B000090", 'Directly connection')
+    draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
     plot_points(ax, interpolated_points[new_points_mask], '#FF7F50', 'Interpolated points')
-    plot_points(ax, control_points, '#BC8F8F', 'Control points')
+    plot_points(ax, knots, '#BC8F8F', 'Control points')
 
-    print(repr(interpolated_points))
+    print(repr(interpolated_points))  # TODO: Remove, for debugging
 
     # ## Path switch
-    # new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((control_points, interpolated_points))).all(axis=1)
+    # new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((knots, interpolated_points))).all(axis=1)
     # draw_parametric_function(ax, interpolated_points_alt, "#003366", 'Foot trajectory Alt')
-    # draw_parametric_function(ax, control_points_alt, "#55555590", 'Directly connection Alt')
+    # draw_parametric_function(ax, knots_alt, "#55555590", 'Directly connection Alt')
     # plot_points(ax, interpolated_points_alt[new_points_mask], '#4682B4', 'Interpolated points Alt')
-    # plot_points(ax, ctrl_pts_set_b, "#A9A9A9", 'Control points Alt')
+    # plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
     
     ax.legend()
     plt.show()
