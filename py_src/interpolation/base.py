@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from abc import ABC, abstractmethod
-from data_structures.points import Point3D, PointList
+from data_structures import Point3D, PointList
 
 class Interpolator(ABC):
     @abstractmethod

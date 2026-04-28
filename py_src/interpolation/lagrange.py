@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 from data_structures.points import Point3D, PointList
-from interpolation import base
 from typing import override
+from . import Interpolator
 
-class Lagrange(base.Interpolator):
+class Lagrange(Interpolator):
     def lagrange_basis(self, i:int, t:float|np.float64, t_values:npt.NDArray[np.float64]) -> float:
         """
         Compute the i-th Lagrange basis polynomial weight at time t.

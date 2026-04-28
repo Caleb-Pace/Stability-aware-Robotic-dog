@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from interpolation.base import Interpolator
-from data_structures.points import PointList
+from interpolation import Interpolator
+from data_structures import PointList
 
 # Show plot
 # TODO: Rename
