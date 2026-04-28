@@ -5,7 +5,7 @@ from typing import override
 from . import Interpolator
 
 class Lagrange(Interpolator):
-    def lagrange_basis(self, i:int, t:float|np.float64, t_values:npt.NDArray[np.float64]) -> float:
+    def lagrange_basis(self, i:int, t:float, t_values:npt.NDArray[np.float64]) -> float:
         """
         Compute the i-th Lagrange basis polynomial weight at time t.
 
@@ -29,10 +29,14 @@ class Lagrange(Interpolator):
         return basis
 
     @override
-    def interpolate_point(self, t:float|np.float64, t_values:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
         # Generate weights for all control points
         #   the influence each control point has on the curve (at time t)
-        weights = np.array([self.lagrange_basis(i, t, t_values) for i in range(len(control_points))])
+        weights = np.array([self.lagrange_basis(i, t, t_anchors) for i in range(len(control_points))])
 
         # Calculate point based on weights, using dot product
         return np.dot(weights, control_points)
+
+    @override
+    def calculate_time_anchors(self, control_points:PointList) -> npt.NDArray[np.float64]:
+        return np.linspace(0, 1, len(control_points))
