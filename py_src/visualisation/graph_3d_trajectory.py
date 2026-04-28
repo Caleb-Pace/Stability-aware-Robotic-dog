@@ -8,18 +8,14 @@ from data_structures import PointList
 def show_trajectory(interpolator:Interpolator):
     ax = plt.figure().add_subplot(projection='3d')
 
-    # Note: Linked to amount of points
-    node_count = 32  # sample rate / accuracy
-    t_samples = np.linspace(0, 1, node_count)  # Nodes
-
     ctrl_pts_base = np.array([
         [-9.0, -2.5, -8.5],
         [-8.4, -6.8, -5.1],
         [-4.5, -8.2, -4.2],
         [-2.1, -4.9, -1.8],
-        [ 1.9, -2.4,  1.2],
-        [ 4.1,  3.1,  1.7],
-        [ 1.2,  8.0,  3.9]
+        # [ 1.9, -2.4,  1.2],
+        # [ 4.1,  3.1,  1.7],
+        # [ 1.2,  8.0,  3.9]
     ])
     ctrl_pts_set_a = np.array([
         [ 2.8,  6.4,  7.8],
@@ -37,18 +33,18 @@ def show_trajectory(interpolator:Interpolator):
         [-8.0,  0.0,  8.5],  # Curving back down the X-axis
         [-7.0, -4.0,  6.0]   # Final point tucked into the -X, -Y, +Z quadrant
     ])
-    control_points = np.concatenate((ctrl_pts_base, ctrl_pts_set_a))
+    # control_points = np.concatenate((ctrl_pts_base, ctrl_pts_set_a))
+    control_points = ctrl_pts_base
     control_points_alt = np.concatenate((ctrl_pts_base, ctrl_pts_set_b))
 
-    # TODO: Research more
+    # Note: Linked to amount of points
+    node_count = 12  # sample rate / accuracy
+    t_samples = np.linspace(0, 1, node_count)  # Nodes
     t_original = np.linspace(0, 1, len(control_points))  # Base t values
 
     interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
-        if i <= 2 or i >= (len(t_samples) - 3):
-            continue
-        print(f"[{i}] t = {t}")  # TODO: Remove, for debugging
         interpolated_points[i]     = interpolator.interpolate_point(t, t_original, control_points)
         # interpolated_points_alt[i] = interpolator.interpolate_point(t, t_original, control_points_alt)
 
@@ -58,6 +54,8 @@ def show_trajectory(interpolator:Interpolator):
     draw_parametric_function(ax, control_points, "#8B000090", 'Directly connection')
     plot_points(ax, interpolated_points[new_points_mask], '#FF7F50', 'Interpolated points')
     plot_points(ax, control_points, '#BC8F8F', 'Control points')
+
+    print(repr(interpolated_points))
 
     # ## Path switch
     # new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((control_points, interpolated_points))).all(axis=1)
