@@ -42,21 +42,51 @@ class CatmullRomSpline(Interpolator):
 
     # TODO: optimise window search
     def get_active_window(self, t:float, t_values:npt.NDArray[np.float64],  points:PointList):
+        if len(t_values) != len(points):
+            raise IndexError(f"Length mismatch between {{t_values}} and {{points}}! ({len(t_values)} != {len(points)})")
+       
         # Find active window/curve segment
-        index_knot_prev = -1
+        index_knot_prev = len(t_values) - 1
         for i, knot_time in enumerate(t_values):
             if knot_time > t:
                 index_knot_prev = i - 1
                 break
-        
-        # Establish window frame
-        w_start = index_knot_prev - 1
-        w_end   = w_start + 4
+        print(index_knot_prev)
 
-        # Get window
-        windowed_t_values:npt.NDArray[np.float64] = t_values[w_start:w_end]
-        windowed_points:PointList = points[w_start:w_end]
-        print(f"Window:\n\tw_start = {w_start}\n\tw_end = {w_end}\n\tt_values = {repr(windowed_t_values)}\n\tpoints = {repr(windowed_points)}")  # TODO: Remove, for debugging
+        # Establish window frame
+        windowed_t_values:npt.NDArray[np.float64] = np.empty(4)
+        windowed_points:PointList = np.empty((4, 3))
+
+        src_start = index_knot_prev - 1
+        src_end   = src_start + 3
+
+        dest_start = 0
+        dest_end   = 3
+
+        #     Reuse first element for Ghost point
+        if src_start < 0:
+            src_end -= (src_start + 1)  # Realign end
+            src_start = 0
+            windowed_t_values[dest_start] = t_values[src_start]
+            windowed_points[dest_start]   = points[src_start]
+            dest_start += 1
+
+        #     Reuse last element for Ghost point
+        if src_end > len(t_values):
+            src_end = len(t_values) - 1
+            windowed_t_values[dest_end] = t_values[src_end]
+            windowed_points[dest_end]   = points[src_end]
+            dest_end -= 1
+
+        print(f"Window:\n\tsrc_start = {src_start}\n\tsrc_end = {src_end}\n\tdest_start = {dest_start}\n\tdest_end = {dest_end}")  # TODO: Remove, for debugging
+
+        print(f"\tRaw: {repr(t_values)}\n\tRanged: {repr(t_values[src_start:src_end])}")  # TODO: Remove, for debugging
+
+        # Finish loading window
+        windowed_t_values[dest_start:dest_end] = t_values[src_start:src_end]
+        windowed_points[dest_start:dest_end]   = points[src_start:src_end]
+
+        print(f"\n\tt_values = {repr(windowed_t_values)}\n\tpoints = {repr(windowed_points)}")  # TODO: Remove, for debugging
         return (windowed_t_values, windowed_points)
 
     # TODO: rename control points to knots for accuracy.
