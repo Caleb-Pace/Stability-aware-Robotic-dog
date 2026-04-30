@@ -118,6 +118,4 @@ class CatmullRomSpline(Interpolator):
             t_anchors[i] = self.get_time(control_points[i], point_prev, t_anchors[i-1])
             point_prev = control_points[i]
         
-        scaled_t_anchors = t_anchors / t_anchors[-1]
-        # print(f"t anchors:\n\traw: {repr(t_anchors)}\n\tscaled: {scaled_t_anchors}")  # TODO: Remove, for debugging
-        return scaled_t_anchors
+        return t_anchors

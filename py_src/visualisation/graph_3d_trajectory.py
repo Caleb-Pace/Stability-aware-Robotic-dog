@@ -78,13 +78,16 @@ def compare_interpolators():
     plt.show()
 
 def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str):
-    t_samples = np.linspace(0, 1, node_count)
     t_anchors = interpolator.calculate_time_anchors(points)
+    t_samples = np.linspace(0, t_anchors[-1], node_count)
+    print(f"{label}:\n    Time anchors:\n     {repr(t_anchors)}\n    Time samples:\n     {(repr(t_samples))}")  # TODO: Remove, for debugging
 
-    interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
+    # Calculate interpolated points
+    interpolated_points = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
         interpolated_points[i] = interpolator.interpolate_point(t, t_anchors, points)
 
+    # Draw
     new_points_mask = ~np.isin(interpolated_points, points).all(axis=1)
     draw_parametric_function(ax, interpolated_points, line_colour, label)
     plot_points(ax, interpolated_points[new_points_mask], point_colour, '(Interpolated points)')
