@@ -38,7 +38,7 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
 
     # Note: Linked to amount of points
     node_count = 32  # sample rate / accuracy
-    time_limit = 30  # Common limit for absolute time
+    time_limit = 30  # Common limit for absolute time (shares time samples)
 
     ## Original path
     draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
