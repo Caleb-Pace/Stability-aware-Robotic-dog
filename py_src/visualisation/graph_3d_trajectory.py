@@ -34,19 +34,14 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
         [-8.0,  0.0,  8.5],  # Curving back down the X-axis
         [-7.0, -4.0,  6.0]   # Final point tucked into the -X, -Y, +Z quadrant
     ])
-    # knots = np.concatenate((knots_base, knots_set_a))
-    # knots_alt = np.concatenate((knots_base, knots_set_b))
-    knots = knots_base
-    knots_alt = knots_base
+    knots = np.concatenate((knots_base, knots_set_a))
+    knots_alt = np.concatenate((knots_base, knots_set_b))
 
     # Note: Linked to amount of points
     node_count = 12  # sample rate / accuracy
     t_samples = np.linspace(0, 1, node_count)  # Nodes
-    # t_samples = np.linspace(0, node_count, node_count)  # Nodes
     t_anchors = interpolator.calculate_time_anchors(knots)
     t_anchors_alt = alt_interpolator.calculate_time_anchors(knots_alt) if alt_interpolator != None else np.array([])
-
-    print(f"t samples: {repr(t_samples)}")  # TODO: Remove, for debugging
 
     interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
@@ -62,15 +57,13 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
     plot_points(ax, interpolated_points[new_points_mask], '#FF7F50', 'Interpolated points')
     plot_points(ax, knots, '#BC8F8F', 'Control points')
 
-    print(repr(interpolated_points))  # TODO: Remove, for debugging
-
-    # ## Path switch
+    ## Path switch
     if alt_interpolator != None:
         new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((knots, interpolated_points))).all(axis=1)
         draw_parametric_function(ax, interpolated_points_alt, "#003366", 'Foot trajectory Alt')
         draw_parametric_function(ax, knots_alt, "#55555590", 'Directly connection Alt')
         plot_points(ax, interpolated_points_alt[new_points_mask], '#4682B4', 'Interpolated points Alt')
-        # plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
+        plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
     
     ax.legend()
     plt.show()
