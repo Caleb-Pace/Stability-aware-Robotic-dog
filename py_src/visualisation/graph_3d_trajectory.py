@@ -39,17 +39,18 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
 
     # Note: Linked to amount of points
     node_count = 12  # sample rate / accuracy
+    time_limit = 25  # Common limit for absolute time
 
     ## Original path
-    plot_points(ax, knots, '#BC8F8F', 'Control points')
     draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
-    draw_interpolated_curve(ax, interpolator, knots, node_count, 'Foot trajectory', '#FF8C00', '#FF7F50')
+    plot_points(ax, knots, '#BC8F8F', 'Control points')
+    draw_interpolated_curve(ax, interpolator, time_limit, knots, node_count, 'Foot trajectory', '#FF8C00', '#FF7F50')
 
     ## Path switch
     if alt_interpolator != None:
-        plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
         draw_parametric_function(ax, knots_alt, "#55555590", 'Directly connection Alt')
-        draw_interpolated_curve(ax, alt_interpolator, knots_alt, node_count, 'Foot trajectory Alt', '#003366', '#4682B4')
+        plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
+        draw_interpolated_curve(ax, alt_interpolator, time_limit, knots_alt, node_count, 'Foot trajectory Alt', '#003366', '#4682B4')
     
     ax.legend()
     plt.show()
@@ -65,21 +66,22 @@ def compare_interpolators():
     ])
 
     node_count = 12  # sample rate / accuracy
+    time_limit = 10  # Common limit for absolute time
 
     draw_parametric_function(ax, points, "#91919190", 'Direct connection')
     plot_points(ax, points, "#5A5A5A", 'Points')
     
-    draw_interpolated_curve(ax, interpolation.Lagrange(), points, node_count, 'Lagrange', '#873BB3', '#7723A7')
-    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.0), points, node_count, 'Catmull-Rom | α=0.0', '#D8379A', '#CC1A88')
-    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.5), points, node_count, 'Catmull-Rom | α=0.5', '#FF5879', '#FF5879')
-    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=1.0), points, node_count, 'Catmull-Rom | α=1.0', '#FF8D5D', '#ED6F3A')
+    draw_interpolated_curve(ax, interpolation.Lagrange(), 1, points, node_count, 'Lagrange', '#873BB3', '#7723A7')
+    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.0), (len(points) - 1), points, node_count, 'Catmull-Rom | α=0.0', '#D8379A', '#CC1A88')
+    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.5), 8, points, node_count, 'Catmull-Rom | α=0.5', '#FF5879', '#FF5879')
+    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=1.0), 21, points, node_count, 'Catmull-Rom | α=1.0', '#FF8D5D', '#ED6F3A')
     
     ax.legend()
     plt.show()
 
-def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str):
+def draw_interpolated_curve(ax, interpolator:Interpolator, time_limit:float, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str):
     t_anchors = interpolator.calculate_time_anchors(points)
-    t_samples = np.linspace(0, t_anchors[-1], node_count)
+    t_samples = np.linspace(0, time_limit, node_count)
     print(f"{label}:\n    Time anchors:\n     {repr(t_anchors)}\n    Time samples:\n     {(repr(t_samples))}")  # TODO: Remove, for debugging
 
     # Calculate interpolated points
