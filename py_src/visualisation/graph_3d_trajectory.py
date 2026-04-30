@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import interpolation
 from interpolation import Interpolator
 from data_structures import PointList
 
@@ -50,7 +51,7 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
     interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
     interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
-        interpolated_points[i]     = interpolator.interpolate_point(t, t_anchors, knots)
+        interpolated_points[i] = interpolator.interpolate_point(t, t_anchors, knots)
         if alt_interpolator != None:
             interpolated_points_alt[i] = alt_interpolator.interpolate_point(t, t_anchors_alt, knots_alt)
 
@@ -73,6 +74,41 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
     
     ax.legend()
     plt.show()
+
+def compare_interpolators():
+    ax = plt.figure().add_subplot(projection='3d')
+
+    points = np.array([
+        [-9.0, -2.5, -8.5],
+        [-8.4, -6.8, -5.1],
+        [-4.5, -8.2, -4.2],
+        [-2.1, -4.9, -1.8],
+    ])
+
+    node_count = 12  # sample rate / accuracy
+
+    draw_parametric_function(ax, points, "#91919190", 'Direct connection')
+    plot_points(ax, points, "#5A5A5A", 'Points')
+    
+    draw_interpolated_curve(ax, interpolation.Lagrange(), points, node_count, 'Lagrange', '#873BB3', '#7723A7')
+    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.0), points, node_count, 'Catmull-Rom | α=0.0', '#D8379A', '#CC1A88')
+    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.5), points, node_count, 'Catmull-Rom | α=0.5', '#FF5879', '#FF5879')
+    draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=1.0), points, node_count, 'Catmull-Rom | α=1.0', '#FF8D5D', '#ED6F3A')
+    
+    ax.legend()
+    plt.show()
+
+def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str):
+    t_samples = np.linspace(0, 1, node_count)
+    t_anchors = interpolator.calculate_time_anchors(points)
+
+    interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
+    for i, t in enumerate(t_samples):
+        interpolated_points[i] = interpolator.interpolate_point(t, t_anchors, points)
+
+    new_points_mask = ~np.isin(interpolated_points, points).all(axis=1)
+    draw_parametric_function(ax, interpolated_points, line_colour, label)
+    plot_points(ax, interpolated_points[new_points_mask], point_colour, '(Interpolated points)')
 
 def draw_parametric_function(ax, points:PointList, colour:str, label:str):
     tx = points[:, 0]
