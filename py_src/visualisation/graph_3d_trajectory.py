@@ -52,7 +52,7 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
         plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
         draw_interpolated_curve(ax, alt_interpolator, knots_alt, node_count, 'Foot trajectory Alt', '#003366', '#4682B4', time_limit)
     
-    ax.legend()
+    ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
     plt.show()
 
 def compare_interpolators():
@@ -75,7 +75,7 @@ def compare_interpolators():
     draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=0.5), points, node_count, 'Catmull-Rom | α=0.5', '#FF5879', '#FF5879')
     draw_interpolated_curve(ax, interpolation.CatmullRomSpline(alpha=1.0), points, node_count, 'Catmull-Rom | α=1.0', '#FF8D5D', '#ED6F3A')
     
-    ax.legend()
+    ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
     plt.show()
 
 def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str, time_limit:float|None=None):
