@@ -11,7 +11,8 @@ def main():
     # show_trajectory(interpolation.CatmullRomSpline(alpha=0.5), interpolation.CatmullRomSpline(alpha=0))
     # show_trajectory(interpolation.CatmullRomSpline(alpha=0.5), interpolation.CatmullRomSpline(alpha=1))
     # show_trajectory(interpolation.CatmullRomSpline(alpha=0.5), interpolation.Lagrange())
-    compare_interpolators()
+    show_trajectory(interpolation.CatmullRomSpline(), interpolation.CatmullRomSpline())
+    # compare_interpolators()
 
 if __name__ == "__main__":
     main()
