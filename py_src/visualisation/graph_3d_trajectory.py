@@ -14,9 +14,8 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
         [-8.4, -6.8, -5.1],
         [-4.5, -8.2, -4.2],
         [-2.1, -4.9, -1.8],
-        # [ 1.9, -2.4,  1.2],
-        # [ 4.1,  3.1,  1.7],
-        # [ 1.2,  8.0,  3.9]
+        [ 1.9, -2.4,  1.2],
+        [ 4.1,  3.1,  1.7]
     ])
     knots_set_a = np.array([
         [ 2.8,  6.4,  7.8],
@@ -38,8 +37,8 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
     knots_alt = np.concatenate((knots_base, knots_set_b))
 
     # Note: Linked to amount of points
-    node_count = 12  # sample rate / accuracy
-    time_limit = 25  # Common limit for absolute time
+    node_count = 32  # sample rate / accuracy
+    time_limit = 30  # Common limit for absolute time
 
     ## Original path
     draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
