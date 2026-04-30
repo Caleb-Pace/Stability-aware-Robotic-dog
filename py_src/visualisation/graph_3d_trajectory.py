@@ -86,6 +86,10 @@ def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, nod
     # Calculate interpolated points
     interpolated_points = np.empty((node_count, 3))  # Pre-allocate 2D array
     for i, t in enumerate(t_samples):
+        if t > t_anchors[-1]:  # Sample not in range / on curve
+            interpolated_points = interpolated_points[:i]  # Resize
+            break
+        
         interpolated_points[i] = interpolator.interpolate_point(t, t_anchors, points)
 
     # Draw
