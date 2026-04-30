@@ -39,31 +39,17 @@ def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|Non
 
     # Note: Linked to amount of points
     node_count = 12  # sample rate / accuracy
-    t_samples = np.linspace(0, 1, node_count)  # Nodes
-    t_anchors = interpolator.calculate_time_anchors(knots)
-    t_anchors_alt = alt_interpolator.calculate_time_anchors(knots_alt) if alt_interpolator != None else np.array([])
-
-    interpolated_points = np.empty((node_count, 3))      # Pre-allocate 2D array
-    interpolated_points_alt = np.empty((node_count, 3))  # Pre-allocate 2D array
-    for i, t in enumerate(t_samples):
-        interpolated_points[i] = interpolator.interpolate_point(t, t_anchors, knots)
-        if alt_interpolator != None:
-            interpolated_points_alt[i] = alt_interpolator.interpolate_point(t, t_anchors_alt, knots_alt)
 
     ## Original path
-    new_points_mask = ~np.isin(interpolated_points, knots).all(axis=1)
-    draw_parametric_function(ax, interpolated_points, '#FF8C00', 'Foot trajectory')
-    draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
-    plot_points(ax, interpolated_points[new_points_mask], '#FF7F50', 'Interpolated points')
     plot_points(ax, knots, '#BC8F8F', 'Control points')
+    draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
+    draw_interpolated_curve(ax, interpolator, knots, node_count, 'Foot trajectory', '#FF8C00', '#FF7F50')
 
     ## Path switch
     if alt_interpolator != None:
-        new_points_mask = ~np.isin(interpolated_points_alt, np.concatenate((knots, interpolated_points))).all(axis=1)
-        draw_parametric_function(ax, interpolated_points_alt, "#003366", 'Foot trajectory Alt')
-        draw_parametric_function(ax, knots_alt, "#55555590", 'Directly connection Alt')
-        plot_points(ax, interpolated_points_alt[new_points_mask], '#4682B4', 'Interpolated points Alt')
         plot_points(ax, knots_set_b, "#A9A9A9", 'Control points Alt')
+        draw_parametric_function(ax, knots_alt, "#55555590", 'Directly connection Alt')
+        draw_interpolated_curve(ax, alt_interpolator, knots_alt, node_count, 'Foot trajectory Alt', '#003366', '#4682B4')
     
     ax.legend()
     plt.show()
