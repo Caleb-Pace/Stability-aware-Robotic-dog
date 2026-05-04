@@ -48,22 +48,7 @@ class Interpolator(ABC):
     
         # Remove out of range time samples (samples that are not on the curve)
         if not maximum_time:  
-            start_index_offset = 0
-            end_index_offset = -1
-
-            # Start - First sample on curve
-            for i, t in enumerate(t_samples):
-                if t >= t_anchors[0]:
-                    start_index_offset = i
-                    break
-
-            # End - First sample after curve
-            for i, t in enumerate(t_samples):
-                if t > t_anchors[-1]:
-                    end_index_offset = i - 1
-                    break
-
-            t_samples = t_samples[start_index_offset:end_index_offset]
+            t_samples = t_samples[(t_samples >= t_anchors[0]) & (t_samples <= t_anchors[-1])]
 
         if len(t_samples) < 2:  # Sanity check
             raise IndexError(f"Not enough time samples to interpolate! ({len(t_samples)})")
