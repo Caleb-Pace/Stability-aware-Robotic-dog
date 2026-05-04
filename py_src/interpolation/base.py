@@ -71,8 +71,16 @@ class Interpolator(ABC):
         t_samples = np.linspace(0, (maximum_time or t_anchors[-1]), node_count)  # Evenly space samples
     
         # Remove out of range time samples (samples that are not on the curve)
-        if not maximum_time:
-            t_samples = t_samples[(t_samples >= t_anchors[0]) & (t_samples <= t_anchors[-1])]
+        if maximum_time:
+            end_index_offset = len(t_samples)
+
+            # End - First sample after curve
+            for i, t in enumerate(t_samples):
+                if t > t_anchors[-1]:
+                    end_index_offset = i - 1
+                    break
+
+            t_samples = t_samples[:end_index_offset]
 
         if len(t_samples) <= 0:  # Sanity check
             raise IndexError(f"Not enough time samples to interpolate! ({len(t_samples)} > 0)")
