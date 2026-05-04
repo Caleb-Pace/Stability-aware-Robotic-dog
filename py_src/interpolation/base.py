@@ -33,6 +33,25 @@ class Interpolator(ABC):
         pass
 
     def compute_interpolated_points(self, control_points:PointList, node_count:int, maximum_time:float|None=None) -> PointList:
+        """
+        Computes a list of interpolated points along the curve defined by the control points.
+
+        Returns:
+            PointList: The array of interpolated points along the curve.
+
+        Args:
+            control_points: The array of control points defining the curve.
+            node_count: The number of points to interpolate along the curve.
+            maximum_time: The maximum time-step to evaluate up to (for absolute time).
+                Defaults to the last time-anchor if not provided (relative time).
+
+        Raises:
+            IndexError: If fewer than 2 control points are provided.
+            ValueError: If node_count is not positive.
+            ValueError: If calculate_time_anchors is incorrectly implemented in a subclass.
+            IndexError: If calculate_time_anchors is incorrectly implemented in a subclass.
+        """
+        
         if len(control_points) < 2:
             raise IndexError(f"Not enough control points to interpolate! ({len(control_points)} >= 2)")
         
@@ -49,7 +68,7 @@ class Interpolator(ABC):
             raise IndexError(f"Bad {{{self.__class__.__name__}.calculate_time_anchors}} method!\n\tLength mismatch between {{control_points}} and {{t_anchors}}. ({len(control_points)} == {len(t_anchors)})")
 
 
-        t_samples = np.linspace(0, (maximum_time or t_anchors[-1]), node_count)
+        t_samples = np.linspace(0, (maximum_time or t_anchors[-1]), node_count)  # Evenly space samples
     
         # Remove out of range time samples (samples that are not on the curve)
         if not maximum_time:
