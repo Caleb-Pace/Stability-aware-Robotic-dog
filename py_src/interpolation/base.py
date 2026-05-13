@@ -67,7 +67,7 @@ class Interpolator(ABC):
         if len(control_points) != len(t_anchors):  # Sanity check - Corresponds to control points
             raise IndexError(f"Bad {{{self.__class__.__name__}.calculate_time_anchors}} method!\n\tLength mismatch between {{control_points}} and {{t_anchors}}. ({len(control_points)} == {len(t_anchors)})")
 
-
+        print(f"(Relative) Last time anchor: {t_anchors[-1]} [{control_points[-1][0]}, {control_points[-1][1]}, {control_points[-1][2]}]")  # TODO: Remove, for testing
         t_samples = np.linspace(0, (maximum_time or t_anchors[-1]), node_count)  # Evenly space samples
     
         # Remove out of range time samples (samples that are not on the curve)
