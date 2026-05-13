@@ -1,23 +1,19 @@
 import numpy as np
 import numpy.typing as npt
-from kinematic_controller.gait_definition import Gait
+from data_structures import PointList
 from kinematic_controller.gaits import LEG_COUNT
+from kinematic_controller.gait_definition import Gait
+
 
 # TODO: Needs to take in current position or preserve position
 # TODO: Implement safety checks to ensure gait arrays are correct length
-def step(gait:Gait, step_num:int) -> npt.NDArray[np.float64]:
+def step(foot_trajectories:npt.NDArray[np.float64], step_num:int) -> PointList:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
 
-    steps_in_gait = 2  # TODO: Calculate and attach to gait (can be found by duty factor)
+    steps_in_gait = len(foot_trajectories)
     step_num %= steps_in_gait  # Wrap step
 
-    # TODO: Fix, not using duty factor
-    for i in range(LEG_COUNT):
-        if (gait.leg_phases_offset[i] * steps_in_gait) == step_num:
-            foot_positions[i,0] = step_num+1
-
-    # gait.leg_phases_offset
-    # gait.leg_duty_factor
+    foot_positions = foot_trajectories[step_num]
 
     return foot_positions
 
