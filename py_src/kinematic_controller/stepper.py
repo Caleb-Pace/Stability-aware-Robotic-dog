@@ -10,10 +10,11 @@ from kinematic_controller.gait_definition import Gait
 def step(foot_trajectories:npt.NDArray[np.float64], step_num:int) -> PointList:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
 
-    steps_in_gait = len(foot_trajectories)
+    steps_in_gait = len(foot_trajectories[0])
     step_num %= steps_in_gait  # Wrap step
 
-    foot_positions = foot_trajectories[step_num]
+    for i in range(LEG_COUNT):
+        foot_positions[i] = foot_trajectories[i][step_num]
 
     return foot_positions
 
