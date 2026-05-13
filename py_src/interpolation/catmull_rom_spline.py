@@ -103,9 +103,9 @@ class CatmullRomSpline(Interpolator):
 
     @override
     def calculate_time_anchors(self, control_points: PointList) -> npt.NDArray[np.float64]:
-        if self.pre_phantom_point == None:  # Extrapolate backwards
+        if self.pre_phantom_point is None:  # Extrapolate backwards
             self.pre_phantom_point = control_points[0] - (control_points[1] - control_points[0])
-        if self.post_phantom_point == None:  # Extrapolate forwards
+        if self.post_phantom_point is None:  # Extrapolate forwards
             self.post_phantom_point = control_points[-1] + (control_points[-1] - control_points[-2])
 
         t_anchors:npt.NDArray[np.float64] = np.empty(len(control_points))
