@@ -8,37 +8,34 @@ from data_structures import PointList
 # TODO: Rename
 def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|None = None):
     ax = plt.figure().add_subplot(projection='3d')
+    ax.set_xlim3d([-10, 10])
+    ax.set_ylim3d([-10, 10])
+    ax.set_zlim3d([0, 10])
+    ax.set_box_aspect((1, 1, 1)) 
 
     knots_base = np.array([
-        [-9.0, -2.5, -8.5],
-        [-8.4, -6.8, -5.1],
-        [-4.5, -8.2, -4.2],
-        [-2.1, -4.9, -1.8],
-        [ 1.9, -2.4,  1.2],
-        [ 4.1,  3.1,  1.7]
+        [-9.0, 0.0,  0.0],
+        [-4.5, 0.6,  3.0],
+        [-3.0, 0.8,  3.75],
+        [ 0.0, 1.0,  4.0]
     ])
     knots_set_a = np.array([
-        [ 2.8,  6.4,  7.8],
-        [ 7.2,  4.9,  9.3],
-        [ 9.4,  0.5,  8.1],
-        [ 8.7, -4.1,  8.8],
-        [ 6.5, -7.9,  4.2],
-        [ 3.1, -9.2,  2.8]
+        [ 3.0, 0.8,  3.75],
+        [ 4.5, 0.6,  3.0],
+        [ 9.0, 0.0,  0.0]
     ])
     knots_set_b = np.array([
-        [ 1.2,  8.0,  3.9],  # Anchor: Matches end of ctrl_pts_base
-        [-1.5,  8.5,  5.0],  # Smooth transition heading toward -X
-        [-4.0,  7.0,  7.5],  # Climbing and curving
-        [-6.5,  4.0,  9.0],  # Maintaining height while moving away
-        [-8.0,  0.0,  8.5],  # Curving back down the X-axis
-        [-7.0, -4.0,  6.0]   # Final point tucked into the -X, -Y, +Z quadrant
+        [ 3.0, 2.0,  3.5],
+        [ 4.0, 2.5,  2.5],
+        [ 5.0, 3.0,  1.5],
+        [ 7.0, 4.0,  0.0]
     ])
     knots = np.concatenate((knots_base, knots_set_a))
     knots_alt = np.concatenate((knots_base, knots_set_b))
 
     # Note: Linked to amount of points
     node_count = 32  # sample rate / accuracy
-    time_limit = 30  # Common limit for absolute time (shares time samples)
+    time_limit = 13  # Common limit for absolute time (shares time samples)
 
     ## Original path
     draw_parametric_function(ax, knots, "#8B000090", 'Directly connection')
