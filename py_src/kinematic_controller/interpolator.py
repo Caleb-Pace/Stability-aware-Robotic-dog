@@ -4,6 +4,7 @@ from interpolation import Interpolator, CatmullRomSpline
 from kinematic_controller.gaits import LEG_COUNT
 from kinematic_controller.gait_definition import Gait
 
+# TODO: move function or rename file
 def get_foot_trajectories(gait:Gait, node_count:int) -> npt.NDArray[np.float64]:
     interpolator:Interpolator = CatmullRomSpline()
 
