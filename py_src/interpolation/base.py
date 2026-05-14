@@ -92,4 +92,4 @@ class Interpolator(ABC):
         for i, t in enumerate(t_samples):
             interpolated_points[i] = self.interpolate_point(t, t_anchors, control_points)
 
-        return interpolated_points, t_anchors
+        return interpolated_points, t_samples
