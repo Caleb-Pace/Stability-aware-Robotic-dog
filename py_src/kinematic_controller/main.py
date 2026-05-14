@@ -2,7 +2,6 @@
 import math
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
-from kinematic_controller.interpolator import get_foot_trajectories
 from kinematic_controller.stepper import step
 
 def main():
