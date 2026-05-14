@@ -1,8 +1,6 @@
 import numpy as np
 from kinematic_controller.gait_definition import Gait
 
-LEG_COUNT:int = 4
-
 TROT = Gait(
     node_count = 32,
     leg_phase_offset   = np.array([[0.0], [0.5], [0.5], [0.0]], dtype=float),
