@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# from interpolation import Lagrange
 import interpolation
 from visualisation.graph_3d_trajectory import show_trajectory, compare_interpolators
 
