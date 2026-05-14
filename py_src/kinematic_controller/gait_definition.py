@@ -11,7 +11,7 @@ class Gait:
     time_anchors:       npt.NDArray[np.float64]  # (Leg, time anchor)
     time_reference:     float = 0  # Calculated last time step
 
-    body_height: npt.NDArray[np.float64]  # (Height)
+    body_height: npt.NDArray[np.float64]  # (Heights)
     # body_pitch: float  # Future
     # body_roll: float  # Future
 
@@ -19,20 +19,22 @@ class Gait:
                  leg_phase_offset:npt.NDArray[np.float64],
                  leg_control_points:npt.NDArray[np.float64],
                  body_height:npt.NDArray[np.float64]):
-        required_shape = (LEG_COUNT)  # (Leg)
-        if leg_phase_offset.shape != (LEG_COUNT):
+        # Shape check: (Leg)
+        required_shape = (LEG_COUNT,)
+        if leg_phase_offset.shape != required_shape:
             raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
         self.leg_phase_offset = leg_phase_offset
 
-        required_shape = (LEG_COUNT, node_count, 3)  # (Leg, Point, Coordinates)
-        if leg_phase_offset.shape != (LEG_COUNT):
-            raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
+        # Shape check: (Leg, Control Point, Coordinates)
+        if (leg_control_points.ndim != 3) or not (leg_control_points.shape[0] == LEG_COUNT and leg_control_points.shape[2] == 3):
+            raise ValueError(f"Invalid shape {leg_control_points.shape}. Must be ({LEG_COUNT}, *, 3)!")
         self.leg_control_points = leg_control_points
 
-        if leg_phase_offset.shape != (LEG_COUNT):
-            raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
+        # Shape check: (Heights)
+        if body_height.ndim != 1:
+            raise ValueError(f"Invalid shape {body_height.shape}. Must be (*,)!")
         self.body_height = body_height
-        
+
         self.calculate_foot_trajectories(node_count)
         self._calculate_time_reference()
 
@@ -48,7 +50,7 @@ class Gait:
     
     # TODO: Optimise
     def _calculate_time_reference(self) -> None:
-        for anchor, phase_offset in zip(self.time_anchors[:LEG_COUNT], self.leg_phase_offset[:LEG_COUNT]):
+        for anchor, phase_offset in zip(self.time_anchors[:LEG_COUNT, -1], self.leg_phase_offset[:LEG_COUNT]):
             calculated_time = anchor * (phase_offset + 1)
             
             if calculated_time > self.time_reference:
