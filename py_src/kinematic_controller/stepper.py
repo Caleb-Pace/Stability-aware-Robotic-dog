@@ -1,8 +1,7 @@
 import numpy as np
-import numpy.typing as npt
+import numpy.typing as npt   # TODO: Remove, unused
 from data_structures import PointList
-from kinematic_controller.gaits import LEG_COUNT
-from kinematic_controller.gait_definition import Gait
+from kinematic_controller.gait_definition import Gait, LEG_COUNT
 
 
 # TODO: Needs to take in current position or preserve position
