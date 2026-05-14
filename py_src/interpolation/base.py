@@ -32,7 +32,7 @@ class Interpolator(ABC):
         """
         pass
 
-    def compute_interpolated_points(self, control_points:PointList, node_count:int, maximum_time:float|None=None) -> PointList:
+    def compute_interpolated_points(self, control_points:PointList, node_count:int, maximum_time:float|None=None) -> tuple[PointList, npt.NDArray[np.float64]]:
         """
         Computes a list of interpolated points along the curve defined by the control points.
 
@@ -92,4 +92,4 @@ class Interpolator(ABC):
         for i, t in enumerate(t_samples):
             interpolated_points[i] = self.interpolate_point(t, t_anchors, control_points)
 
-        return interpolated_points
+        return interpolated_points, t_anchors
