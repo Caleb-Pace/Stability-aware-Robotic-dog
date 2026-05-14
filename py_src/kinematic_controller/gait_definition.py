@@ -19,10 +19,20 @@ class Gait:
                  leg_phase_offset:npt.NDArray[np.float64],
                  leg_control_points:npt.NDArray[np.float64],
                  body_height:npt.NDArray[np.float64]):
+        required_shape = (LEG_COUNT)  # (Leg)
+        if leg_phase_offset.shape != (LEG_COUNT):
+            raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
         self.leg_phase_offset = leg_phase_offset
-        self.leg_control_points = leg_control_points
-        self.body_height = body_height
 
+        required_shape = (LEG_COUNT, node_count, 3)  # (Leg, Point, Coordinates)
+        if leg_phase_offset.shape != (LEG_COUNT):
+            raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
+        self.leg_control_points = leg_control_points
+
+        if leg_phase_offset.shape != (LEG_COUNT):
+            raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
+        self.body_height = body_height
+        
         self.calculate_foot_trajectories(node_count)
         self._calculate_time_reference()
 
