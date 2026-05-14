@@ -1,8 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from interpolation import Interpolator, CatmullRomSpline
-from kinematic_controller.gaits import LEG_COUNT
-from kinematic_controller.gait_definition import Gait
+from kinematic_controller.gait_definition import Gait, LEG_COUNT
 
 # TODO: move function or rename file
 def get_foot_trajectories(gait:Gait, node_count:int) -> npt.NDArray[np.float64]:
