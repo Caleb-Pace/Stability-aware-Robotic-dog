@@ -7,7 +7,8 @@ from kinematic_controller.stepper import step
 def main():
     gait:Gait = TROT
 
-    detail = math.ceil(gait.time_reference)  # (Point/Node count)
+    print(f"#L1_points: {len(gait.time_anchors[0])}; Gait_steps: {gait.steps_in_gait}")  # TODO: Remove, for debugging
+    detail = gait.steps_in_gait  # (Point/Node count)
 
     for i in range(0, detail):
         foot_positions = step(gait, i)
