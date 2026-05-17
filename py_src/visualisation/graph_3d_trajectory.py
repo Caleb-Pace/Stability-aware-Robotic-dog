@@ -5,8 +5,7 @@ from interpolation import Interpolator
 from data_structures import PointList
 
 # Show plot
-# TODO: Rename
-def show_trajectory(interpolator:Interpolator, alt_interpolator:Interpolator|None = None):
+def show_interpolated_curves(interpolator:Interpolator, alt_interpolator:Interpolator|None = None):
     ax = plt.figure().add_subplot(projection='3d')
     ax.set_xlim3d([-10, 10])
     ax.set_ylim3d([-10, 10])
