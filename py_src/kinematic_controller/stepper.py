@@ -20,7 +20,7 @@ def step(gait:Gait, step_num:int) -> PointList:
         movement_length_in_steps = len(gait.time_anchors[i])
         phase_offset_as_steps = math.ceil(gait.steps_in_gait * gait.leg_phase_offset[i])
 
-        print(f"Leg{i} | step{step_num} | gaitFT[{(step_num - phase_offset_as_steps)}] | Mvmnt: ( pO{{{phase_offset_as_steps}}} + mvL{{{movement_length_in_steps}}} ) = {(phase_offset_as_steps + movement_length_in_steps)} / {gait.steps_in_gait} | tRef: {gait.time_reference}")  # TODO: Remove, for debugging
+        # print(f"Leg{i} | step{step_num} | gaitFT[{(step_num - phase_offset_as_steps)}] | Mvmnt: ( pO{{{phase_offset_as_steps}}} + mvL{{{movement_length_in_steps}}} ) = {(phase_offset_as_steps + movement_length_in_steps)} / {gait.steps_in_gait} | tRef: {gait.time_reference}")  # TODO: Remove, for debugging
 
         if step_num < phase_offset_as_steps:  # Before
             foot_positions[i] = gait.foot_trajectories[i][0]  # Starting position
