@@ -31,4 +31,17 @@ def step(gait:Gait, step_num:int) -> PointList:
     
     return foot_positions
 
-# TODO: Add method to offset relative foot positions (for displaying)
+
+# Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
+_offsets_from_origin = np.array([
+    [ 0.1934,  0.0465, 0.0],  # FL
+    [ 0.1934, -0.0465, 0.0],  # FR
+    [-0.1934,  0.0465, 0.0],  # BL
+    [-0.1934, -0.0465, 0.0]   # BR
+], dtype=float)
+
+def apply_offset(foot_positions:PointList) -> PointList:
+    if len(foot_positions) != LEG_COUNT:
+        raise ValueError(f"{{foot_positions}} must be equal to the {{LEG_COUNT}}! ({foot_positions} == {LEG_COUNT})")
+    
+    return (foot_positions + (_offsets_from_origin * 50))  # Translate foot positions
