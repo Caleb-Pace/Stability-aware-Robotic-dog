@@ -74,7 +74,7 @@ def compare_interpolators():
     plt.show()
 
 def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str, time_limit:float|None=None):
-    interpolated_points = interpolator.compute_interpolated_points(points, node_count, time_limit)
+    interpolated_points, _ = interpolator.compute_interpolated_points(points, node_count, time_limit)
 
     # Draw
     new_points_mask = ~np.isin(interpolated_points, points).all(axis=1)
