@@ -17,8 +17,8 @@ def step(gait:Gait, step_num:int) -> PointList:
     # Need time anchors to determine phase offset
 
     for i in range(LEG_COUNT):
-        phase_offset_as_steps = math.ceil(gait.leg_phase_offset[i] * gait.steps_in_gait)
         movement_length_in_steps = len(gait.time_anchors[i])
+        phase_offset_as_steps = math.ceil(gait.steps_in_gait * gait.leg_phase_offset[i])
 
         print(f"Leg{i} | step{step_num} | gaitFT[{(step_num - phase_offset_as_steps)}] | Mvmnt: ( pO{{{phase_offset_as_steps}}} + mvL{{{movement_length_in_steps}}} ) = {(phase_offset_as_steps + movement_length_in_steps)} / {gait.steps_in_gait} | tRef: {gait.time_reference}")  # TODO: Remove, for debugging
 

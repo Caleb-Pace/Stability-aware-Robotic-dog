@@ -59,8 +59,8 @@ class Gait:
             anchor_count = len(self.time_anchors[i])
             phase_offset = self.leg_phase_offset[i]
 
-            calculated_time = last_time_anchor * (phase_offset + 1)
+            calculated_time = last_time_anchor / (1 - phase_offset)
             
             if calculated_time > self.time_reference:
                 self.time_reference = calculated_time
-                self.steps_in_gait = math.ceil(anchor_count * (phase_offset + 1))
+                self.steps_in_gait = math.ceil(anchor_count / (1 - phase_offset))
