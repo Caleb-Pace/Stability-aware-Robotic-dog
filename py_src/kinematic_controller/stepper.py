@@ -17,13 +17,17 @@ def step(gait:Gait, step_num:int) -> PointList:
     # Need time anchors to determine phase offset
 
     for i in range(LEG_COUNT):
-        # TODO: Redo this section vvv
-        if ((gait.leg_phase_offset[i] * gait.time_reference) + gait.time_anchors[i][-1]) > gait.time_anchors[i][step_num]:
-            foot_positions[i] = gait.foot_trajectories[i][-1]
-        elif (gait.leg_phase_offset[i] * gait.time_reference) > gait.time_anchors[i][step_num]:
-            foot_positions[i] = gait.foot_trajectories[i][step_num]
-        else:  # Before phase
-            foot_positions[i] = gait.foot_trajectories[i][0]
+        phase_offset_as_steps = math.ceil(gait.leg_phase_offset[i] * gait.steps_in_gait)
+        movement_length_in_steps = len(gait.time_anchors[i])
+
+        print(f"Leg{i} | step{step_num} | gaitFT[{(step_num - phase_offset_as_steps)}] | Mvmnt: ( pO{{{phase_offset_as_steps}}} + mvL{{{movement_length_in_steps}}} ) = {(phase_offset_as_steps + movement_length_in_steps)} / {gait.steps_in_gait} | tRef: {gait.time_reference}")  # TODO: Remove, for debugging
+
+        if step_num < phase_offset_as_steps:  # Before
+            foot_positions[i] = gait.foot_trajectories[i][0]  # Starting position
+        elif step_num >= (phase_offset_as_steps + movement_length_in_steps):  # After
+            foot_positions[i] = gait.foot_trajectories[i][-1]  # End position
+        else:
+            foot_positions[i] = gait.foot_trajectories[i][(step_num - phase_offset_as_steps)]
     
     return foot_positions
 
