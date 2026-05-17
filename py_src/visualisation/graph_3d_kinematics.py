@@ -7,9 +7,9 @@ from kinematic_controller.stepper import step, apply_offset
 
 def show_full_gait(gait:Gait):
     ax = plt.figure().add_subplot(projection='3d')
-    ax.set_xlim3d([-20, 20])
-    ax.set_ylim3d([-20, 20])
-    ax.set_zlim3d([0, 20])
+    ax.set_xlim3d([-0.4, 0.4])
+    ax.set_ylim3d([-0.4, 0.4])
+    ax.set_zlim3d([0, 0.4])
     ax.set_box_aspect((1, 1, 1)) 
 
     # Mark Origin

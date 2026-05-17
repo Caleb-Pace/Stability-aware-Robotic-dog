@@ -44,4 +44,4 @@ def apply_offset(foot_positions:PointList) -> PointList:
     if len(foot_positions) != LEG_COUNT:
         raise ValueError(f"{{foot_positions}} must be equal to the {{LEG_COUNT}}! ({foot_positions} == {LEG_COUNT})")
     
-    return (foot_positions + (_offsets_from_origin * 50))  # Translate foot positions
+    return (foot_positions + _offsets_from_origin)  # Translate foot positions
