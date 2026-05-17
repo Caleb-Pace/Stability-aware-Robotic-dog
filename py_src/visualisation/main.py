@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import interpolation
-from visualisation.graph_3d_trajectory import show_interpolated_curves, compare_interpolators
+from visualisation.graph_3d_interpolated_curves import show_interpolated_curves, compare_interpolators
 
 def main():
     # show_interpolated_curves(interpolation.Lagrange())
