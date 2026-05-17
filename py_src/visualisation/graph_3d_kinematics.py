@@ -2,16 +2,18 @@ import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
 from kinematic_controller.gait_definition import Gait, LEG_COUNT
-from kinematic_controller.stepper import step
+from kinematic_controller.stepper import step, apply_offset
 
 def show_full_gait(gait:Gait):
     ax = plt.figure().add_subplot(projection='3d')
-    ax.set_xlim3d([-10, 10])
-    ax.set_ylim3d([-10, 10])
-    ax.set_zlim3d([0, 10])
+    ax.set_xlim3d([-20, 20])
+    ax.set_ylim3d([-20, 20])
+    ax.set_zlim3d([0, 20])
     ax.set_box_aspect((1, 1, 1)) 
 
-    gait_steps = np.array([step(gait, i) for i in range(gait.steps_in_gait)], dtype=np.float64)
+    ax.plot([0], [0], [0], 'ro', markersize=5, label='Origin')
+
+    gait_steps = np.array([apply_offset(step(gait, i)) for i in range(gait.steps_in_gait)], dtype=np.float64)
     points_by_leg = np.moveaxis(gait_steps, 1, 0)
     # print(f"{gait_steps.shape} -> {points_by_leg.shape}")  # TODO: Remove, for debugging
     
