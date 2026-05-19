@@ -1,0 +1,37 @@
+import math
+import numpy as np
+from data_structures import Point3D
+
+
+# Link Lengths in meters #
+_HIP_OFFSET   = 0.0
+_THIGH_LENGTH = 0.213
+_CALF_LENGTH  = 0.213
+
+# Rotation limits (min, max) in Radians #
+_HIP_ABDUCTOR_ROT_RANGE = (-1.0472,  1.0472)   # approx. -60  to  60  deg
+_FRONT_HIP_ROT_RANGE    = (-1.5708,  3.4907)   # approx. -90  to  200 deg
+_BACK_HIP_ROT_RANGE     = (-0.5236,  4.5379)   # approx. -30  to  260 deg
+_KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
+
+# Output torque limits in Newton-meters #
+_KNEE_TORQUE_LIMIT = (-45.43, 45.43)
+
+
+# Adapted from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_lowlevel.py#L99
+def solve(px, pz):
+    r = math.sqrt(px*px + pz*pz)
+    r = float(np.clip(r, 0.05, _THIGH_LENGTH + _CALF_LENGTH - 0.005))
+    cos_c = (_THIGH_LENGTH**2 + _CALF_LENGTH**2 - r**2) / (2.0*_THIGH_LENGTH*_CALF_LENGTH)
+    calf  = -(math.pi - math.acos(float(np.clip(cos_c, -1.0, 1.0))))
+    alpha = math.atan2(px, -pz)
+    cos_b = (_THIGH_LENGTH**2 + r**2 - _CALF_LENGTH**2) / (2.0*_THIGH_LENGTH*r)
+    thigh = alpha + math.acos(float(np.clip(cos_b, -1.0, 1.0)))
+    return (float(np.clip(thigh, *_FRONT_HIP_ROT_RANGE)),
+            float(np.clip(calf,  *_KNEE_ROT_RANGE)))
+
+def _solve(point:Point3D):
+    pass
+
+def _clamp_motor_positions():
+    pass
