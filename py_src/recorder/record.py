@@ -13,7 +13,7 @@ class VideoClient():
 
 fps = 30.0
 using_test_camera = True
-
+duration = 4  # In seconds or None for endless
 
 def _unitree_camera_client_init() -> VideoClient:
     # # TODO: See if required
@@ -57,8 +57,7 @@ def _get_frame_test(cap:cv2.VideoCapture) -> MatLike|None:
     return  frame
 
 def main():
-    delay = 1.0 / fps
-    
+    # Video input setup
     client = None
     cap = None
     _cam_width = 1920
@@ -84,14 +83,19 @@ def main():
 
         print("[Recorder] Local camera, initialised!")
 
-    # Video writer
+    # Video writer setup
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter('output.mp4', fourcc, fps, (_cam_width, _cam_height))
+
+    frame_duration = 1.0 / fps
 
     print("[Recorder] Recording loop, started!")
     try:
         frame_count = 0
-        while True:
+        while (duration is None) or (frame_count < (fps*duration)):
+            start_time = time.perf_counter()
+
+            # Fetch frame
             frame = None
             if client is not None:
                 frame = _get_frame_unitree(client)
@@ -105,13 +109,15 @@ def main():
             out.write(frame)
             frame_count += 1
 
-            # Time/End check
-            if frame_count == (4 * fps):
-                break
+            # Dynamic sleeping (to keep fps consistent)
+            elapsed_time = time.perf_counter() - start_time
+            remaining_sleep = frame_duration - elapsed_time
             
-            # Frame delay
-            time.sleep(delay)
+            if remaining_sleep > 0:
+                time.sleep(remaining_sleep)
+
         print("[Recorder] Recording loop, finished!")
+    
     finally:
         out.release()
         if cap is not None:
