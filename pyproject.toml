@@ -9,7 +9,8 @@ description = "Stability-aware controler for Unitree Go2"
 dependencies = [
     "numpy",
     "matplotlib",
-    "opencv-python"
+    "opencv-python",
+    "pyaudio"
 ]
 
 [tool.hatch.build.targets.wheel]
