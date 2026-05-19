@@ -18,20 +18,24 @@ _KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
 _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
 
 
-# Adapted from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_lowlevel.py#L99
-def solve(px, pz):
-    r = math.sqrt(px*px + pz*pz)
-    r = float(np.clip(r, 0.05, _THIGH_LENGTH + _CALF_LENGTH - 0.005))
-    cos_c = (_THIGH_LENGTH**2 + _CALF_LENGTH**2 - r**2) / (2.0*_THIGH_LENGTH*_CALF_LENGTH)
-    calf  = -(math.pi - math.acos(float(np.clip(cos_c, -1.0, 1.0))))
-    alpha = math.atan2(px, -pz)
-    cos_b = (_THIGH_LENGTH**2 + r**2 - _CALF_LENGTH**2) / (2.0*_THIGH_LENGTH*r)
-    thigh = alpha + math.acos(float(np.clip(cos_b, -1.0, 1.0)))
-    return (float(np.clip(thigh, *_FRONT_HIP_ROT_RANGE)),
-            float(np.clip(calf,  *_KNEE_ROT_RANGE)))
+class IK_Solver:
+    def __init__(self):
+        pass
 
-def _solve(point:Point3D):
-    pass
+    # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_lowlevel.py#L99
+    def solve(self, px, pz):
+        r = math.sqrt(px*px + pz*pz)
+        r = float(np.clip(r, 0.05, _THIGH_LENGTH + _CALF_LENGTH - 0.005))
+        cos_c = (_THIGH_LENGTH**2 + _CALF_LENGTH**2 - r**2) / (2.0*_THIGH_LENGTH*_CALF_LENGTH)
+        calf  = -(math.pi - math.acos(float(np.clip(cos_c, -1.0, 1.0))))
+        alpha = math.atan2(px, -pz)
+        cos_b = (_THIGH_LENGTH**2 + r**2 - _CALF_LENGTH**2) / (2.0*_THIGH_LENGTH*r)
+        thigh = alpha + math.acos(float(np.clip(cos_b, -1.0, 1.0)))
+        return (float(np.clip(thigh, *_FRONT_HIP_ROT_RANGE)),
+                float(np.clip(calf,  *_KNEE_ROT_RANGE)))
 
-def _clamp_motor_positions():
-    pass
+    def _solve(self, point:Point3D):
+        pass
+
+    def _clamp_motor_positions(self):
+        pass
