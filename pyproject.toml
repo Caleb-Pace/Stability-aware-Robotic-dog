@@ -8,15 +8,18 @@ version = "0.1.0"
 description = "Stability-aware controler for Unitree Go2"
 dependencies = [
     "numpy",
-    "matplotlib"
+    "matplotlib",
+    "opencv-python"
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = [
     "py_src/kinematic_controller",
-    "py_src/visualisation"
+    "py_src/visualisation",
+    "py_src/recorder"
 ]
 
 [project.scripts]
 run-dog = "kinematic_controller.main:main"
 visualise = "visualisation.main:main"
+record = "recorder.record:main"
