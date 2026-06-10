@@ -10,6 +10,16 @@ limits_dtype = np.dtype([('min', 'f8'), ('max', 'f8')])
 JointLimitsArray = npt.NDArray[np.void]
 
 
+def _spherical_to_cartesian_coordinate(distance_r:float, azimuth_angle:float, polar_angle:float, start_point:Point3D|None = None) -> Point3D:
+    if start_point is None:
+        start_point = np.array([0,0,0])
+    
+    return start_point + np.array([
+        (distance_r * np.sin(polar_angle) * np.cos(azimuth_angle)),
+        (distance_r * np.sin(polar_angle) * np.sin(azimuth_angle)),
+        (distance_r * np.cos(polar_angle)),
+    ])
+
 def _calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
     abductor_theta, hip_theta, knee_theta = angles
 
