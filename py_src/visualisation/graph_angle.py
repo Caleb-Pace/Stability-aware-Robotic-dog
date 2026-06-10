@@ -13,8 +13,11 @@ JointLimitsArray = npt.NDArray[np.void]
 def _degrees_to_radians(deg:float) -> float:
     return deg * (np.pi / 180)
 
-def _spherical_to_cartesian_coordinate(distance_r:float, azimuth_angle:float, polar_angle:float) -> Point3D:
-    return np.array([
+def _spherical_to_cartesian_coordinate(distance_r:float, azimuth_angle:float, polar_angle:float, start_point:Point3D|None = None) -> Point3D:
+    if start_point is None:
+        start_point = np.array([0,0,0])
+
+    return start_point + np.array([
         (distance_r * np.sin(polar_angle) * np.cos(azimuth_angle)),
         (distance_r * np.sin(polar_angle) * np.sin(azimuth_angle)),
         (distance_r * np.cos(polar_angle)),
