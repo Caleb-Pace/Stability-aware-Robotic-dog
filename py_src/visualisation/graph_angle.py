@@ -10,23 +10,29 @@ limits_dtype = np.dtype([('min', 'f8'), ('max', 'f8')])
 JointLimitsArray = npt.NDArray[np.void]
 
 
-def calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
+def _calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
+    abductor_theta, hip_theta, knee_theta = angles
+
     # Breadth (yz) plane
-    hip_abductor_joint_pos:Point3D = origin
+    abductor_pos:Point3D = origin
+    
+    # Movement plane
+    hip_pos:Point3D  = abductor_pos
+    knee_pos:Point3D = hip_pos
 
-    # Movement (xz) plane
-    hip_joint_pos:Point3D = origin
-    knee_joint_pos:Point3D = origin
+    #    End effector pos
+    foot_pos:Point3D = knee_pos
 
-    return hip_abductor_joint_pos, hip_joint_pos, knee_joint_pos
+    return abductor_pos, hip_pos, knee_pos, foot_pos
 
+# TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:JointLimitsArray|None = None):
     if len(angles) != 3:
         raise IndexError(f"3 angles must be provided! ({len(angles)} != 3)")
     if joint_limits and len(joint_limits) != 3:
         raise IndexError(f"3 joint limits must be provided! ({len(joint_limits)} != 3)")
 
-    print(repr(calculate_joint_positions(origin, angles)))  # TODO: Remove for debugging
+    print(repr(_calculate_joint_positions(origin, angles)))  # TODO: Remove for debugging
 
 # IK Test
 def main():
