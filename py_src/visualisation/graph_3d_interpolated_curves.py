@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import interpolation
 from interpolation import Interpolator
-from data_structures import PointList
+from data_structures import Point3DList
 
 # Show plot
 def show_interpolated_curves(interpolator:Interpolator, alt_interpolator:Interpolator|None = None):
@@ -73,7 +73,7 @@ def compare_interpolators():
     ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
     plt.show()
 
-def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, node_count:int, label:str, line_colour:str, point_colour:str, time_limit:float|None=None):
+def draw_interpolated_curve(ax, interpolator:Interpolator, points:Point3DList, node_count:int, label:str, line_colour:str, point_colour:str, time_limit:float|None=None):
     interpolated_points, _ = interpolator.compute_interpolated_points(points, node_count, time_limit)
 
     # Draw
@@ -81,7 +81,7 @@ def draw_interpolated_curve(ax, interpolator:Interpolator, points:PointList, nod
     draw_parametric_function(ax, interpolated_points, line_colour, label)
     plot_points(ax, interpolated_points[new_points_mask], point_colour, '(Interpolated points)')
 
-def draw_parametric_function(ax, points:PointList, colour:str, label:str):
+def draw_parametric_function(ax, points:Point3DList, colour:str, label:str):
     tx = points[:, 0]
     ty = points[:, 1]
     tz = points[:, 2]
@@ -89,7 +89,7 @@ def draw_parametric_function(ax, points:PointList, colour:str, label:str):
     # Draw curve
     ax.plot(tx, ty, tz, c=colour, label=label)
 
-def plot_points(ax, points:PointList, colour:str, label:str):
+def plot_points(ax, points:Point3DList, colour:str, label:str):
     x = points[:, 0]
     y = points[:, 1]
     z = points[:, 2]

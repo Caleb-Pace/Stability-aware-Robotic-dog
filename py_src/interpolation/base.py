@@ -1,11 +1,11 @@
 import numpy as np
 import numpy.typing as npt
 from abc import ABC, abstractmethod
-from data_structures import Point3D, PointList
+from data_structures import Point3D, Point3DList
 
 class Interpolator(ABC):
     @abstractmethod
-    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:Point3DList) -> Point3D:
         """
         Interpolates a single point at time t.
 
@@ -20,7 +20,7 @@ class Interpolator(ABC):
         pass
     
     @abstractmethod
-    def calculate_time_anchors(self, control_points:PointList) -> npt.NDArray[np.float64]:
+    def calculate_time_anchors(self, control_points:Point3DList) -> npt.NDArray[np.float64]:
         """
         Calculates the time-anchors for each control point.
 
@@ -32,12 +32,12 @@ class Interpolator(ABC):
         """
         pass
 
-    def compute_interpolated_points(self, control_points:PointList, node_count:int, maximum_time:float|None=None) -> tuple[PointList, npt.NDArray[np.float64]]:
+    def compute_interpolated_points(self, control_points:Point3DList, node_count:int, maximum_time:float|None=None) -> tuple[Point3DList, npt.NDArray[np.float64]]:
         """
         Computes a list of interpolated points along the curve defined by the control points.
 
         Returns:
-            PointList: The array of interpolated points along the curve.
+            Point3DList: The array of interpolated points along the curve.
 
         Args:
             control_points: The array of control points defining the curve.
@@ -86,7 +86,7 @@ class Interpolator(ABC):
             raise IndexError(f"Not enough time samples to interpolate! ({len(t_samples)} > 0)")
 
 
-        interpolated_points = np.empty((len(t_samples), 3))  # Pre-allocate PointList (2D array)
+        interpolated_points = np.empty((len(t_samples), 3))  # Pre-allocate Point3DList (2D array)
 
         # Calculate interpolated points
         for i, t in enumerate(t_samples):
