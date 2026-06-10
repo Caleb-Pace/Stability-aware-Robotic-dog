@@ -66,7 +66,7 @@ def calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
     abductor_pos:Point3D = origin
 
     # Movement plane
-    movement_plane_anchor_point:Point3D = _spherical_to_cartesian_coordinate(_HIP_OFFSET, abductor_angle, POLAR_POS_Y_ANGLE, abductor_pos)
+    movement_plane_anchor_point:Point3D = _spherical_to_cartesian_coordinate(_HIP_OFFSET, POLAR_POS_Y_ANGLE, abductor_angle, abductor_pos)
     movement_plane_normal_vector:Vector = movement_plane_anchor_point
     u_unit, v_unit                      = _get_unit_vectors_of_a_plane(movement_plane_normal_vector)
 
