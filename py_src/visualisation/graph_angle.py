@@ -2,18 +2,13 @@ import math
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
-from data_structures import Point3D
+from data_structures import Point2D, Point3D, Vector
 from kinematic_controller.ik_solver import _HIP_OFFSET, _THIGH_LENGTH, _CALF_LENGTH
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
-from typing import Annotated, Tuple
+from typing import Tuple
 
 limits_dtype = np.dtype([('min', 'f8'), ('max', 'f8')])
 JointLimitsArray = npt.NDArray[np.void]
-
-
-type Point2D = Annotated[npt.NDArray[np.float64], (2,)]
-type Plane   = Annotated[npt.NDArray[np.float64], (4,)]
-type Vector  = Point3D
 
 
 def _degrees_to_radians(deg:float) -> float:
