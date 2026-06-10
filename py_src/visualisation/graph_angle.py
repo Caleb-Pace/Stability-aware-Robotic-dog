@@ -9,14 +9,14 @@ limits_dtype = np.dtype([('min', 'f8'), ('max', 'f8')])
 JointLimitsArray = npt.NDArray[np.void]
 
 def _get_arc_points(pivot_point:Point3D, start_angle:float, end_angle:float, u_unit:Vector, v_unit:Vector, arc_radius:float) -> Point3DList:
-    total_angle = np.abs(start_angle) + np.abs(end_angle)
+    total_angle = np.abs(end_angle - start_angle)
     total_degrees = int(np.round(total_angle * (180/np.pi)))  # Convert Radians to Degrees
     t = np.linspace(start_angle, end_angle, total_degrees)
 
     basis = np.array([u_unit, v_unit])
     trig = np.column_stack([np.cos(t), np.sin(t)])
     arc_points = (pivot_point + arc_radius * (trig @ basis)).T
-    print(arc_points.shape)
+    print(f"{arc_points.shape}; {{{start_angle} to {end_angle} is {total_angle} ({total_degrees})}}")  # TODO: Remove, for debugging
     return arc_points
 
 def _draw_arc(ax, arc_points:Point3DList, color:str) -> None:
@@ -59,12 +59,22 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:JointL
     std_y_unit = np.array([0, 1, 0])
     std_z_unit = np.array([0, 0, 1])
     
-    #   Movement Plane: Abductor-Hip vector is normal to the movement plane
+    #     Movement Plane: Abductor-Hip vector is normal to the movement plane
     plane_u_unit, plane_v_unit = _get_unit_vectors_of_a_plane(hip_pos)
 
     # Angles (arcs)
     ARC_RADIUS = 0.05
+
+    #     Abductor angle
     arc_points = _get_arc_points(abductor_pos, 0, abductor_angle, std_z_unit, std_y_unit, ARC_RADIUS)
+    _draw_arc(ax, arc_points, GREEN_COLOR)
+
+    #     Hip angle
+    arc_points = _get_arc_points(hip_pos, 0, hip_angle, plane_u_unit, plane_v_unit, ARC_RADIUS)
+    _draw_arc(ax, arc_points, GREEN_COLOR)
+
+    #     Knee angle
+    arc_points = _get_arc_points(knee_pos, hip_angle, knee_absolute_angle, plane_u_unit, plane_v_unit, ARC_RADIUS)
     _draw_arc(ax, arc_points, GREEN_COLOR)
 
     ax.view_init(elev=25, azim=65)
@@ -80,7 +90,7 @@ def main():
     origin = np.array([0, 0, 0], dtype=np.float64)
     angles = np.array([
         degrees_to_radians(45),
-        degrees_to_radians(90),
+        degrees_to_radians(-90),
         degrees_to_radians(-90)
     ], dtype=np.float64)
     joint_limits = np.array([(-1.31, 2.2), (3.14, -0.5), (0.0, 1.1)], dtype=limits_dtype)
