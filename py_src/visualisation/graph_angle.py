@@ -13,26 +13,21 @@ JointLimitsArray = npt.NDArray[np.void]
 def _degrees_to_radians(deg:float) -> float:
     return deg * (np.pi / 180)
 
-def _spherical_to_cartesian_coordinate(distance_r:float, azimuth_angle:float, polar_angle:float, start_point:Point3D|None = None) -> Point3D:
-    if start_point is None:
-        start_point = np.array([0,0,0])
-
-    return start_point + np.array([
+def _spherical_to_cartesian_coordinate(distance_r:float, azimuth_angle:float, polar_angle:float) -> Point3D:
+    return np.array([
         (distance_r * np.sin(polar_angle) * np.cos(azimuth_angle)),
         (distance_r * np.sin(polar_angle) * np.sin(azimuth_angle)),
         (distance_r * np.cos(polar_angle)),
     ])
 
 def _calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
-    abductor_theta, hip_theta, knee_theta = angles
+    abductor_angle, hip_angle, knee_angle = angles
 
     # Breadth (yz) plane
     abductor_pos:Point3D = origin
-    movement_plane_offset = np.array([
-        1,
-        _HIP_OFFSET * np.sin(abductor_theta),
-        _HIP_OFFSET * np.cos(abductor_theta)
-    ])
+    pos_y_angle = _degrees_to_radians(90)
+    movement_plane_offset = _spherical_to_cartesian_coordinate(_HIP_OFFSET, abductor_angle, pos_y_angle)
+    print(repr(movement_plane_offset))
 
     # Movement plane
     offset = np.array([
@@ -53,14 +48,16 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:JointL
     if joint_limits and len(joint_limits) != 3:
         raise IndexError(f"3 joint limits must be provided! ({len(joint_limits)} != 3)")
 
-    print(repr(_spherical_to_cartesian_coordinate(10, _degrees_to_radians(20), (30))))  # TODO: Remove for debugging
-
-    # print(repr(_calculate_joint_positions(origin, angles)))  # TODO: Remove for debugging
+    print(repr(_calculate_joint_positions(origin, angles)))  # TODO: Remove for debugging
 
 # IK Test
 def main():
     origin = np.array([0, 0, 0], dtype=np.float64)
-    angles = np.array([1.4, 2, 0.94], dtype=np.float64)
+    angles = np.array([
+        _degrees_to_radians(90),
+        _degrees_to_radians(55),
+        _degrees_to_radians(60)
+    ], dtype=np.float64)
     joint_limits = np.array([(-1.31, 2.2), (3.14, -0.5), (0.0, 1.1)], dtype=limits_dtype)
 
     show_leg(origin, angles)
