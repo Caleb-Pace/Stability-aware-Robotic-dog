@@ -15,9 +15,18 @@ def _calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
 
     # Breadth (yz) plane
     abductor_pos:Point3D = origin
-    
+    theta          = angles[0]
+    movement_plane = np.array([
+        1,
+        _HIP_OFFSET * np.sin(theta),
+        _HIP_OFFSET * np.cos(theta)
+    ])
+
     # Movement plane
-    hip_pos:Point3D  = abductor_pos
+    offset = np.array([
+        0, 0, 0
+    ])
+    hip_pos:Point3D  = abductor_pos + (offset * movement_plane)
     knee_pos:Point3D = hip_pos
 
     #    End effector pos
