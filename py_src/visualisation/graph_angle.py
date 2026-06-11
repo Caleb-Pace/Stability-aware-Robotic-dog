@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from data_structures import Point3D, Point3DList, Vector
 from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
-from kinematic_controller.fk_solver import degrees_to_radians, calculate_joint_positions, _get_unit_vectors_of_a_plane
+from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS, degrees_to_radians, calculate_joint_positions, _get_unit_vectors_of_a_plane
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
 
 
@@ -24,7 +24,7 @@ def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     arc_x, arc_y, arc_z = arc_points
     ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5, zorder=zorder)
 
-def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
+def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float):
     joint_min_angle, joint_max_angle = angle.limits
     joint_min_angle += angle.start
     joint_max_angle += angle.start
@@ -51,6 +51,12 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
     actual_angle     = angle.get_total_angle_in_degrees(angle.start, angle.end)
     actual_angle_str = f"{np.round(actual_angle, 2)};"
     print(f"{boundcheck_str:<5} {off_by_str:<10} : curr: {curr_angle_str:>7} | (angle: {actual_angle_str:<8} {angle_str}) | {limits_str}")
+
+    # Apply zero offset (To align visually)
+    current_angle   += zero_offset
+    ref_angle       += zero_offset
+    joint_min_angle += zero_offset
+    joint_max_angle += zero_offset
 
     # Full range
     full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
@@ -112,9 +118,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
-    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc)  # TODO: Uncomment, testing
-    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc)
-    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc)
+    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0])  # TODO: Uncomment, testing
+    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1])
+    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]))
 
 
     # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
@@ -133,8 +139,8 @@ def main():
 
     angles = np.array([
         degrees_to_radians(0),
-        degrees_to_radians(20),
-        degrees_to_radians(-60)
+        degrees_to_radians(0),
+        degrees_to_radians(0)
     ], dtype=np.float64)
 
     origin = np.array([0, 0, 0], dtype=np.float64)
