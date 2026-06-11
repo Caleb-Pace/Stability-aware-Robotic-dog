@@ -20,10 +20,9 @@ class ArcSettings:
         self.v_unit = v_unit if (v_unit is not None) else STD_UNIT.Y
 
 class JointAngle:
-    start:float
-    end:float
-    limits:AngleLimits
-    _total_angle:float  # In Radians
+    start:float  # In Radians
+    end:float    # In Radians
+    limits:AngleLimits  # In Radians
     total_degrees:int
 
     def __init__(self, start_angle:float, end_angle:float, limits:AngleLimits):
@@ -31,5 +30,17 @@ class JointAngle:
         self.end    = end_angle
         self.limits = limits
 
-        self._total_angle  = np.abs(self.start - self.end)
-        self.total_degrees = int(np.round(np.degrees(self._total_angle)))
+        self.total_degrees = int(np.round(self.get_total_angle_in_degrees()))
+
+    def get_total_angle_in_radians(self, angle_start:float|None = None, angle_end:float|None = None) -> float:
+        if angle_end is None:
+            angle_start = self.start
+            angle_end = self.end
+        elif angle_start is None:
+            angle_start = self.end
+
+        return np.abs(angle_start - angle_end)
+    
+    def get_total_angle_in_degrees(self, angle_start:float|None = None, angle_end:float|None = None) -> float:
+        total_angle_in_radians = self.get_total_angle_in_radians(angle_start, angle_end)
+        return np.degrees(total_angle_in_radians)
