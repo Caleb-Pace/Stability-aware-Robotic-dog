@@ -4,7 +4,7 @@ from data_structures import Point3D
 
 
 # Link Lengths in meters #
-_HIP_OFFSET   = 0.05  # TODO: Remove, for testing
+_HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value
 _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
