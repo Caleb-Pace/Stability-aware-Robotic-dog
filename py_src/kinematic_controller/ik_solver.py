@@ -4,7 +4,7 @@ from data_structures import Point3D
 
 
 # Link Lengths in meters #
-_HIP_OFFSET   = 0.0
+_HIP_OFFSET   = 0.05  # TODO: Remove, for testing
 _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
@@ -20,21 +20,34 @@ _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
 
 class IK_Solver:
     def __init__(self):
+        self.maximum_move_length = (_THIGH_LENGTH) + (_CALF_LENGTH * _KNEE_ROT_RANGE[1])
         pass
 
-    # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_lowlevel.py#L99
-    def solve(self, px, pz):
-        r = math.sqrt(px*px + pz*pz)
-        r = float(np.clip(r, 0.05, _THIGH_LENGTH + _CALF_LENGTH - 0.005))
-        cos_c = (_THIGH_LENGTH**2 + _CALF_LENGTH**2 - r**2) / (2.0*_THIGH_LENGTH*_CALF_LENGTH)
-        calf  = -(math.pi - math.acos(float(np.clip(cos_c, -1.0, 1.0))))
-        alpha = math.atan2(px, -pz)
-        cos_b = (_THIGH_LENGTH**2 + r**2 - _CALF_LENGTH**2) / (2.0*_THIGH_LENGTH*r)
-        thigh = alpha + math.acos(float(np.clip(cos_b, -1.0, 1.0)))
-        return (float(np.clip(thigh, *_FRONT_HIP_ROT_RANGE)),
-                float(np.clip(calf,  *_KNEE_ROT_RANGE)))
+    # # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_lowlevel.py#L99
+    # def solve(self, px, pz):
+    #     r = math.sqrt(px*px + pz*pz)
+    #     r = float(np.clip(r, 0.05, _THIGH_LENGTH + _CALF_LENGTH - 0.005))
+    #     cos_c = (_THIGH_LENGTH**2 + _CALF_LENGTH**2 - r**2) / (2.0*_THIGH_LENGTH*_CALF_LENGTH)
+    #     calf  = -(math.pi - math.acos(float(np.clip(cos_c, -1.0, 1.0))))
+    #     alpha = math.atan2(px, -pz)
+    #     cos_b = (_THIGH_LENGTH**2 + r**2 - _CALF_LENGTH**2) / (2.0*_THIGH_LENGTH*r)
+    #     thigh = alpha + math.acos(float(np.clip(cos_b, -1.0, 1.0)))
+    #     return (float(np.clip(thigh, *_FRONT_HIP_ROT_RANGE)),
+    #             float(np.clip(calf,  *_KNEE_ROT_RANGE)))
 
     def _solve(self, point:Point3D):
+        x, y, z = point
+
+        abductor_angle = 0.0
+        hip_angle = 0.0
+        knee_angle = 0.0
+
+        alpha = 0
+        
+
+        beta  = 0
+        gamma = 0
+
         pass
 
     def _clamp_motor_positions(self):
