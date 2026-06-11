@@ -92,7 +92,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_joint      = JointAngle(0,         hip_angle,           joint_limits[1])
     knee_joint     = JointAngle(hip_angle, knee_absolute_angle, joint_limits[2])
 
-    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, STD_UNIT.Y,   STD_UNIT.Z)    # World YZ plane
+    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, STD_UNIT.X,   STD_UNIT.Z)    # Normal to the world YZ plane
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
@@ -101,7 +101,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc)
 
 
-    ax.view_init(elev=15, azim=(40 if is_left_side else 140))
+    ax.view_init(elev=15, azim=(50 if is_left_side else 130))
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
@@ -113,7 +113,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 def main():
     origin = np.array([0, 0, 0], dtype=np.float64)
     angles = np.array([
-        degrees_to_radians(0),
+        degrees_to_radians(45),
         degrees_to_radians(0),
         degrees_to_radians(0)
     ], dtype=np.float64)
