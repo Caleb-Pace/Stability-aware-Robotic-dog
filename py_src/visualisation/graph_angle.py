@@ -8,27 +8,51 @@ from kinematic_controller.fk_solver import degrees_to_radians, calculate_joint_p
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
 
 
-def _get_arc_points(angle:JointAngle, arc:ArcSettings) -> Point3DList:
-    t = np.linspace(angle.start, angle.end, angle.total_degrees)
+GREEN_COLOUR = "#15F015"
+GREY_COLOUR  = "#7F7F7F"
+RED_COLOUR   = "#F01515"
+
+
+def _get_arc_points(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
     basis = np.array([arc.u_unit, arc.v_unit])
     trig = np.column_stack([np.cos(t), np.sin(t)])
     
     arc_points = (arc.pivot_point + arc.radius * (trig @ basis)).T
     return arc_points
 
-def _draw_arc(ax, arc_points:Point3DList, color:str) -> None:
+def _draw_arc(ax, arc_points:Point3DList, colour:str) -> None:
     arc_x, arc_y, arc_z = arc_points
-    ax.plot(arc_x, arc_y, arc_z, color=color, linewidth=2.5)
+    ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5)
 
 # TODO: WIP
-def _draw_joint(ax, angle:JointAngle, color:str, arc:ArcSettings):
-    pass
+def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
+    min_angle = min(angle.start, angle.end)
+    max_angle = min(angle.start, angle.end)
+    joint_min_angle, joint_max_angle = angle.limits
+
+    # Bound checks
+    if min_angle < joint_min_angle:  # Under
+        colour = RED_COLOUR
+    if max_angle > joint_max_angle:  # Over
+        colour = RED_COLOUR
+    
+    # Full range
+    full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
+    full_range_step_count = int(np.round(full_range_in_degrees))
+    full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
+    full_range_points     = _get_arc_points(full_range_t_values, arc)
+    _draw_arc(ax, full_range_points, GREY_COLOUR)
+
+    # Angle
+    t_values     = np.linspace(angle.start, angle.end, angle.total_degrees)
+    angle_points = _get_arc_points(t_values, arc)
+    _draw_arc(ax, angle_points, colour)
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void]):
     if len(angles) != 3:  # Parameter check
         raise IndexError(f"3 angles must be provided! ({len(angles)} != 3)")
-    if joint_limits and len(joint_limits) != 3:   # Parameter check
+    if len(joint_limits) != 3:   # Parameter check
         raise IndexError(f"3 joint limits must be provided! ({len(joint_limits)} != 3)")
 
     ax = plt.figure().add_subplot(projection='3d')
@@ -40,9 +64,6 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     # Constants
     POINT_NAMES   = ["Abductor", "Hip", "Knee", "Foot"]
     POINT_COLOURS  = ['#34495e', '#e74c3c', '#2ecc71', '#9b59b6']
-    GREEN_COLOUR = "#15F015"
-    RED_COLOUR   = "#F01515"
-    GREY_COLOUR  = "#7F7F7F"
 
     # Unpack angles
     abductor_angle, hip_angle, knee_relative_angle = angles
