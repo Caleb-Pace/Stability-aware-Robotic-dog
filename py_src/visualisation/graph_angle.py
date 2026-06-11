@@ -111,12 +111,20 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 
 # IK Test
 def main():
-    origin = np.array([0, 0, 0], dtype=np.float64)
-    angles = np.array([
-        degrees_to_radians(45),
-        degrees_to_radians(0),
-        degrees_to_radians(0)
-    ], dtype=np.float64)
-    joint_limits = np.array([(-1.31, 2.2), (-0.5, 3.14), (0.0, 1.1)], dtype=AngleLimits)
+    is_left_side = False
+    is_front_leg = True
 
-    show_leg(origin, angles, joint_limits, is_left_side=False)
+    angles = np.array([
+        degrees_to_radians(0),
+        degrees_to_radians(0),
+        degrees_to_radians(-60)
+    ], dtype=np.float64)
+    
+    origin = np.array([0, 0, 0], dtype=np.float64)
+    joint_limits = np.array([
+        _HIP_ABDUCTOR_ROT_RANGE,
+        (_FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE),
+        _KNEE_ROT_RANGE
+    ], dtype=AngleLimits)
+
+    show_leg(origin, angles, joint_limits, is_left_side)
