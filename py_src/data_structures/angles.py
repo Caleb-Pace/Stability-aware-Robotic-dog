@@ -29,7 +29,7 @@ class JointAngle:
     def __init__(self, start_angle:float, end_angle:float, limits:AngleLimits):
         self.start  = start_angle
         self.end    = end_angle
-        self.limits = limits
+        self.limits = AngleLimits(*limits)
 
         self.total_degrees = int(np.round(self.get_total_angle_in_degrees()))
 
