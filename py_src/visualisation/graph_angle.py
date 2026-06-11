@@ -20,9 +20,9 @@ def _get_arc_points(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
     arc_points = (arc.pivot_point + arc.radius * (trig @ basis)).T
     return arc_points
 
-def _draw_arc(ax, arc_points:Point3DList, colour:str) -> None:
+def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     arc_x, arc_y, arc_z = arc_points
-    ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5)
+    ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5, zorder=zorder)
 
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
     joint_min_angle, joint_max_angle = angle.limits
@@ -41,14 +41,14 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
     full_range_step_count = int(np.round(full_range_in_degrees))
     full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
     full_range_points     = _get_arc_points(full_range_t_values, arc)
-    _draw_arc(ax, full_range_points, GREY_COLOUR)
+    _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=20)
 
     # Angle
     angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
     step_count   = int(np.round(angle_from_ref_in_degrees))
     t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_points(t_values, arc)
-    _draw_arc(ax, angle_points, colour)
+    _draw_arc(ax, angle_points, colour, zorder=21)
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void]):
@@ -64,8 +64,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     ax.set_box_aspect((1, 1, 1)) 
 
     # Constants
-    POINT_NAMES   = ["Abductor", "Hip", "Knee", "Foot"]
+    POINT_NAMES    = ["Abductor", "Hip", "Knee", "Foot"]
     POINT_COLOURS  = ['#34495e', '#e74c3c', '#2ecc71', '#9b59b6']
+    LINKAGE_COLOUR = '#2c3e50'
 
     # Unpack angles
     abductor_angle, hip_angle, knee_relative_angle = angles
@@ -80,9 +81,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 
 
     # Linkages
-    ax.plot(points[:, 0], points[:, 1], points[:, 2], '-o', color='#2c3e50', linewidth=4, markersize=8, label='Linkages', zorder=0)
+    ax.plot(points[:, 0], points[:, 1], points[:, 2], '-o', color=LINKAGE_COLOUR, linewidth=4, markersize=8, label='Linkages', zorder=10)
     for i, point in enumerate(points):
-        ax.scatter(point[0], point[1], point[2], color=POINT_COLOURS[i], label=POINT_NAMES[i], s=120, zorder=0)
+        ax.scatter(point[0], point[1], point[2], color=POINT_COLOURS[i], label=POINT_NAMES[i], s=120, zorder=31)
 
     # Joint Angles (arcs)
     ARC_RADIUS = 0.05
@@ -100,7 +101,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc)
 
 
-    ax.view_init(elev=25, azim=65)
+    ax.view_init(elev=15, azim=125)
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
@@ -112,9 +113,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 def main():
     origin = np.array([0, 0, 0], dtype=np.float64)
     angles = np.array([
-        degrees_to_radians(45),
-        degrees_to_radians(-90),
-        degrees_to_radians(-90)
+        degrees_to_radians(0),
+        degrees_to_radians(0),
+        degrees_to_radians(0)
     ], dtype=np.float64)
     joint_limits = np.array([(-1.31, 2.2), (-0.5, 3.14), (0.0, 1.1)], dtype=AngleLimits)
 
