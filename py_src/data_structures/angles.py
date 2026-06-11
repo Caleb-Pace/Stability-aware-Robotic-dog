@@ -1,6 +1,5 @@
 import numpy as np
 from data_structures import Point3D, Vector
-from data_structures import Standard3DUnitVectors as STD_UNIT
 from typing import NamedTuple
 
 class AngleLimits(NamedTuple):
@@ -14,6 +13,8 @@ class ArcSettings:
     v_unit:Vector
 
     def __init__(self, pivot_point:Point3D, radius:float, u_unit:Vector|None = None, v_unit:Vector|None = None):
+        from data_structures import Standard3DUnitVectors as STD_UNIT
+        
         self.pivot_point = pivot_point
         self.radius = radius
         self.u_unit = u_unit if (u_unit is not None) else STD_UNIT.X
