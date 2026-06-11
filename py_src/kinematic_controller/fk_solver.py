@@ -9,7 +9,7 @@ from typing import Tuple
 _ANGLE_ZERO_OFFSETS = np.array([
     np.radians(90),   # Abductor
     np.radians(-90),  # Hip
-    np.radians(0),    # Knee (Negative)
+    np.radians(0),    # Knee
 ])  # In Radians
 
 
