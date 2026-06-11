@@ -26,15 +26,31 @@ def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
 
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
     joint_min_angle, joint_max_angle = angle.limits
+    joint_min_angle += angle.start
+    joint_max_angle += angle.start
+
     current_angle = angle.end
     ref_angle     = joint_min_angle
 
     # Bound checks
+    boundcheck_str = "OK"  # TODO: Remove, for debugging
     if current_angle < joint_min_angle:  # Under
         colour    = RED_COLOUR
+        boundcheck_str = "UNDER"  # TODO: Remove, for debugging
     elif current_angle > joint_max_angle:  # Over
         ref_angle = joint_max_angle
         colour    = RED_COLOUR
+        boundcheck_str = "OVER"  # TODO: Remove, for debugging
+
+    # TODO: Remove, for debugging
+    limits_str = f"(min: {np.round(np.degrees(angle.limits.minimum), 2):>7}, max: {np.round(np.degrees(angle.limits.maximum), 2):>7})"
+    off_by     = angle.get_total_angle_in_degrees(ref_angle, current_angle)
+    off_by_str = "(In Range)" if (boundcheck_str == "OK") else f"{np.round(off_by, 2)}"
+    angle_str  = f"{np.round(np.degrees(angle.start), 2):>7} to {np.round(np.degrees(angle.end), 2):>7}"
+    curr_angle_str   = np.round(np.degrees(current_angle), 2)
+    actual_angle     = angle.get_total_angle_in_degrees(angle.start, angle.end)
+    actual_angle_str = f"{np.round(actual_angle, 2)};"
+    print(f"{boundcheck_str:<5} {off_by_str:<10} : curr: {curr_angle_str:>7} | (angle: {actual_angle_str:<8} {angle_str}) | {limits_str}")
 
     # Full range
     full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
@@ -96,12 +112,13 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
-    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc)
+    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc)  # TODO: Uncomment, testing
     _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc)
     _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc)
 
 
-    ax.view_init(elev=15, azim=(50 if is_left_side else 130))
+    # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
+    ax.view_init(elev=0, azim=180)  # TODO: Remove, testing
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
@@ -116,10 +133,10 @@ def main():
 
     angles = np.array([
         degrees_to_radians(0),
-        degrees_to_radians(0),
+        degrees_to_radians(20),
         degrees_to_radians(-60)
     ], dtype=np.float64)
-    
+
     origin = np.array([0, 0, 0], dtype=np.float64)
     joint_limits = np.array([
         _HIP_ABDUCTOR_ROT_RANGE,
