@@ -24,18 +24,18 @@ def _draw_arc(ax, arc_points:Point3DList, colour:str) -> None:
     arc_x, arc_y, arc_z = arc_points
     ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5)
 
-# TODO: WIP
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
-    min_angle = min(angle.start, angle.end)
-    max_angle = min(angle.start, angle.end)
     joint_min_angle, joint_max_angle = angle.limits
+    current_angle = angle.end
+    ref_angle     = joint_min_angle
 
     # Bound checks
-    if min_angle < joint_min_angle:  # Under
-        colour = RED_COLOUR
-    if max_angle > joint_max_angle:  # Over
-        colour = RED_COLOUR
-    
+    if current_angle < joint_min_angle:  # Under
+        colour    = RED_COLOUR
+    elif current_angle > joint_max_angle:  # Over
+        ref_angle = joint_max_angle
+        colour    = RED_COLOUR
+
     # Full range
     full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
     full_range_step_count = int(np.round(full_range_in_degrees))
@@ -44,7 +44,9 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
     _draw_arc(ax, full_range_points, GREY_COLOUR)
 
     # Angle
-    t_values     = np.linspace(angle.start, angle.end, angle.total_degrees)
+    angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
+    step_count   = int(np.round(angle_from_ref_in_degrees))
+    t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_points(t_values, arc)
     _draw_arc(ax, angle_points, colour)
 
@@ -114,6 +116,6 @@ def main():
         degrees_to_radians(-90),
         degrees_to_radians(-90)
     ], dtype=np.float64)
-    joint_limits = np.array([(-1.31, 2.2), (3.14, -0.5), (0.0, 1.1)], dtype=AngleLimits)
+    joint_limits = np.array([(-1.31, 2.2), (-0.5, 3.14), (0.0, 1.1)], dtype=AngleLimits)
 
     show_leg(origin, angles, joint_limits)
