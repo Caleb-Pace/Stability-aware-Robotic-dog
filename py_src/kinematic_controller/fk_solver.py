@@ -6,6 +6,13 @@ from kinematic_controller.ik_solver import _HIP_OFFSET, _THIGH_LENGTH, _CALF_LEN
 from typing import Tuple
 
 
+_ANGLE_ZERO_OFFSETS = np.array([
+    np.radians(90),   # Abductor
+    np.radians(-90),  # Hip
+    np.radians(0),    # Knee (Negative)
+])  # In Radians
+
+
 def degrees_to_radians(deg:float) -> float:
     return deg * (np.pi / 180)
 
@@ -55,18 +62,19 @@ def _convert_local_to_world_coordinate(local_coordinate:Point2D, plane_anchor_po
     x_prime, y_prime = local_coordinate
     return plane_anchor_point + (x_prime * u_unit) + (y_prime * v_unit)
 
-def calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64]):
-    POLAR_POS_Y_ANGLE = degrees_to_radians(90)
+def calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64], is_left_side:bool = False):
+    AZIMUTH_POS_Y_ANGLE = degrees_to_radians(0 if is_left_side else 180)
     
     if len(angles) != 3:  # Safety check
         raise IndexError(f"3 angles must be provided! ({len(angles)} != 3)")
+    angles += _ANGLE_ZERO_OFFSETS  # Apply angle offsets
     abductor_angle, hip_angle, knee_relative_angle = angles
 
     # Breadth (yz) plane
     abductor_pos:Point3D = origin
 
     # Movement plane
-    movement_plane_anchor_point:Point3D = _spherical_to_cartesian_coordinate(_HIP_OFFSET, POLAR_POS_Y_ANGLE, abductor_angle, abductor_pos)
+    movement_plane_anchor_point:Point3D = _spherical_to_cartesian_coordinate(_HIP_OFFSET, AZIMUTH_POS_Y_ANGLE, abductor_angle, abductor_pos)
     movement_plane_normal_vector:Vector = movement_plane_anchor_point
     u_unit, v_unit                      = _get_unit_vectors_of_a_plane(movement_plane_normal_vector)
 
