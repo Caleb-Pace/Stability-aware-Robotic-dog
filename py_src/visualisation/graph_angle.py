@@ -51,7 +51,7 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings):
     _draw_arc(ax, angle_points, colour, zorder=21)
 
 # TODO: Add show movement plane option
-def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void]):
+def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
     if len(angles) != 3:  # Parameter check
         raise IndexError(f"3 angles must be provided! ({len(angles)} != 3)")
     if len(joint_limits) != 3:   # Parameter check
@@ -73,7 +73,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     knee_absolute_angle = hip_angle + knee_relative_angle
 
     # Get points
-    abductor_pos, hip_pos, knee_pos, foot_pos = calculate_joint_positions(origin, angles)
+    abductor_pos, hip_pos, knee_pos, foot_pos = calculate_joint_positions(origin, angles, is_left_side)
     points = np.array([abductor_pos, hip_pos, knee_pos, foot_pos])
 
     # Movement Plane: Abductor-Hip vector is normal to the movement plane
@@ -101,7 +101,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc)
 
 
-    ax.view_init(elev=15, azim=125)
+    ax.view_init(elev=15, azim=(40 if is_left_side else 140))
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
@@ -119,4 +119,4 @@ def main():
     ], dtype=np.float64)
     joint_limits = np.array([(-1.31, 2.2), (-0.5, 3.14), (0.0, 1.1)], dtype=AngleLimits)
 
-    show_leg(origin, angles, joint_limits)
+    show_leg(origin, angles, joint_limits, is_left_side=False)
