@@ -3,8 +3,8 @@ from data_structures import Point3D, Vector
 from typing import NamedTuple
 
 class AngleLimits(NamedTuple):
-    min:float
-    max:float
+    minimum:float
+    maximum:float
 
 class ArcSettings:
     pivot_point:Point3D
