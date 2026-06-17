@@ -20,11 +20,13 @@ def _get_arc_points(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
     arc_points = (arc.pivot_point + arc.radius * (trig @ basis)).T
     return arc_points
 
+# def _plot_thin_line
+
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     arc_x, arc_y, arc_z = arc_points
     ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5, zorder=zorder)
 
-def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float):
+def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0):
     joint_min_angle, joint_max_angle = angle.limits
     joint_min_angle += angle.start
     joint_max_angle += angle.start
@@ -63,14 +65,14 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     full_range_step_count = int(np.round(full_range_in_degrees))
     full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
     full_range_points     = _get_arc_points(full_range_t_values, arc)
-    _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=20)
+    _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
     # Angle
     angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
     step_count   = int(np.round(angle_from_ref_in_degrees))
     t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_points(t_values, arc)
-    _draw_arc(ax, angle_points, colour, zorder=21)
+    _draw_arc(ax, angle_points, colour, zorder=zorder+1)
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
@@ -118,13 +120,13 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
-    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0])  # TODO: Uncomment, testing
-    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1])
-    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]))
+    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
+    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
+    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
 
 
-    # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
-    ax.view_init(elev=0, azim=180)  # TODO: Remove, testing
+    ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
+    # ax.view_init(elev=0, azim=180)  # TODO: Remove, testing
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
@@ -138,9 +140,9 @@ def main():
     is_front_leg = True
 
     angles = np.array([
+        degrees_to_radians(-15),
         degrees_to_radians(0),
-        degrees_to_radians(0),
-        degrees_to_radians(0)
+        degrees_to_radians(-48)
     ], dtype=np.float64)
 
     origin = np.array([0, 0, 0], dtype=np.float64)
