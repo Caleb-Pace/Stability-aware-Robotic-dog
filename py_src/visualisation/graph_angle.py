@@ -6,7 +6,7 @@ from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
 from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS, degrees_to_radians, calculate_joint_positions, _get_unit_vectors_of_a_plane
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
-
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 GREEN_COLOUR = "#15F015"
 GREY_COLOUR  = "#7F7F7F"
@@ -20,11 +20,14 @@ def _get_arc_points(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
     arc_points = (arc.pivot_point + arc.radius * (trig @ basis)).T
     return arc_points
 
-# def _plot_thin_line
+def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
+    surface = Poly3DCollection([points.T], edgecolors=colour, facecolors='cyan', zorder=zorder)
+    ax.add_collection3d(surface)
 
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     arc_x, arc_y, arc_z = arc_points
-    ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5, zorder=zorder)
+    _plot_flat(ax, arc_points, colour, zorder)
+    # ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5, zorder=zorder)
 
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0):
     joint_min_angle, joint_max_angle = angle.limits
