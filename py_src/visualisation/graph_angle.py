@@ -20,8 +20,23 @@ def _get_arc_points(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
     arc_points = (arc.pivot_point + arc.radius * (trig @ basis)).T
     return arc_points
 
+def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -> Point3DList:
+    basis = np.array([arc.u_unit, arc.v_unit])
+    trig = np.column_stack([np.cos(t), np.sin(t)])
+    
+    outer_radius = arc.radius
+    inner_radius = outer_radius - width
+
+    outer_arc_points = (arc.pivot_point + outer_radius * (trig @ basis)).T
+    inner_arc_points = (arc.pivot_point + inner_radius * (trig @ basis)).T
+    inner_arc_points = np.flip(inner_arc_points, axis=0)
+
+    arc_vertices = np.concatenate((outer_arc_points, inner_arc_points), axis=1)
+    print(arc_vertices.shape)
+    return arc_vertices
+
 def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
-    surface = Poly3DCollection([points.T], edgecolors=colour, facecolors='cyan', zorder=zorder)
+    surface = Poly3DCollection([points.T], edgecolor='b', facecolor=colour, zorder=zorder)
     ax.add_collection3d(surface)
 
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
@@ -63,18 +78,20 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     joint_min_angle += zero_offset
     joint_max_angle += zero_offset
 
+    tmp_width = 0.005  # TODO: Remove, for testing
+
     # Full range
     full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
     full_range_step_count = int(np.round(full_range_in_degrees))
     full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
-    full_range_points     = _get_arc_points(full_range_t_values, arc)
+    full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
     _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
     # Angle
     angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
     step_count   = int(np.round(angle_from_ref_in_degrees))
     t_values     = np.linspace(ref_angle, current_angle, step_count)
-    angle_points = _get_arc_points(t_values, arc)
+    angle_points = _get_arc_vertices(t_values, tmp_width, arc)
     _draw_arc(ax, angle_points, colour, zorder=zorder+1)
 
 # TODO: Add show movement plane option
