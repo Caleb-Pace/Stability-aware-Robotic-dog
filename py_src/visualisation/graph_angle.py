@@ -102,9 +102,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
         raise IndexError(f"3 joint limits must be provided! ({len(joint_limits)} != 3)")
 
     ax = plt.figure().add_subplot(projection='3d')
-    ax.set_xlim3d([-0.4, 0.4])
-    ax.set_ylim3d([-0.4, 0.4])
-    ax.set_zlim3d([-0.4, 0.4])
+    # ax.set_xlim3d([-0.4, 0.4])
+    # ax.set_ylim3d([-0.4, 0.4])
+    # ax.set_zlim3d([-0.4, 0.4])
     ax.set_box_aspect((1, 1, 1)) 
 
     # Constants
@@ -124,10 +124,10 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     plane_u_unit, plane_v_unit = _get_unit_vectors_of_a_plane(hip_pos)
 
 
-    # Linkages
-    ax.plot(points[:, 0], points[:, 1], points[:, 2], '-o', color=LINKAGE_COLOUR, linewidth=4, markersize=8, label='Linkages', zorder=10)
-    for i, point in enumerate(points):
-        ax.scatter(point[0], point[1], point[2], color=POINT_COLOURS[i], label=POINT_NAMES[i], s=120, zorder=31)
+    # # Linkages
+    # ax.plot(points[:, 0], points[:, 1], points[:, 2], '-o', color=LINKAGE_COLOUR, linewidth=4, markersize=8, label='Linkages', zorder=10)
+    # for i, point in enumerate(points):
+    #     ax.scatter(point[0], point[1], point[2], color=POINT_COLOURS[i], label=POINT_NAMES[i], s=120, zorder=31)
 
     # Joint Angles (arcs)
     ARC_RADIUS = 0.05
@@ -140,9 +140,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
-    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
+    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
     _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
-    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
+    # _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
 
 
     ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
@@ -151,7 +151,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
     ax.set_zlabel('Z Axis', labelpad=10)
-    ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
+    # ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
     plt.show()
 
 # IK Test
