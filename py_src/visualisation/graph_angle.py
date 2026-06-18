@@ -36,7 +36,7 @@ def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -
     return arc_vertices
 
 def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
-    surface = Poly3DCollection([points.T], edgecolor='b', facecolor=colour, zorder=zorder)
+    surface = Poly3DCollection([points.T], edgecolor=None, facecolor=colour, zorder=zorder)
     ax.add_collection3d(surface)
 
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
@@ -52,15 +52,21 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     current_angle = angle.end
     ref_angle     = joint_min_angle
 
+    range_angle_min = current_angle
+
     # Bound checks
     boundcheck_str = "OK"  # TODO: Remove, for debugging
-    if current_angle < joint_min_angle:  # Under
-        colour    = RED_COLOUR
-        boundcheck_str = "UNDER"  # TODO: Remove, for debugging
-    elif current_angle > joint_max_angle:  # Over
-        ref_angle = joint_max_angle
-        colour    = RED_COLOUR
-        boundcheck_str = "OVER"  # TODO: Remove, for debugging
+    is_under = (current_angle < joint_min_angle)
+    is_over  = (current_angle > joint_max_angle)
+    if is_under:
+        colour = RED_COLOUR
+        range_angle_min = ref_angle
+        boundcheck_str  = "UNDER"  # TODO: Remove, for debugging
+    elif is_over:
+        colour = RED_COLOUR
+        range_angle_min = joint_min_angle
+        ref_angle       = joint_max_angle
+        boundcheck_str  = "OVER"  # TODO: Remove, for debugging
 
     # TODO: Remove, for debugging
     limits_str = f"(min: {np.round(np.degrees(angle.limits.minimum), 2):>7}, max: {np.round(np.degrees(angle.limits.maximum), 2):>7})"
@@ -68,24 +74,29 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     off_by_str = "(In Range)" if (boundcheck_str == "OK") else f"{np.round(off_by, 2)}"
     angle_str  = f"{np.round(np.degrees(angle.start), 2):>7} to {np.round(np.degrees(angle.end), 2):>7}"
     curr_angle_str   = np.round(np.degrees(current_angle), 2)
+    ref_angle_str    = np.round(np.degrees(ref_angle), 2)
     actual_angle     = angle.get_total_angle_in_degrees(angle.start, angle.end)
     actual_angle_str = f"{np.round(actual_angle, 2)};"
-    print(f"{boundcheck_str:<5} {off_by_str:<10} : curr: {curr_angle_str:>7} | (angle: {actual_angle_str:<8} {angle_str}) | {limits_str}")
+    print(f"{boundcheck_str:<5} {off_by_str:<10} : curr: {curr_angle_str:>7} | ref: {ref_angle_str:>7} | (angle: {actual_angle_str:<8} {angle_str}) | {limits_str}")
 
     # Apply zero offset (To align visually)
     current_angle   += zero_offset
     ref_angle       += zero_offset
     joint_min_angle += zero_offset
     joint_max_angle += zero_offset
+    range_angle_min += zero_offset
 
     tmp_width = 0.005  # TODO: Remove, for testing
 
     # Full range
-    full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
-    full_range_step_count = int(np.round(full_range_in_degrees))
-    full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
-    full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
-    # _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
+    range_angle_max = joint_max_angle
+    print(f"{range_angle_min} to {range_angle_max} (Should draw: {(not np.isclose(range_angle_min, range_angle_max, 0.0001))})")
+    if not np.isclose(range_angle_min, range_angle_max, 0.0001):
+        full_range_in_degrees = angle.get_total_angle_in_degrees(range_angle_min, range_angle_max)
+        full_range_step_count = int(np.round(full_range_in_degrees))
+        full_range_t_values   = np.linspace(range_angle_min, range_angle_max, full_range_step_count)
+        full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
+        _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
     # Angle
     angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
@@ -96,7 +107,15 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
 
     # TODO: Remove, for testing
     angle_x, angle_y, angle_z = angle_points
-    ax.scatter(angle_x, angle_y, angle_z, c=np.linspace(0, 1, len(angle_x)), cmap='plasma')
+    # ax.scatter(angle_x, angle_y, angle_z, c=np.linspace(0, 1, len(angle_x)), cmap='plasma', s=1)
+
+    # TODO: Remove, for testing
+    full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
+    full_range_step_count = int(np.round(full_range_in_degrees))
+    full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
+    full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
+    angle_x, angle_y, angle_z = full_range_points
+    # ax.scatter(angle_x, angle_y, angle_z, c=np.linspace(0, 1, len(angle_x)), cmap='summer', s=1)
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
@@ -109,6 +128,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     # ax.set_xlim3d([-0.4, 0.4])
     # ax.set_ylim3d([-0.4, 0.4])
     # ax.set_zlim3d([-0.4, 0.4])
+    ax.set_xlim3d([-0.08, 0.08])
+    ax.set_ylim3d([-0.08, 0.08])
+    ax.set_zlim3d([-0.08, 0.08])
     ax.set_box_aspect((1, 1, 1)) 
 
     # Constants
@@ -149,7 +171,8 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     # _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
 
 
-    ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
+    # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
+    ax.view_init(elev=15, azim=175)  # TODO: Remove, testing
     # ax.view_init(elev=0, azim=180)  # TODO: Remove, testing
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
@@ -165,7 +188,7 @@ def main():
 
     angles = np.array([
         degrees_to_radians(-15),
-        degrees_to_radians(0),
+        degrees_to_radians(220),
         degrees_to_radians(-48)
     ], dtype=np.float64)
 
