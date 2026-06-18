@@ -1,17 +1,39 @@
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.art3d as art3d
 from data_structures import Point3D, Point3DList, Vector
 from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
 from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS, degrees_to_radians, calculate_joint_positions, _get_unit_vectors_of_a_plane
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
+from matplotlib.textpath import TextPath
+from matplotlib.patches import PathPatch
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 GREEN_COLOUR = "#15F015"
 GREY_COLOUR  = "#7F7F7F"
 RED_COLOUR   = "#F01515"
 
+
+def _plot_text_on_plane(ax, text:str, origin:Point3D, u_unit:Vector, v_unit:Vector, colour='black', size=0.05, zorder=0):
+    text_path = TextPath((0, 0), text, size=size)
+    text_polygons_2d = text_path.to_polygons()
+    
+    # Project text onto plane in 3D world
+    text_polygons_3d = []
+    for polygon_2d in text_polygons_2d:
+        print(repr(polygon_2d))
+        local_x, local_y = polygon_2d.T
+        
+        polygon_3d = (origin + 
+                      local_x[:, np.newaxis] * u_unit + 
+                      local_y[:, np.newaxis] * v_unit)
+        
+        text_polygons_3d.append(polygon_3d)
+
+    text_collection = Poly3DCollection(text_polygons_3d, edgecolor=None, facecolor=colour, zorder=zorder)
+    ax.add_collection3d(text_collection)
 
 def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -> Point3DList:
     basis = np.array([arc.u_unit, arc.v_unit])
@@ -25,7 +47,6 @@ def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -
     inner_arc_points = np.flip(inner_arc_points, axis=1)
 
     arc_vertices = np.concatenate((outer_arc_points, inner_arc_points), axis=1)
-    print(arc_vertices.shape)
     return arc_vertices
 
 def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
@@ -35,6 +56,7 @@ def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     _plot_flat(ax, arc_points, colour, zorder)
 
+# TODO: Rename to _draw_joint_angle
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0):
     joint_min_angle, joint_max_angle = angle.limits
     joint_min_angle += angle.start
@@ -94,6 +116,11 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_vertices(t_values, tmp_width, arc)
     _draw_arc(ax, angle_points, colour, zorder=zorder+1)
+
+    # Text annotation
+    text_origin:Point3D = np.array([0.05, 0.05, 0])
+    _plot_text_on_plane(ax, "Test", text_origin, arc.u_unit, arc.v_unit)
+    # ax.text(0.05, 0.05, 0, 'On the plane', fontsize=12, color='blue')
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
