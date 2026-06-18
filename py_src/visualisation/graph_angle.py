@@ -85,7 +85,7 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     full_range_step_count = int(np.round(full_range_in_degrees))
     full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
     full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
-    _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
+    # _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
     # Angle
     angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
@@ -93,6 +93,10 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_vertices(t_values, tmp_width, arc)
     _draw_arc(ax, angle_points, colour, zorder=zorder+1)
+
+    # TODO: Remove, for testing
+    angle_x, angle_y, angle_z = angle_points
+    ax.scatter(angle_x, angle_y, angle_z, c=np.linspace(0, 1, len(angle_x)), cmap='plasma')
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
