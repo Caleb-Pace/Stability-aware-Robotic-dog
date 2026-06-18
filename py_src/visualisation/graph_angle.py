@@ -13,13 +13,6 @@ GREY_COLOUR  = "#7F7F7F"
 RED_COLOUR   = "#F01515"
 
 
-def _get_arc_points(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
-    basis = np.array([arc.u_unit, arc.v_unit])
-    trig = np.column_stack([np.cos(t), np.sin(t)])
-    
-    arc_points = (arc.pivot_point + arc.radius * (trig @ basis)).T
-    return arc_points
-
 def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -> Point3DList:
     basis = np.array([arc.u_unit, arc.v_unit])
     trig = np.column_stack([np.cos(t), np.sin(t)])
@@ -40,9 +33,7 @@ def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
     ax.add_collection3d(surface)
 
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
-    arc_x, arc_y, arc_z = arc_points
     _plot_flat(ax, arc_points, colour, zorder)
-    # ax.plot(arc_x, arc_y, arc_z, color=colour, linewidth=2.5, zorder=zorder)
 
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0):
     joint_min_angle, joint_max_angle = angle.limits
@@ -90,7 +81,6 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
 
     # Full range
     range_angle_max = joint_max_angle
-    print(f"{range_angle_min} to {range_angle_max} (Should draw: {(not np.isclose(range_angle_min, range_angle_max, 0.0001))})")
     if not np.isclose(range_angle_min, range_angle_max, 0.0001):
         full_range_in_degrees = angle.get_total_angle_in_degrees(range_angle_min, range_angle_max)
         full_range_step_count = int(np.round(full_range_in_degrees))
@@ -104,18 +94,6 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_vertices(t_values, tmp_width, arc)
     _draw_arc(ax, angle_points, colour, zorder=zorder+1)
-
-    # TODO: Remove, for testing
-    angle_x, angle_y, angle_z = angle_points
-    # ax.scatter(angle_x, angle_y, angle_z, c=np.linspace(0, 1, len(angle_x)), cmap='plasma', s=1)
-
-    # TODO: Remove, for testing
-    full_range_in_degrees = angle.get_total_angle_in_degrees(joint_min_angle, joint_max_angle)
-    full_range_step_count = int(np.round(full_range_in_degrees))
-    full_range_t_values   = np.linspace(joint_min_angle, joint_max_angle, full_range_step_count)
-    full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
-    angle_x, angle_y, angle_z = full_range_points
-    # ax.scatter(angle_x, angle_y, angle_z, c=np.linspace(0, 1, len(angle_x)), cmap='summer', s=1)
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
