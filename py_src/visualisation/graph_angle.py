@@ -29,7 +29,7 @@ def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -
 
     outer_arc_points = (arc.pivot_point + outer_radius * (trig @ basis)).T
     inner_arc_points = (arc.pivot_point + inner_radius * (trig @ basis)).T
-    inner_arc_points = np.flip(inner_arc_points, axis=0)
+    # inner_arc_points = np.flip(inner_arc_points, axis=0)
 
     arc_vertices = np.concatenate((outer_arc_points, inner_arc_points), axis=1)
     print(arc_vertices.shape)
