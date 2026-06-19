@@ -2,13 +2,13 @@ import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.art3d as art3d
-from data_structures import Point3D, Point3DList, Vector
+from data_structures import Point3D, Point3DList, Vector, Point2DList
 from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
 from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS, degrees_to_radians, calculate_joint_positions, _get_unit_vectors_of_a_plane
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
+from matplotlib.font_manager import FontProperties
 from matplotlib.textpath import TextPath
-from matplotlib.patches import PathPatch
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 GREEN_COLOUR = "#15F015"
@@ -16,14 +16,19 @@ GREY_COLOUR  = "#7F7F7F"
 RED_COLOUR   = "#F01515"
 
 
-def _plot_text_on_plane(ax, text:str, origin:Point3D, u_unit:Vector, v_unit:Vector, colour='black', size=0.05, zorder=0):
-    text_path = TextPath((0, 0), text, size=size)
+# Uses Shoelace formula
+def _is_hole(vertices:Point2DList) -> bool:
+    x, y = vertices.T
+    area = 0.5 * np.sum(x[:-1] * y[1:] - x[1:] * y[:-1])
+    return not (area < 0)  # Not because results are backwards (werid input)
+
+def _plot_text_on_plane(ax, text:str, font:FontProperties, origin:Point3D, u_unit:Vector, v_unit:Vector, colour='black', size=0.05, zorder=0):    
+    text_path = TextPath((0, 0), text, size=size, prop=font)
     text_polygons_2d = text_path.to_polygons()
-    
-    # Project text onto plane in 3D world
+
+    # Project vertices onto plane in 3D world
     text_polygons_3d = []
     for polygon_2d in text_polygons_2d:
-        print(repr(polygon_2d))
         local_x, local_y = polygon_2d.T
         
         polygon_3d = (origin + 
@@ -32,7 +37,21 @@ def _plot_text_on_plane(ax, text:str, origin:Point3D, u_unit:Vector, v_unit:Vect
         
         text_polygons_3d.append(polygon_3d)
 
-    text_collection = Poly3DCollection(text_polygons_3d, edgecolor=None, facecolor=colour, zorder=zorder)
+    # Stitch holes together
+    hole_map = np.array([_is_hole(p) for p in text_polygons_2d], dtype=bool)
+    processed_text_polygons_3d = []
+    for i, polygon_3d in enumerate(text_polygons_3d):
+        if hole_map[i]:  # Hole
+            solid = processed_text_polygons_3d[-1]
+            hole  = polygon_3d
+            stiched_polygon = np.vstack([solid, hole, hole[0], solid[0]])
+
+            processed_text_polygons_3d[-1] = stiched_polygon
+        else:            # Solid shape
+            processed_text_polygons_3d.append(polygon_3d)
+
+    # Render text
+    text_collection = Poly3DCollection(processed_text_polygons_3d, edgecolor=None, facecolor=colour, zorder=zorder)
     ax.add_collection3d(text_collection)
 
 def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -> Point3DList:
@@ -62,8 +81,9 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     joint_min_angle += angle.start
     joint_max_angle += angle.start
 
-    current_angle = angle.end
     ref_angle     = joint_min_angle
+    current_angle = angle.end
+    angle_str:str = f"{np.round(np.degrees(current_angle), 2)}°"
 
     range_angle_min = current_angle
 
@@ -85,12 +105,12 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     limits_str = f"(min: {np.round(np.degrees(angle.limits.minimum), 2):>7}, max: {np.round(np.degrees(angle.limits.maximum), 2):>7})"
     off_by     = angle.get_total_angle_in_degrees(ref_angle, current_angle)
     off_by_str = "(In Range)" if (boundcheck_str == "OK") else f"{np.round(off_by, 2)}"
-    angle_str  = f"{np.round(np.degrees(angle.start), 2):>7} to {np.round(np.degrees(angle.end), 2):>7}"
+    angle_range_str  = f"{np.round(np.degrees(angle.start), 2):>7} to {np.round(np.degrees(angle.end), 2):>7}"
     curr_angle_str   = np.round(np.degrees(current_angle), 2)
     ref_angle_str    = np.round(np.degrees(ref_angle), 2)
     actual_angle     = angle.get_total_angle_in_degrees(angle.start, angle.end)
     actual_angle_str = f"{np.round(actual_angle, 2)};"
-    print(f"{boundcheck_str:<5} {off_by_str:<10} : curr: {curr_angle_str:>7} | ref: {ref_angle_str:>7} | (angle: {actual_angle_str:<8} {angle_str}) | {limits_str}")
+    print(f"{boundcheck_str:<5} {off_by_str:<10} : curr: {curr_angle_str:>7} | ref: {ref_angle_str:>7} | (angle: {actual_angle_str:<8} {angle_range_str}) | {limits_str}")
 
     # Apply zero offset (To align visually)
     current_angle   += zero_offset
@@ -108,18 +128,23 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
         full_range_step_count = int(np.round(full_range_in_degrees))
         full_range_t_values   = np.linspace(range_angle_min, range_angle_max, full_range_step_count)
         full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
-        _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
+        # _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
     # Angle
     angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
     step_count   = int(np.round(angle_from_ref_in_degrees))
     t_values     = np.linspace(ref_angle, current_angle, step_count)
     angle_points = _get_arc_vertices(t_values, tmp_width, arc)
-    _draw_arc(ax, angle_points, colour, zorder=zorder+1)
+    # _draw_arc(ax, angle_points, colour, zorder=zorder+1)
 
     # Text annotation
+    font:FontProperties = FontProperties(family="Arial", weight="normal")
+    
     text_origin:Point3D = np.array([0.05, 0.05, 0])
-    _plot_text_on_plane(ax, "Test", text_origin, arc.u_unit, arc.v_unit)
+    # text_origin:Point3D = arc.pivot_point
+
+    _plot_text_on_plane(ax, angle_str, font, text_origin, arc.u_unit, arc.v_unit)
+    ax.scatter(*text_origin, color='r', s=20)
     # ax.text(0.05, 0.05, 0, 'On the plane', fontsize=12, color='blue')
 
 # TODO: Add show movement plane option
