@@ -138,13 +138,13 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
         full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
         _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
-    # TODO: Fix, some sort of divide (by zero) error from numpy when angle is at limit
     # Angle
-    angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
-    step_count   = int(np.round(angle_from_ref_in_degrees))
-    t_values     = np.linspace(ref_angle, current_angle, step_count)
-    angle_points = _get_arc_vertices(t_values, tmp_width, arc)
-    _draw_arc(ax, angle_points, colour, zorder=zorder+1)
+    if not np.isclose(ref_angle, current_angle, 0.0001):
+        angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
+        step_count   = int(np.round(angle_from_ref_in_degrees))
+        t_values     = np.linspace(ref_angle, current_angle, step_count)
+        angle_points = _get_arc_vertices(t_values, tmp_width, arc)
+        _draw_arc(ax, angle_points, colour, zorder=zorder+1)
 
     # Text annotation
     font:FontProperties = FontProperties(family="Arial", weight="normal")
