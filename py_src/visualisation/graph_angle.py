@@ -220,12 +220,12 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_joint      = JointAngle(0,         hip_angle,           joint_limits[1])
     knee_joint     = JointAngle(hip_angle, knee_absolute_angle, joint_limits[2])
 
-    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, STD_UNIT.X,   STD_UNIT.Z)    # Normal to the world YZ plane
+    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, -STD_UNIT.X,   STD_UNIT.Z)   # Normal to the world YZ plane
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
-    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
-    # _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
+    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
+    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
     _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
 
 
