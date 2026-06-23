@@ -151,7 +151,7 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     font:FontProperties = FontProperties(family="Arial", weight="normal")
     angle_str:str = f"{np.round(np.degrees(angle.end - angle.start), 2)}°"
 
-    text_colour = 'black'
+    text_colour = RED_COLOUR if (is_under or is_over) else 'black'
     text_size   = 0.05
     text_height = text_size
     text_width  = len(angle_str) * (text_size / 2)
