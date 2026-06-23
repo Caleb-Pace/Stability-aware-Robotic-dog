@@ -158,14 +158,11 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     distance_from_pivot  = (arc.radius + 0.015)
     range_bisector_angle = (joint_min_angle +  joint_max_angle) / 2
 
-    _a = current_angle
-    _b = (range_bisector_angle - np.radians(10))
-    _c = (range_bisector_angle + np.radians(25))
-    will_text_overlap_linkage = _is_angle_in_range(_a, _b, _c)
-    print(f"      Range Bisector angle: {np.round(np.degrees(range_bisector_angle), 2)}° | Current angle: {np.round(np.degrees(current_angle), 2)}° (value: {np.round(np.degrees(current_angle - zero_offset), 2)}°) | Should add offset? {will_text_overlap_linkage} {{{np.round(np.degrees(_a), 2)}° : [{np.round(np.degrees(_b), 2)}°, {np.round(np.degrees(_c), 2)}°]}}")  # TODO: Remove, for debugging
+    lower_overlap_angle = (range_bisector_angle - np.radians(10))
+    upper_overlap_angle = (range_bisector_angle + np.radians(25))
+    will_text_overlap_linkage = _is_angle_in_range(current_angle, lower_overlap_angle, upper_overlap_angle)
     if (will_text_overlap_linkage):
-        range_bisector_angle = (_a + np.radians(25))
-        print(f"      Updated Range Bisector angle: {np.round(np.degrees(range_bisector_angle), 2)}°!")  # TODO: Remove, for debugging
+        range_bisector_angle = (current_angle + np.radians(25))
 
     horizontal_offset = text_width * np.cos(range_bisector_angle)
     vertical_offset   = text_height * np.sin(range_bisector_angle)
