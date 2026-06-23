@@ -16,6 +16,15 @@ GREY_COLOUR  = "#7F7F7F"
 RED_COLOUR   = "#F01515"
 
 
+def _point_to_str(point:Point3D, accuracy_dp:int = 3) -> str:
+    slot_width:int = 3 + accuracy_dp
+
+    def __format_number(number:float) -> str:
+        _str = f"{np.round(number, accuracy_dp):<{slot_width}}"
+        return _str if (number < 0) else (" " + _str[:-1])
+
+    return f"({__format_number(point[0])}, {__format_number(point[1])}, {__format_number(point[2])})"
+
 def _is_angle_in_range(angle:float, lower_bound:float, upper_bound:float, accuracy_dp:int = 4) -> bool:
     TAU = 2 * np.pi
     
@@ -229,6 +238,13 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
     _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
     _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
+
+
+    # Position logs
+    print(f"     Abductor pos: {_point_to_str(abductor_pos)}")
+    print(f"          Hip pos: {_point_to_str(hip_pos)}")
+    print(f"         Knee pos: {_point_to_str(knee_pos)}")
+    print(f"     ->  Foot pos: {_point_to_str(foot_pos)}")
 
 
     ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
