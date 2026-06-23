@@ -160,25 +160,18 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
 
     horizontal_offset = text_width * np.cos(range_bisector_angle)
     vertical_offset   = text_height * np.sin(range_bisector_angle)
-    print(f"      text angle: {np.round(np.degrees(range_bisector_angle), 2)}° | left extend: {(horizontal_offset <= 0)} (cos:{np.round(np.cos(range_bisector_angle), 2)} -> {np.round(horizontal_offset, 2)}) | down extend: {(vertical_offset <= 0)} (sin:{np.round(np.sin(range_bisector_angle), 2)} -> {np.round(vertical_offset, 2)})")  # TODO: Remove, for debugging
     if (horizontal_offset > 0):
         horizontal_offset = 0
     if (vertical_offset > 0):
         vertical_offset = 0
     
     text_pos_vector_2d   = _polar_to_cartesian_coordinate(distance_from_pivot, range_bisector_angle)
-    print(f"      pos vector:         [ {np.round(text_pos_vector_2d[0], 2):<5}, {np.round(text_pos_vector_2d[1], 2):<5} ]")  # TODO: Remove, for debugging
     text_pos_vector_2d  += np.array([horizontal_offset, vertical_offset])  # Offset: Align textbox
-    print(f"      text offsets:       [ {np.round(text_pos_vector_2d[0], 2):<5}, {np.round(text_pos_vector_2d[1], 2):<5} ]")  # TODO: Remove, for debugging
     text_origin:Point3D  = (arc.pivot_point +
                             text_pos_vector_2d[0] * arc.u_unit +
                             text_pos_vector_2d[1] * arc.v_unit)
 
     _plot_text_on_plane(ax, angle_str, font, text_origin, arc.u_unit, arc.v_unit, text_colour, text_size)
-
-    # TODO: Remove, for debugging
-    ax.scatter(*text_origin, color='b', s=10)
-    ax.plot(*(np.vstack([arc.pivot_point, text_origin]).T), color='b')
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
@@ -188,15 +181,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
         raise IndexError(f"3 joint limits must be provided! ({len(joint_limits)} != 3)")
 
     ax = plt.figure().add_subplot(projection='3d')
-    # ax.set_xlim3d([-0.4, 0.4])
-    # ax.set_ylim3d([-0.4, 0.4])
-    # ax.set_zlim3d([-0.4, 0.4])
-    # ax.set_xlim3d([-0.08, 0.08])
-    # ax.set_ylim3d([-0.08, 0.08])
-    # ax.set_zlim3d([-0.08, 0.08])
-    ax.set_xlim3d([-0.12, 0.12])
-    ax.set_ylim3d([-0.12, 0.12])
-    ax.set_zlim3d([-0.12, 0.12])
+    ax.set_xlim3d([-0.4, 0.4])
+    ax.set_ylim3d([-0.4, 0.4])
+    ax.set_zlim3d([-0.4, 0.4])
     ax.set_box_aspect((1, 1, 1)) 
 
     # Constants
@@ -216,10 +203,10 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     plane_u_unit, plane_v_unit = _get_unit_vectors_of_a_plane(hip_pos)
 
 
-    # # Linkages
-    # ax.plot(points[:, 0], points[:, 1], points[:, 2], '-o', color=LINKAGE_COLOUR, linewidth=4, markersize=8, label='Linkages', zorder=10)
-    # for i, point in enumerate(points):
-    #     ax.scatter(point[0], point[1], point[2], color=POINT_COLOURS[i], label=POINT_NAMES[i], s=120, zorder=31)
+    # Linkages
+    ax.plot(points[:, 0], points[:, 1], points[:, 2], '-o', color=LINKAGE_COLOUR, linewidth=4, markersize=8, label='Linkages', zorder=10)
+    for i, point in enumerate(points):
+        ax.scatter(point[0], point[1], point[2], color=POINT_COLOURS[i], label=POINT_NAMES[i], s=120, zorder=31)
 
     # Joint Angles (arcs)
     ARC_RADIUS = 0.05
@@ -232,19 +219,17 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
 
-    # _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
+    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
     _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
-    # _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
+    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
 
 
-    # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
-    ax.view_init(elev=15, azim=175)  # TODO: Remove, testing
-    # ax.view_init(elev=0, azim=180)  # TODO: Remove, testing
+    ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
     ax.set_zlabel('Z Axis', labelpad=10)
-    # ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
+    ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
     plt.show()
 
 # IK Test
