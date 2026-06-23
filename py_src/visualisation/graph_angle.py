@@ -96,9 +96,10 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     range_angle_min = current_angle
 
     # Bound checks
-    boundcheck_str = "OK"  # TODO: Remove, for debugging
-    is_under = (current_angle < joint_min_angle)
-    is_over  = (current_angle > joint_max_angle)
+    boundcheck_str = "OK"
+    accuracy:int = 4
+    is_under = (np.round(current_angle, accuracy) < np.round(joint_min_angle, accuracy))
+    is_over  = (np.round(current_angle, accuracy) > np.round(joint_max_angle, accuracy))
     if is_under:
         colour = RED_COLOUR
         range_angle_min = ref_angle
@@ -109,7 +110,7 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
         ref_angle       = joint_max_angle
         boundcheck_str  = "OVER"  # TODO: Remove, for debugging
 
-    # TODO: Remove, for debugging
+    # Print joint status
     limits_str = f"(min: {np.round(np.degrees(angle.limits.minimum), 2):>7}, max: {np.round(np.degrees(angle.limits.maximum), 2):>7})"
     off_by     = angle.get_total_angle_in_degrees(ref_angle, current_angle)
     off_by_str = "(In Range)" if (boundcheck_str == "OK") else f"{np.round(off_by, 2)}"
