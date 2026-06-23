@@ -93,7 +93,6 @@ def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     _plot_flat(ax, arc_points, colour, zorder)
 
-# TODO: Rename to _draw_joint_angle
 def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0):
     joint_min_angle, joint_max_angle = angle.limits
     joint_min_angle += angle.start
@@ -190,7 +189,7 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     _plot_text_on_plane(ax, angle_str, font, text_origin, arc.u_unit, arc.v_unit, text_colour, text_size)
 
 # TODO: Add show movement plane option
-def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool):
+def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool, is_front_leg:bool):
     if len(angles) != 3:  # Parameter check
         raise IndexError(f"3 angles must be provided! ({len(angles)} != 3)")
     if len(joint_limits) != 3:   # Parameter check
@@ -253,6 +252,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     ax.set_ylabel('Y Axis', labelpad=10)
     ax.set_zlabel('Z Axis', labelpad=10)
     ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
+    plt.title(f"{'F' if is_front_leg else 'B'}{'L' if is_left_side else 'R'} leg")
     plt.show()
 
 # IK Test
@@ -273,4 +273,4 @@ def main():
         _KNEE_ROT_RANGE
     ], dtype=AngleLimits)
 
-    show_leg(origin, angles, joint_limits, is_left_side)
+    show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)
