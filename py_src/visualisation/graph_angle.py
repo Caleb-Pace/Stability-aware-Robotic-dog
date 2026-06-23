@@ -1,7 +1,6 @@
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.art3d as art3d
 from data_structures import Point3D, Point3DList, Vector, Point2DList
 from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
@@ -72,12 +71,12 @@ def _plot_text_on_plane(ax, text:str, font:FontProperties, origin:Point3D, u_uni
     text_collection = Poly3DCollection(processed_text_polygons_3d, edgecolor=None, facecolor=colour, zorder=zorder)
     ax.add_collection3d(text_collection)
 
-def _get_arc_vertices(t:npt.NDArray[np.float64], width:float, arc:ArcSettings) -> Point3DList:
+def _get_arc_vertices(t:npt.NDArray[np.float64], arc:ArcSettings) -> Point3DList:
     basis = np.array([arc.u_unit, arc.v_unit])
     trig = np.column_stack([np.cos(t), np.sin(t)])
     
     outer_radius = arc.radius
-    inner_radius = outer_radius - width
+    inner_radius = outer_radius - arc.width
 
     outer_arc_points = (arc.pivot_point + outer_radius * (trig @ basis)).T
     inner_arc_points = (arc.pivot_point + inner_radius * (trig @ basis)).T
@@ -136,15 +135,13 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
     joint_max_angle += zero_offset
     range_angle_min += zero_offset
 
-    tmp_width = 0.005  # TODO: Remove, for testing
-
     # Full range
     range_angle_max = joint_max_angle
     if not np.isclose(range_angle_min, range_angle_max, 0.0001):
         full_range_in_degrees = angle.get_total_angle_in_degrees(range_angle_min, range_angle_max)
         full_range_step_count = int(np.round(full_range_in_degrees))
         full_range_t_values   = np.linspace(range_angle_min, range_angle_max, full_range_step_count)
-        full_range_points     = _get_arc_vertices(full_range_t_values, tmp_width, arc)
+        full_range_points     = _get_arc_vertices(full_range_t_values, arc)
         _draw_arc(ax, full_range_points, GREY_COLOUR, zorder=zorder)
 
     # Angle
@@ -152,7 +149,7 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
         angle_from_ref_in_degrees = angle.get_total_angle_in_degrees(ref_angle, current_angle)
         step_count   = int(np.round(angle_from_ref_in_degrees))
         t_values     = np.linspace(ref_angle, current_angle, step_count)
-        angle_points = _get_arc_vertices(t_values, tmp_width, arc)
+        angle_points = _get_arc_vertices(t_values, arc)
         _draw_arc(ax, angle_points, colour, zorder=zorder+1)
 
     # Text annotation
@@ -225,14 +222,15 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 
     # Joint Angles (arcs)
     ARC_RADIUS = 0.05
+    ARC_WIDTH  = 0.005
 
     abductor_joint = JointAngle(0,         abductor_angle,      joint_limits[0])
     hip_joint      = JointAngle(0,         hip_angle,           joint_limits[1])
     knee_joint     = JointAngle(hip_angle, knee_absolute_angle, joint_limits[2])
 
-    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, -STD_UNIT.X,   STD_UNIT.Z)   # Normal to the world YZ plane
-    hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
-    knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, plane_u_unit, plane_v_unit)  # Movement plane
+    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, ARC_WIDTH, -STD_UNIT.X,   STD_UNIT.Z)   # Normal to the world YZ plane
+    hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
+    knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
 
     _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
     _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)

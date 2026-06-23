@@ -9,14 +9,16 @@ class AngleLimits(NamedTuple):
 class ArcSettings:
     pivot_point:Point3D
     radius:float
+    width:float
     u_unit:Vector
     v_unit:Vector
 
-    def __init__(self, pivot_point:Point3D, radius:float, u_unit:Vector|None = None, v_unit:Vector|None = None):
+    def __init__(self, pivot_point:Point3D, radius:float, width:float, u_unit:Vector|None = None, v_unit:Vector|None = None):
         from data_structures import Standard3DUnitVectors as STD_UNIT
         
         self.pivot_point = pivot_point
         self.radius = radius
+        self.width = width
         self.u_unit = u_unit if (u_unit is not None) else STD_UNIT.X
         self.v_unit = v_unit if (v_unit is not None) else STD_UNIT.Y
 
