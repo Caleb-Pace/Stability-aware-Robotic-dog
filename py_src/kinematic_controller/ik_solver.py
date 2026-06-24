@@ -72,7 +72,7 @@ class IK_Solver:
 
         # Breadth plane
         #     Demo: https://www.desmos.com/calculator/94rhdsakta
-        c = np.sqrt(np.power(delta_z, 2), np.power(delta_y, 2))
+        c = np.hypot(delta_z, delta_y)
         
         alpha = np.pi/2 + np.arctan2(delta_y, delta_z)  # 90 deg + angle
         beta  = np.pi/2 - np.arctan2(_HIP_OFFSET, c)    # 90 deg - angle
@@ -81,10 +81,14 @@ class IK_Solver:
 
         print(f"delta_y: {np.round(delta_y, 2)}")
         print(f"delta_z: {np.round(delta_z, 2)}")
+        print(f"      d: {np.round(_HIP_OFFSET, 3)}")
+        print(f"      c: {np.round(c, 3)}")
+        print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
+        print(f"   beta: {np.round(np.degrees(beta), 2)}")
         print(f"  theta: {np.round(np.degrees(abductor_angle), 2)}")
 
-
         # Movement plane
+        #     Demo: https://www.desmos.com/calculator/7ca8cg0da8
         movement_normal:Vector = np.array([
             0,
             _HIP_OFFSET * np.cos(abductor_angle),
