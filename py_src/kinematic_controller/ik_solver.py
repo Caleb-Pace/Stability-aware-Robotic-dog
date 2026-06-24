@@ -19,15 +19,12 @@ _KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
 _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
 
 
-def _get_magnitude_of_a_vector(v:Vector) -> float:
-    return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
-
 def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
     # Normalise the nomral vector
     n_raw = normal_vector
-    magnitude_n = _get_magnitude_of_a_vector(n_raw)
+    magnitude_n = np.linalg.norm(n_raw)
     
-    if magnitude_n == 0:  # Safety check
+    if np.isclose(magnitude_n, 0):  # Safety check
         raise ValueError("Normal vector cannot be a zero vector.")
 
     n_unit = n_raw / magnitude_n
@@ -38,7 +35,9 @@ def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
         u_raw = np.array([1, 0, 0])
     else:
         u_raw = np.array([-b, a, 0])
-    u_unit = u_raw / _get_magnitude_of_a_vector(u_raw)
+
+    magnitude_u = np.linalg.norm(u_raw)
+    u_unit = u_raw / magnitude_u
 
     # Build the local Y-axis (v)
     v_unit = np.cross(n_unit, u_unit)  # v = n x u
