@@ -6,6 +6,7 @@ from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
 from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS, degrees_to_radians, calculate_joint_positions, _get_unit_vectors_of_a_plane, _polar_to_cartesian_coordinate
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
+from kinematic_controller.ik_solver import IK_Solver
 from matplotlib.font_manager import FontProperties
 from matplotlib.textpath import TextPath
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -258,17 +259,22 @@ def main():
     is_left_side = False
     is_front_leg = True
 
-    angles = np.array([
-        degrees_to_radians(-15),
-        degrees_to_radians(60),
-        degrees_to_radians(-48)
-    ], dtype=np.float64)
-
-    origin = np.array([0, 0, 0], dtype=np.float64)
+    origin = np.array([0, 0.5, 0], dtype=np.float64)
     joint_limits = np.array([
         _HIP_ABDUCTOR_ROT_RANGE,
         (_FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE),
         _KNEE_ROT_RANGE
     ], dtype=AngleLimits)
 
-    show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)
+    target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
+
+    ik_solver = IK_Solver()
+    ik_solver._solve(origin, target)
+
+    angles = np.array([
+        degrees_to_radians(-15),
+        degrees_to_radians(60),
+        degrees_to_radians(-48)
+    ], dtype=np.float64)
+
+    # show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)
