@@ -1,9 +1,8 @@
-import math
 import numpy as np
 import numpy.typing as npt
 from data_structures import Point2D, Point3D, Vector
 from kinematic_controller.ik_solver import _HIP_OFFSET, _THIGH_LENGTH, _CALF_LENGTH
-from typing import Tuple
+from kinematic_controller.ik_solver import get_unit_vectors_of_a_plane
 
 
 _ANGLE_ZERO_OFFSETS = np.array([
@@ -32,32 +31,6 @@ def _spherical_to_cartesian_coordinate(distance_r:float, azimuth_angle:float, po
         (distance_r * np.cos(polar_angle)),
     ])
 
-def _get_magnitude_of_a_vector(v:Vector) -> float:
-    return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
-
-def _get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
-    # Normalise the nomral vector
-    n_raw = normal_vector
-    magnitude_n = _get_magnitude_of_a_vector(n_raw)
-    
-    if magnitude_n == 0:  # Safety check
-        raise ValueError("Normal vector cannot be a zero vector.")
-
-    n_unit = n_raw / magnitude_n
-    a, b, _ = n_unit
-
-    # Build the local X-axis (u)
-    if np.isclose(a, 0) and np.isclose(b, 0):  # Standard coordinate system fallback
-        u_raw = np.array([1, 0, 0])
-    else:
-        u_raw = np.array([-b, a, 0])
-    u_unit = u_raw / _get_magnitude_of_a_vector(u_raw)
-
-    # Build the local Y-axis (v)
-    v_unit = np.cross(n_unit, u_unit)  # v = n x u
-
-    return u_unit, v_unit
-
 def _convert_local_to_world_coordinate(local_coordinate:Point2D, plane_anchor_point:Point3D, u_unit:Vector, v_unit:Vector) -> Point3D:
     x_prime, y_prime = local_coordinate
     return plane_anchor_point + (x_prime * u_unit) + (y_prime * v_unit)
@@ -76,7 +49,7 @@ def calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64], is
     # Movement plane
     movement_plane_anchor_point:Point3D = _spherical_to_cartesian_coordinate(_HIP_OFFSET, AZIMUTH_POS_Y_ANGLE, abductor_angle, abductor_pos)
     movement_plane_normal_vector:Vector = movement_plane_anchor_point
-    u_unit, v_unit                      = _get_unit_vectors_of_a_plane(movement_plane_normal_vector)
+    u_unit, v_unit                      = get_unit_vectors_of_a_plane(movement_plane_normal_vector)
 
     #    Hip position
     hip_pos:Point3D = movement_plane_anchor_point

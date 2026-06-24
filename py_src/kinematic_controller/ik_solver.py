@@ -1,6 +1,7 @@
 import math
 import numpy as np
-from data_structures import Point3D
+from data_structures import Point3D, Vector
+from typing import Tuple
 
 
 # Link Lengths in meters #
@@ -16,6 +17,33 @@ _KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
 
 # Output torque limits in Newton-meters #
 _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
+
+
+def _get_magnitude_of_a_vector(v:Vector) -> float:
+    return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
+
+def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
+    # Normalise the nomral vector
+    n_raw = normal_vector
+    magnitude_n = _get_magnitude_of_a_vector(n_raw)
+    
+    if magnitude_n == 0:  # Safety check
+        raise ValueError("Normal vector cannot be a zero vector.")
+
+    n_unit = n_raw / magnitude_n
+    a, b, _ = n_unit
+
+    # Build the local X-axis (u)
+    if np.isclose(a, 0) and np.isclose(b, 0):  # Standard coordinate system fallback
+        u_raw = np.array([1, 0, 0])
+    else:
+        u_raw = np.array([-b, a, 0])
+    u_unit = u_raw / _get_magnitude_of_a_vector(u_raw)
+
+    # Build the local Y-axis (v)
+    v_unit = np.cross(n_unit, u_unit)  # v = n x u
+
+    return u_unit, v_unit
 
 
 class IK_Solver:
@@ -57,6 +85,12 @@ class IK_Solver:
 
 
         # Movement plane
+        movement_normal:Vector = np.array([
+            0,
+            _HIP_OFFSET * np.cos(abductor_angle),
+            _HIP_OFFSET * np.sin(abductor_angle)
+        ])
+
         # u_unit, v_unit = 
         alpha = 0
         beta  = 0
