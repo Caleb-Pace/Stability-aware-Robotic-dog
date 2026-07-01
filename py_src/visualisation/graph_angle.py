@@ -6,6 +6,7 @@ from data_structures import AngleLimits, ArcSettings, JointAngle
 from data_structures import Standard3DUnitVectors as STD_UNIT
 from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS, degrees_to_radians, calculate_joint_positions, _polar_to_cartesian_coordinate
 from kinematic_controller.ik_solver import _HIP_ABDUCTOR_ROT_RANGE, _FRONT_HIP_ROT_RANGE, _BACK_HIP_ROT_RANGE, _KNEE_ROT_RANGE
+from kinematic_controller.ik_solver import _ANGLE_ZERO_OFFSETS
 from kinematic_controller.ik_solver import get_unit_vectors_of_a_plane, IK_Solver
 from matplotlib.font_manager import FontProperties
 from matplotlib.textpath import TextPath
@@ -259,7 +260,8 @@ def main():
     is_left_side = False
     is_front_leg = True
 
-    origin = np.array([0, 0.5, 0], dtype=np.float64)
+    # origin = np.array([0, 0.5, 0], dtype=np.float64)
+    origin = np.array([0, 0, 0], dtype=np.float64)
     joint_limits = np.array([
         _HIP_ABDUCTOR_ROT_RANGE,
         (_FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE),

@@ -1,8 +1,15 @@
 import numpy as np
 from data_structures import Point3D, Vector
 from typing import Tuple
-from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS
 
+
+# Zero offsets for angles #
+#     Based on: https://support.unitree.com/home/en/developer
+_ANGLE_ZERO_OFFSETS = np.array([
+    np.radians(90),   # Abductor
+    np.radians(-90),  # Hip
+    np.radians(0),    # Knee
+])  # In Radians
 
 # Link Lengths in meters #
 _HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value  # CANNOT BE ZERO

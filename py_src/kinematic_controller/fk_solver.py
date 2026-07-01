@@ -2,14 +2,8 @@ import numpy as np
 import numpy.typing as npt
 from data_structures import Point2D, Point3D, Vector
 from kinematic_controller.ik_solver import _HIP_OFFSET, _THIGH_LENGTH, _CALF_LENGTH
+from kinematic_controller.ik_solver import _ANGLE_ZERO_OFFSETS
 from kinematic_controller.ik_solver import get_unit_vectors_of_a_plane
-
-
-_ANGLE_ZERO_OFFSETS = np.array([
-    np.radians(90),   # Abductor
-    np.radians(-90),  # Hip
-    np.radians(0),    # Knee
-])  # In Radians
 
 
 def degrees_to_radians(deg:float) -> float:
