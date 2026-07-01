@@ -70,7 +70,8 @@ class IK_Solver:
     #             float(np.clip(calf,  *_KNEE_ROT_RANGE)))
 
     def _solve(self, leg_origin:Point3D, point:Point3D):
-        delta_x, delta_y, delta_z = point - leg_origin
+        delta_point = point - leg_origin
+        delta_x, delta_y, delta_z = delta_point
 
 
         # Breadth plane
@@ -90,13 +91,15 @@ class IK_Solver:
             _HIP_OFFSET * np.sin(abductor_angle)
         ])
 
+        plane_origin:Point3D = np.array([0,0,0])
         u_unit, v_unit = get_unit_vectors_of_a_plane(movement_normal)
-        local_x = (delta_x * u_unit)
-        local_y = (delta_y * v_unit)
 
-        r = np.hypot(local_x, local_y)
+        local_point = plane_origin + (delta_x * u_unit) + (delta_y * v_unit)
+        local_x, _, local_z = local_point
 
-        phi   = np.arctan2(local_y, local_x)
+        r = np.hypot(local_x, local_z)
+
+        phi   = np.arctan2(local_z, local_x)
         gamma = np.arccos((np.square(_THIGH_LENGTH) + np.square(r) - np.square(_CALF_LENGTH)) / (2 * _THIGH_LENGTH * r))  # Find angle a using law of cosines
 
         hip_angle  = gamma + phi + _ANGLE_ZERO_OFFSETS[1]  
@@ -111,7 +114,7 @@ class IK_Solver:
         print(f"   beta: {np.round(np.degrees(beta), 2)}")
         print()
         print(f"local_x: {np.round(local_x, 2)}")
-        print(f"local_y: {np.round(local_y, 2)}")
+        print(f"local_z: {np.round(local_z, 2)}")
         print(f"      r: {np.round(r, 3)}")
         print(f"    phi: {np.round(np.degrees(phi), 2)}")
         print(f"  gamma: {np.round(np.degrees(gamma), 2)}")
