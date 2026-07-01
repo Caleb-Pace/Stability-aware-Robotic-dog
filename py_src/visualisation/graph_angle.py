@@ -260,7 +260,7 @@ def main():
     is_left_side = False
     is_front_leg = True
 
-    # origin = np.array([0, 0.5, 0], dtype=np.float64)
+    # origin = np.array([0, 0, 0.5], dtype=np.float64)
     origin = np.array([0, 0, 0], dtype=np.float64)
     joint_limits = np.array([
         _HIP_ABDUCTOR_ROT_RANGE,
@@ -271,12 +271,13 @@ def main():
     target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
 
     ik_solver = IK_Solver()
-    ik_solver._solve(origin, target)
+    angles = np.asarray(ik_solver._solve(origin, target))
 
-    angles = np.array([
-        degrees_to_radians(-15),
-        degrees_to_radians(60),
-        degrees_to_radians(-48)
-    ], dtype=np.float64)
+    # angles = np.array([
+    #     degrees_to_radians(-15),
+    #     degrees_to_radians(60),
+    #     degrees_to_radians(-48)
+    # ], dtype=np.float64)
+    # angles = np.array([0,0,0], dtype=np.float64)
 
-    # show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)
+    show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)
