@@ -1,7 +1,7 @@
-import math
 import numpy as np
 from data_structures import Point3D, Vector
 from typing import Tuple
+from kinematic_controller.fk_solver import _ANGLE_ZERO_OFFSETS
 
 
 # Link Lengths in meters #
@@ -65,9 +65,6 @@ class IK_Solver:
     def _solve(self, leg_origin:Point3D, point:Point3D):
         delta_x, delta_y, delta_z = point - leg_origin
 
-        abductor_angle = 0.0
-        hip_angle = 0.0
-        knee_angle = 0.0
 
         # Breadth plane
         #     Demo: https://www.desmos.com/calculator/94rhdsakta
@@ -78,14 +75,6 @@ class IK_Solver:
         
         abductor_angle = alpha + beta
 
-        print(f"delta_y: {np.round(delta_y, 2)}")
-        print(f"delta_z: {np.round(delta_z, 2)}")
-        print(f"      d: {np.round(_HIP_OFFSET, 3)}")
-        print(f"      c: {np.round(c, 3)}")
-        print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
-        print(f"   beta: {np.round(np.degrees(beta), 2)}")
-        print(f"  theta: {np.round(np.degrees(abductor_angle), 2)}")
-
         # Movement plane
         #     Demo: https://www.desmos.com/calculator/7ca8cg0da8
         movement_normal:Vector = np.array([
@@ -94,12 +83,36 @@ class IK_Solver:
             _HIP_OFFSET * np.sin(abductor_angle)
         ])
 
-        # u_unit, v_unit = 
-        alpha = 0
-        beta  = 0
-        gamma = 0
+        u_unit, v_unit = get_unit_vectors_of_a_plane(movement_normal)
+        local_x = (delta_x * u_unit)
+        local_y = (delta_y * v_unit)
 
-        pass
+        r = np.hypot(local_x, local_y)
+
+        phi   = np.arctan2(local_y, local_x)
+        gamma = np.arccos((np.square(_THIGH_LENGTH) + np.square(r) - np.square(_CALF_LENGTH)) / (2 * _THIGH_LENGTH * r))  # Find angle a using law of cosines
+
+        hip_angle  = gamma + phi + _ANGLE_ZERO_OFFSETS[1]  
+        knee_angle = np.arccos((np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - np.square(r)) / (2 * _THIGH_LENGTH * _CALF_LENGTH))  # Find angle c using law of cosines
+
+
+        print(f"delta_y: {np.round(delta_y, 2)}")
+        print(f"delta_z: {np.round(delta_z, 2)}")
+        print(f"      d: {np.round(_HIP_OFFSET, 3)}")
+        print(f"      c: {np.round(c, 3)}")
+        print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
+        print(f"   beta: {np.round(np.degrees(beta), 2)}")
+        print()
+        print(f"local_x: {np.round(local_x, 2)}")
+        print(f"local_y: {np.round(local_y, 2)}")
+        print(f"      r: {np.round(r, 3)}")
+        print(f"    phi: {np.round(np.degrees(phi), 2)}")
+        print(f"  gamma: {np.round(np.degrees(gamma), 2)}")
+        print()
+        print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 2)}")
+        print(f"  theta_hip: {np.round(np.degrees(hip_angle), 2)}")
+        print(f"  theta_kne: {np.round(np.degrees(knee_angle), 2)}")
+        return abductor_angle, hip_angle, knee_angle
 
     def _clamp_motor_positions(self):
         pass
