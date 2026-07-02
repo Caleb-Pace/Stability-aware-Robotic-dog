@@ -94,7 +94,7 @@ def _plot_flat(ax, points:Point3DList, colour:str, zorder:int = 0) -> None:
 def _draw_arc(ax, arc_points:Point3DList, colour:str, zorder:int = 0) -> None:
     _plot_flat(ax, arc_points, colour, zorder)
 
-def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0):
+def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:float, zorder:int = 0, is_left_side:bool = False):
     joint_min_angle, joint_max_angle = angle.limits
     joint_min_angle += angle.start
     joint_max_angle += angle.start
@@ -174,6 +174,9 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
 
     horizontal_offset = text_width * np.cos(range_bisector_angle)
     vertical_offset   = text_height * np.sin(range_bisector_angle)
+    if is_left_side:
+        horizontal_offset = -horizontal_offset
+        vertical_offset   = -vertical_offset
     if (horizontal_offset > 0):
         horizontal_offset = 0
     if (vertical_offset > 0):
@@ -185,7 +188,8 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
                             text_pos_vector_2d[0] * arc.u_unit +
                             text_pos_vector_2d[1] * arc.v_unit)
 
-    _plot_text_on_plane(ax, angle_str, font, text_origin, arc.u_unit, arc.v_unit, text_colour, text_size)
+    text_plot_u_unit = -arc.u_unit if is_left_side else arc.u_unit  # Draw text Left to Right
+    _plot_text_on_plane(ax, angle_str, font, text_origin,text_plot_u_unit, arc.v_unit, text_colour, text_size)
 
 # TODO: Add show movement plane option
 def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.NDArray[np.void], is_left_side:bool, is_front_leg:bool):
@@ -215,6 +219,8 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 
     # Movement Plane: Abductor-Hip vector is normal to the movement plane
     plane_u_unit, plane_v_unit = get_unit_vectors_of_a_plane(hip_pos)
+    if is_left_side:
+        plane_u_unit = -plane_u_unit
 
 
     # Linkages
@@ -234,9 +240,9 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
 
-    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0)
-    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20)
-    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20)
+    _draw_joint(ax, abductor_joint, GREEN_COLOUR, abductor_arc, _ANGLE_ZERO_OFFSETS[0], 0, is_left_side)
+    _draw_joint(ax, hip_joint,      GREEN_COLOUR, hip_arc,      _ANGLE_ZERO_OFFSETS[1], 20, is_left_side)
+    _draw_joint(ax, knee_joint,     GREEN_COLOUR, knee_arc,     (_ANGLE_ZERO_OFFSETS[1] + _ANGLE_ZERO_OFFSETS[2]), 20, is_left_side)
 
 
     # Position logs
@@ -246,7 +252,8 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     print(f"     ->  Foot pos: {_point_to_str(foot_pos)}")
 
 
-    ax.view_init(elev=0, azim=-90)  # TODO: Remove, for testing
+    ax.view_init(elev=0, azim=(-90 if is_left_side else 90))  # TODO: Remove, for testing
+    # ax.view_init(elev=0, azim=-90)  # TODO: Remove, for testing
     # ax.view_init(elev=0, azim=90)  # TODO: Remove, for testing
     # ax.view_init(elev=90, azim=0)  # TODO: Remove, for testing
     # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
@@ -283,7 +290,7 @@ def main():
     #     degrees_to_radians(-48)
     # ], dtype=np.float64)
     angles = np.array([
-        degrees_to_radians(50),
+        degrees_to_radians(0),
         degrees_to_radians(60),
         degrees_to_radians(-48)
     ], dtype=np.float64)
