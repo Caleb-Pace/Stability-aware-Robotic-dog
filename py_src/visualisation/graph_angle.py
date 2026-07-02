@@ -17,7 +17,7 @@ GREY_COLOUR  = "#7F7F7F"
 RED_COLOUR   = "#F01515"
 
 
-def _point_to_str(point:Point3D, accuracy_dp:int = 3) -> str:
+def _point_to_str(point:Point3D, accuracy_dp:int = 5) -> str:
     slot_width:int = 3 + accuracy_dp
 
     def __format_number(number:float) -> str:
@@ -230,7 +230,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_joint      = JointAngle(0,         hip_angle,           joint_limits[1])
     knee_joint     = JointAngle(hip_angle, knee_absolute_angle, joint_limits[2])
 
-    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, ARC_WIDTH, -STD_UNIT.X,   STD_UNIT.Z)   # Normal to the world YZ plane
+    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, ARC_WIDTH, STD_UNIT.Y,   STD_UNIT.Z)    # Normal to the world YZ plane
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
 
@@ -246,7 +246,10 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     print(f"     ->  Foot pos: {_point_to_str(foot_pos)}")
 
 
-    ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
+    ax.view_init(elev=0, azim=-90)  # TODO: Remove, for testing
+    # ax.view_init(elev=0, azim=90)  # TODO: Remove, for testing
+    # ax.view_init(elev=90, azim=0)  # TODO: Remove, for testing
+    # ax.view_init(elev=15, azim=(50 if is_left_side else 130))  # TODO: Uncomment, testing
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_xlabel('X Axis', labelpad=10)
     ax.set_ylabel('Y Axis', labelpad=10)
@@ -268,16 +271,22 @@ def main():
         _KNEE_ROT_RANGE
     ], dtype=AngleLimits)
 
-    target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
+    # target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
+    target:Point3D = np.array([-0.01, 0.0, -0.426], dtype=np.float64)  # Zero target
 
     ik_solver = IK_Solver()
-    angles = np.asarray(ik_solver._solve(origin, target))
+    # angles = np.asarray(ik_solver._solve(origin, target))
 
     # angles = np.array([
     #     degrees_to_radians(-15),
     #     degrees_to_radians(60),
     #     degrees_to_radians(-48)
     # ], dtype=np.float64)
+    angles = np.array([
+        degrees_to_radians(50),
+        degrees_to_radians(60),
+        degrees_to_radians(-48)
+    ], dtype=np.float64)
     # angles = np.array([0,0,0], dtype=np.float64)
 
     show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)
