@@ -30,12 +30,20 @@ def _convert_local_to_world_coordinate(local_coordinate:Point2D, plane_anchor_po
     return plane_anchor_point + (x_prime * u_unit) + (y_prime * v_unit)
 
 def calculate_joint_positions(origin:Point3D, angles:npt.NDArray[np.float64], is_left_side:bool = False):
-    AZIMUTH_POS_Y_ANGLE = degrees_to_radians(0 if is_left_side else 180)
+    AZIMUTH_POS_Y_ANGLE = np.pi/2  # 90 deg
     
     if len(angles) != 3:  # Safety check
         raise IndexError(f"3 angles must be provided! ({len(angles)} != 3)")
     angles += _ANGLE_ZERO_OFFSETS  # Apply angle offsets
     abductor_angle, hip_angle, knee_relative_angle = angles
+
+    # Apply left side offsets
+    if is_left_side:
+        AZIMUTH_POS_Y_ANGLE += np.pi  # + 180 deg
+
+        # Invert angles
+        hip_angle           = np.pi - hip_angle
+        knee_relative_angle = -knee_relative_angle
 
     # Breadth (yz) plane
     abductor_pos:Point3D = origin
