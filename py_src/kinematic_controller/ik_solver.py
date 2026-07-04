@@ -92,12 +92,12 @@ class IK_Solver:
             _HIP_OFFSET * np.sin(abductor_angle)
         ])
 
-        plane_origin:Point3D = np.array([0,0,0])
+        plane_origin:Point3D = movement_normal
         u_unit, v_unit = get_unit_vectors_of_a_plane(movement_normal)
 
-        local_point = plane_origin + (delta_x * u_unit) + (delta_y * v_unit)
-        print(repr(local_point))  # TODO: Remove, for debugging
-        local_x, _, local_z = local_point
+        point_relative_to_plane = delta_point - plane_origin
+        local_x = np.dot(point_relative_to_plane, u_unit)
+        local_z = np.dot(point_relative_to_plane, v_unit)
 
         r = np.hypot(local_x, local_z)
 
@@ -110,17 +110,20 @@ class IK_Solver:
         knee_angle -= _ANGLE_ZERO_OFFSETS[2]
 
         # TODO: Remove, for debugging
-        # print(f"  delta: {delta_point}")
+        print(f"  delta: {np.round(delta_point, 6)}")
         # print(f"delta_y: {np.round(delta_y, 4)}")
         # print(f"delta_z: {np.round(delta_z, 4)}")
         # print(f"      d: {np.round(_HIP_OFFSET, 3)}")
         # print(f"      c: {np.round(c, 3)}")
         # print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
         # print(f"   beta: {np.round(np.degrees(beta), 2)}")
-        # print()
-        print(f" u_unit: {u_unit}")
+        print()
+        print(f"normalV: {np.round(movement_normal, 6)}")
+        print(f" p_pt_w: {np.round(point_relative_to_plane, 6)}")
+        print(f" u_unit: {np.round(u_unit, 6)}")
+        print(f" v_unit: {np.round(v_unit, 6)}")
+        print()
         print(f"local_x: {local_x}")
-        print(f" v_unit: {v_unit}")
         print(f"local_z: {local_z}")
         print(f"      r: {np.round(r, 3)}")
         print(f"    phi: {np.round(np.degrees(phi), 2)}")
