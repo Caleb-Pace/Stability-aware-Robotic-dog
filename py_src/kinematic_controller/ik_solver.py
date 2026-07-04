@@ -58,25 +58,13 @@ class IK_Solver:
         self.maximum_move_length = (_THIGH_LENGTH) + (_CALF_LENGTH * _KNEE_ROT_RANGE[1])
         pass
 
-    # # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_lowlevel.py#L99
-    # def solve(self, px, pz):
-    #     r = math.sqrt(px*px + pz*pz)
-    #     r = float(np.clip(r, 0.05, _THIGH_LENGTH + _CALF_LENGTH - 0.005))
-    #     cos_c = (_THIGH_LENGTH**2 + _CALF_LENGTH**2 - r**2) / (2.0*_THIGH_LENGTH*_CALF_LENGTH)
-    #     calf  = -(math.pi - math.acos(float(np.clip(cos_c, -1.0, 1.0))))
-    #     alpha = math.atan2(px, -pz)
-    #     cos_b = (_THIGH_LENGTH**2 + r**2 - _CALF_LENGTH**2) / (2.0*_THIGH_LENGTH*r)
-    #     thigh = alpha + math.acos(float(np.clip(cos_b, -1.0, 1.0)))
-    #     return (float(np.clip(thigh, *_FRONT_HIP_ROT_RANGE)),
-    #             float(np.clip(calf,  *_KNEE_ROT_RANGE)))
-
     def _solve(self, leg_origin:Point3D, point:Point3D):
         delta_point = point - leg_origin
-        delta_x, delta_y, delta_z = delta_point
 
 
         # Breadth plane
         #     Demo: https://www.desmos.com/calculator/godph2jaeb
+        _, delta_y, delta_z = delta_point
         c = np.hypot(delta_y, delta_z)
         
         alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
@@ -111,12 +99,12 @@ class IK_Solver:
 
         # TODO: Remove, for debugging
         print(f"  delta: {np.round(delta_point, 6)}")
-        # print(f"delta_y: {np.round(delta_y, 4)}")
-        # print(f"delta_z: {np.round(delta_z, 4)}")
-        # print(f"      d: {np.round(_HIP_OFFSET, 3)}")
-        # print(f"      c: {np.round(c, 3)}")
-        # print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
-        # print(f"   beta: {np.round(np.degrees(beta), 2)}")
+        print(f"delta_y: {np.round(delta_y, 4)}")
+        print(f"delta_z: {np.round(delta_z, 4)}")
+        print(f"      d: {np.round(_HIP_OFFSET, 3)}")
+        print(f"      c: {np.round(c, 3)}")
+        print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
+        print(f"   beta: {np.round(np.degrees(beta), 2)}")
         print()
         print(f"normalV: {np.round(movement_normal, 6)}")
         print(f" p_pt_w: {np.round(point_relative_to_plane, 6)}")
