@@ -236,7 +236,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     hip_joint      = JointAngle(0,         hip_angle,           joint_limits[1])
     knee_joint     = JointAngle(hip_angle, knee_absolute_angle, joint_limits[2])
 
-    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, ARC_WIDTH, STD_UNIT.Y,   STD_UNIT.Z)    # Normal to the world YZ plane
+    abductor_arc = ArcSettings(abductor_pos, ARC_RADIUS, ARC_WIDTH, -STD_UNIT.Y,   STD_UNIT.Z)   # Normal to the world YZ plane
     hip_arc      = ArcSettings(hip_pos,      ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
     knee_arc     = ArcSettings(knee_pos,     ARC_RADIUS, ARC_WIDTH, plane_u_unit, plane_v_unit)  # Movement plane
 
@@ -252,7 +252,8 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     print(f"     ->  Foot pos: {_point_to_str(foot_pos)}")
 
 
-    ax.view_init(elev=0, azim=(-90 if is_left_side else 90))  # TODO: Remove, for testing
+    ax.view_init(elev=0, azim=0)  # TODO: Remove, for testing
+    # ax.view_init(elev=0, azim=(-90 if is_left_side else 90))  # TODO: Remove, for testing
     # ax.view_init(elev=0, azim=-90)  # TODO: Remove, for testing
     # ax.view_init(elev=0, azim=90)  # TODO: Remove, for testing
     # ax.view_init(elev=90, azim=0)  # TODO: Remove, for testing
@@ -267,7 +268,7 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
 
 # IK Test
 def main():
-    is_left_side = False
+    is_left_side = True
     is_front_leg = True
 
     # origin = np.array([0, 0, 0.5], dtype=np.float64)
@@ -279,21 +280,21 @@ def main():
     ], dtype=AngleLimits)
 
     # target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
-    target:Point3D = np.array([-0.01, 0.0, -0.426], dtype=np.float64)  # Zero target
+    target:Point3D = np.array([0.0, -0.01, -0.426], dtype=np.float64)  # Zero target
 
     ik_solver = IK_Solver()
-    # angles = np.asarray(ik_solver._solve(origin, target))
+    angles = np.asarray(ik_solver._solve(origin, target))
 
     # angles = np.array([
     #     degrees_to_radians(-15),
     #     degrees_to_radians(60),
     #     degrees_to_radians(-48)
     # ], dtype=np.float64)
-    angles = np.array([
-        degrees_to_radians(0),
-        degrees_to_radians(60),
-        degrees_to_radians(-48)
-    ], dtype=np.float64)
+    # angles = np.array([
+    #     degrees_to_radians(45),
+    #     degrees_to_radians(0),
+    #     degrees_to_radians(0)
+    # ], dtype=np.float64)
     # angles = np.array([0,0,0], dtype=np.float64)
 
     show_leg(origin, angles, joint_limits, is_left_side, is_front_leg)

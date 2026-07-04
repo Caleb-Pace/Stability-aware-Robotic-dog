@@ -13,6 +13,7 @@ _ANGLE_ZERO_OFFSETS = np.array([
 
 # Link Lengths in meters #
 _HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value  # CANNOT BE ZERO
+# _HIP_OFFSET   = 0.1  # TODO: Remove, for debugging
 _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
@@ -75,13 +76,13 @@ class IK_Solver:
 
 
         # Breadth plane
-        #     Demo: https://www.desmos.com/calculator/94rhdsakta
+        #     Demo: https://www.desmos.com/calculator/godph2jaeb
         c = np.hypot(delta_y, delta_z)
         
-        alpha = _ANGLE_ZERO_OFFSETS[0] + np.arctan2(delta_y, delta_z)
+        alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
         beta  = np.pi/2 - np.arctan2(_HIP_OFFSET, c)  # Complement: 90 deg - angle
         
-        abductor_angle = alpha + beta
+        abductor_angle = (beta - alpha) - _ANGLE_ZERO_OFFSETS[0]
 
         # Movement plane
         #     Demo: https://www.desmos.com/calculator/7ca8cg0da8
@@ -95,6 +96,7 @@ class IK_Solver:
         u_unit, v_unit = get_unit_vectors_of_a_plane(movement_normal)
 
         local_point = plane_origin + (delta_x * u_unit) + (delta_y * v_unit)
+        print(repr(local_point))  # TODO: Remove, for debugging
         local_x, _, local_z = local_point
 
         r = np.hypot(local_x, local_z)
@@ -103,18 +105,22 @@ class IK_Solver:
         psi   = np.arccos((np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - np.square(r)) / (2 * _THIGH_LENGTH * _CALF_LENGTH))  # Find angle c using law of cosines
         gamma = np.arccos((np.square(_THIGH_LENGTH) + np.square(r) - np.square(_CALF_LENGTH)) / (2 * _THIGH_LENGTH * r))             # Find angle a using law of cosines
 
-        hip_angle  = gamma + phi - _ANGLE_ZERO_OFFSETS[1]
-        knee_angle = _ANGLE_ZERO_OFFSETS[2] + -(np.pi - psi)  # Other angle on line: 180 - angle
+        hip_angle   = phi - gamma - _ANGLE_ZERO_OFFSETS[1]
+        knee_angle  = (np.pi - psi)  # Other angle on line: 180 - angle
+        knee_angle -= _ANGLE_ZERO_OFFSETS[2]
 
-
-        print(f"delta_y: {np.round(delta_y, 2)}")
-        print(f"delta_z: {np.round(delta_z, 2)}")
-        print(f"      d: {np.round(_HIP_OFFSET, 3)}")
-        print(f"      c: {np.round(c, 3)}")
-        print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
-        print(f"   beta: {np.round(np.degrees(beta), 2)}")
-        print()
+        # TODO: Remove, for debugging
+        # print(f"  delta: {delta_point}")
+        # print(f"delta_y: {np.round(delta_y, 4)}")
+        # print(f"delta_z: {np.round(delta_z, 4)}")
+        # print(f"      d: {np.round(_HIP_OFFSET, 3)}")
+        # print(f"      c: {np.round(c, 3)}")
+        # print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
+        # print(f"   beta: {np.round(np.degrees(beta), 2)}")
+        # print()
+        print(f" u_unit: {u_unit}")
         print(f"local_x: {local_x}")
+        print(f" v_unit: {v_unit}")
         print(f"local_z: {local_z}")
         print(f"      r: {np.round(r, 3)}")
         print(f"    phi: {np.round(np.degrees(phi), 2)}")
@@ -125,7 +131,7 @@ class IK_Solver:
         print(f"  theta_kne: {np.round(np.degrees(knee_angle), 2)}")
         print()
         print(f"   d_target: {np.round(delta_point, 2)}")
-        return -abductor_angle, hip_angle, knee_angle
+        return abductor_angle, hip_angle, knee_angle
 
     def _clamp_motor_positions(self):
         pass
