@@ -71,7 +71,7 @@ class IK_Solver:
         abductor_angle = (alpha - beta) + _ANGLE_ZERO_OFFSETS[0]
 
         # Movement plane
-        #     Demo: https://www.desmos.com/calculator/7ca8cg0da8
+        #     Demo: https://www.desmos.com/calculator/zavg5hl0gn
         movement_normal:Vector = np.array([
             0,
             _HIP_OFFSET * np.cos(abductor_angle),
@@ -112,6 +112,7 @@ class IK_Solver:
         print(f"local_z: {local_z}")
         print(f"      r: {np.round(r, 3)}")
         print(f"    phi: {np.round(np.degrees(phi), 2)}°")
+        print(f"    psi: {np.round(np.degrees(psi), 2)}°")
         print(f"  gamma: {np.round(np.degrees(gamma), 2)}°")
         print()
         print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
