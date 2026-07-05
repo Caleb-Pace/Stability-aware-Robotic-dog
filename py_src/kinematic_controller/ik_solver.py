@@ -13,7 +13,6 @@ _ANGLE_ZERO_OFFSETS = np.array([
 
 # Link Lengths in meters #
 _HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value  # CANNOT BE ZERO
-# _HIP_OFFSET   = 0.1  # TODO: Remove, for debugging
 _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
@@ -61,7 +60,6 @@ class IK_Solver:
     def _solve(self, leg_origin:Point3D, point:Point3D):
         delta_point = point - leg_origin
 
-
         # Breadth plane
         #     Demo: https://www.desmos.com/calculator/godph2jaeb
         _, delta_y, delta_z = delta_point
@@ -102,8 +100,8 @@ class IK_Solver:
         print(f"delta_z: {np.round(delta_z, 4)}")
         print(f"      d: {np.round(_HIP_OFFSET, 3)}")
         print(f"      c: {np.round(c, 3)}")
-        print(f"  alpha: {np.round(np.degrees(alpha), 2)}")
-        print(f"   beta: {np.round(np.degrees(beta), 2)}")
+        print(f"  alpha: {np.round(np.degrees(alpha), 2)}°")
+        print(f"   beta: {np.round(np.degrees(beta), 2)}°")
         print()
         print(f"normalV: {np.round(movement_normal, 6)}")
         print(f" p_pt_w: {np.round(point_relative_to_plane, 6)}")
@@ -113,14 +111,15 @@ class IK_Solver:
         print(f"local_x: {local_x}")
         print(f"local_z: {local_z}")
         print(f"      r: {np.round(r, 3)}")
-        print(f"    phi: {np.round(np.degrees(phi), 2)}")
-        print(f"  gamma: {np.round(np.degrees(gamma), 2)}")
+        print(f"    phi: {np.round(np.degrees(phi), 2)}°")
+        print(f"  gamma: {np.round(np.degrees(gamma), 2)}°")
         print()
-        print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 2)}")
-        print(f"  theta_hip: {np.round(np.degrees(hip_angle), 2)}")
-        print(f"  theta_kne: {np.round(np.degrees(knee_angle), 2)}")
+        print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
+        print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
+        print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
         print()
-        print(f"   d_target: {np.round(delta_point, 2)}")
+        print(f"   d_target: {np.round(delta_point, 6)}")
+        print()
         return abductor_angle, hip_angle, knee_angle
 
     def _clamp_motor_positions(self):
