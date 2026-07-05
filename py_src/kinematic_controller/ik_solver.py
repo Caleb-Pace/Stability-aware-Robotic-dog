@@ -93,9 +93,8 @@ class IK_Solver:
         psi   = np.arccos((np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - np.square(r)) / (2 * _THIGH_LENGTH * _CALF_LENGTH))  # Find angle c using law of cosines
         gamma = np.arccos((np.square(_THIGH_LENGTH) + np.square(r) - np.square(_CALF_LENGTH)) / (2 * _THIGH_LENGTH * r))             # Find angle a using law of cosines
 
-        hip_angle   = phi - gamma - _ANGLE_ZERO_OFFSETS[1]
-        knee_angle  = (np.pi - psi)  # Other angle on line: 180 - angle
-        knee_angle -= _ANGLE_ZERO_OFFSETS[2]
+        hip_angle   = (gamma + phi) - _ANGLE_ZERO_OFFSETS[1]
+        knee_angle  = (psi - np.pi)  # Other angle on line: angle - 180
 
         # TODO: Remove, for debugging
         print(f"  delta: {np.round(delta_point, 6)}")
