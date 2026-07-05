@@ -106,9 +106,9 @@ def _draw_joint(ax, angle:JointAngle, colour:str, arc:ArcSettings, zero_offset:f
 
     # Bound checks
     boundcheck_str = "OK"
-    accuracy:int = 4
-    is_under = (np.round(current_angle, accuracy) < np.round(joint_min_angle, accuracy))
-    is_over  = (np.round(current_angle, accuracy) > np.round(joint_max_angle, accuracy))
+    TOLERANCE:float = 1e-4  # 4 d.p. (~0.0.0057 degrees)
+    is_under = (current_angle < joint_min_angle - TOLERANCE)
+    is_over  = (current_angle > joint_max_angle + TOLERANCE)
     if is_under:
         colour = RED_COLOUR
         range_angle_min = ref_angle
@@ -252,7 +252,8 @@ def show_leg(origin:Point3D, angles:npt.NDArray[np.float64], joint_limits:npt.ND
     print(f"     ->  Foot pos: {_point_to_str(foot_pos)}")
 
 
-    ax.view_init(elev=0, azim=0)  # TODO: Remove, for testing
+    ax.view_init(elev=20, azim=-55)  # TODO: Remove, for testing
+    # ax.view_init(elev=0, azim=0)  # TODO: Remove, for testing
     # ax.view_init(elev=0, azim=(-90 if is_left_side else 90))  # TODO: Remove, for testing
     # ax.view_init(elev=0, azim=-90)  # TODO: Remove, for testing
     # ax.view_init(elev=0, azim=90)  # TODO: Remove, for testing
@@ -280,8 +281,10 @@ def main():
     ], dtype=AngleLimits)
 
     # target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
-    target:Point3D = np.array([0.0, -0.01, -0.426], dtype=np.float64)  # Zero target
+    # target:Point3D = np.array([0.0, -0.01, -0.426], dtype=np.float64)  # Zero target
+    target:Point3D = np.array([-0.22875, -0.09115, -0.30153], dtype=np.float64)  # -15, 60, -48
 
+    
     ik_solver = IK_Solver()
     angles = np.asarray(ik_solver._solve(origin, target))
 
