@@ -70,7 +70,7 @@ class IK_Solver:
         alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
         beta  = np.pi/2 - np.arctan2(_HIP_OFFSET, c)  # Complement: 90 deg - angle
         
-        abductor_angle = (beta - alpha) - _ANGLE_ZERO_OFFSETS[0]
+        abductor_angle = (alpha - beta) + _ANGLE_ZERO_OFFSETS[0]
 
         # Movement plane
         #     Demo: https://www.desmos.com/calculator/7ca8cg0da8
