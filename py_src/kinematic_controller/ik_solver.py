@@ -25,6 +25,9 @@ _KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
 # Output torque limits in Newton-meters #
 _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
 
+# Reachability limits #
+_MAX_RANGE_LENGTH = _THIGH_LENGTH + (_CALF_LENGTH * _KNEE_ROT_RANGE[1])
+
 
 def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
     # Normalise the nomral vector
@@ -54,7 +57,6 @@ def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
 
 class IK_Solver:
     def __init__(self):
-        self.maximum_move_length = (_THIGH_LENGTH) + (_CALF_LENGTH * _KNEE_ROT_RANGE[1])
         pass
 
     def _solve(self, leg_origin:Point3D, point:Point3D):
@@ -94,33 +96,33 @@ class IK_Solver:
         hip_angle   = (gamma + phi) - _ANGLE_ZERO_OFFSETS[1]
         knee_angle  = (psi - np.pi)  # Other angle on line: angle - 180
 
-        # TODO: Remove, for debugging
-        print(f"  delta: {np.round(delta_point, 6)}")
-        print(f"delta_y: {np.round(delta_y, 4)}")
-        print(f"delta_z: {np.round(delta_z, 4)}")
-        print(f"      d: {np.round(_HIP_OFFSET, 3)}")
-        print(f"      c: {np.round(c, 3)}")
-        print(f"  alpha: {np.round(np.degrees(alpha), 2)}°")
-        print(f"   beta: {np.round(np.degrees(beta), 2)}°")
-        print()
-        print(f"normalV: {np.round(movement_normal, 6)}")
-        print(f" p_pt_w: {np.round(point_relative_to_plane, 6)}")
-        print(f" u_unit: {np.round(u_unit, 6)}")
-        print(f" v_unit: {np.round(v_unit, 6)}")
-        print()
-        print(f"local_x: {local_x}")
-        print(f"local_z: {local_z}")
-        print(f"      r: {np.round(r, 3)}")
-        print(f"    phi: {np.round(np.degrees(phi), 2)}°")
-        print(f"    psi: {np.round(np.degrees(psi), 2)}°")
-        print(f"  gamma: {np.round(np.degrees(gamma), 2)}°")
-        print()
-        print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
-        print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
-        print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
-        print()
-        print(f"   d_target: {np.round(delta_point, 6)}")
-        print()
+        # # TODO: Remove, for debugging
+        # print(f"  delta: {np.round(delta_point, 6)}")
+        # print(f"delta_y: {np.round(delta_y, 4)}")
+        # print(f"delta_z: {np.round(delta_z, 4)}")
+        # print(f"      d: {np.round(_HIP_OFFSET, 3)}")
+        # print(f"      c: {np.round(c, 3)}")
+        # print(f"  alpha: {np.round(np.degrees(alpha), 2)}°")
+        # print(f"   beta: {np.round(np.degrees(beta), 2)}°")
+        # print()
+        # print(f"normalV: {np.round(movement_normal, 6)}")
+        # print(f" p_pt_w: {np.round(point_relative_to_plane, 6)}")
+        # print(f" u_unit: {np.round(u_unit, 6)}")
+        # print(f" v_unit: {np.round(v_unit, 6)}")
+        # print()
+        # print(f"local_x: {local_x}")
+        # print(f"local_z: {local_z}")
+        # print(f"      r: {np.round(r, 3)}")
+        # print(f"    phi: {np.round(np.degrees(phi), 2)}°")
+        # print(f"    psi: {np.round(np.degrees(psi), 2)}°")
+        # print(f"  gamma: {np.round(np.degrees(gamma), 2)}°")
+        # print()
+        # print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
+        # print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
+        # print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
+        # print()
+        # print(f"   d_target: {np.round(delta_point, 6)}")
+        # print()
         return abductor_angle, hip_angle, knee_angle
 
     def _clamp_motor_positions(self):
