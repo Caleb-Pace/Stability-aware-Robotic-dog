@@ -1,6 +1,6 @@
 import numpy as np
 from data_structures import Point3D, Vector, Point3DList
-from data_structures import LegPoseList
+from data_structures import AngleLimits, LegPoseList
 from kinematic_controller.gait_definition import LEG_COUNT
 from typing import Tuple
 
@@ -19,10 +19,10 @@ _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
 # Rotation limits (min, max) in Radians #
-_HIP_ABDUCTOR_ROT_RANGE = (-1.0472,  1.0472)   # approx. -60  to  60  deg
-_FRONT_HIP_ROT_RANGE    = (-1.5708,  3.4907)   # approx. -90  to  200 deg
-_BACK_HIP_ROT_RANGE     = (-0.5236,  4.5379)   # approx. -30  to  260 deg
-_KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
+_HIP_ABDUCTOR_ROT_RANGE = AngleLimits(-1.0472,  1.0472)   # approx. -60  to  60  deg
+_FRONT_HIP_ROT_RANGE    = AngleLimits(-1.5708,  3.4907)   # approx. -90  to  200 deg
+_BACK_HIP_ROT_RANGE     = AngleLimits(-0.5236,  4.5379)   # approx. -30  to  260 deg
+_KNEE_ROT_RANGE         = AngleLimits(-2.7227, -0.83776)  # approx. -155 to -48  deg
 
 # Output torque limits in Newton-meters #
 _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
@@ -158,26 +158,26 @@ class IK_Solver:
         rounded_hip_angle      = np.round(hip_angle, _ANGLE_ACCURACY)
         rounded_knee_angle     = np.round(knee_angle, _ANGLE_ACCURACY)
         
-        if rounded_abductor_angle < _HIP_ABDUCTOR_ROT_RANGE[0]:
-            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} >= {_HIP_ABDUCTOR_ROT_RANGE[0]})")
+        if rounded_abductor_angle < _HIP_ABDUCTOR_ROT_RANGE.minimum:
+            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} >= {_HIP_ABDUCTOR_ROT_RANGE.minimum})")
             return None
-        if rounded_abductor_angle > _HIP_ABDUCTOR_ROT_RANGE[1]:
-            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE[1]})")
+        if rounded_abductor_angle > _HIP_ABDUCTOR_ROT_RANGE.maximum:
+            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE.maximum})")
             return None
         
         _hip_rot_range = _FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE
-        if rounded_hip_angle < _hip_rot_range[0]:
-            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} >= {_hip_rot_range[0]})")
+        if rounded_hip_angle < _hip_rot_range.minimum:
+            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} >= {_hip_rot_range.minimum})")
             return None
-        if rounded_hip_angle > _hip_rot_range[1]:
-            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} <= {_hip_rot_range[1]})")
+        if rounded_hip_angle > _hip_rot_range.maximum:
+            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} <= {_hip_rot_range.maximum})")
             return None
         
-        if rounded_knee_angle < _KNEE_ROT_RANGE[0]:
-            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} >= {_KNEE_ROT_RANGE[0]})")
+        if rounded_knee_angle < _KNEE_ROT_RANGE.minimum:
+            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} >= {_KNEE_ROT_RANGE.minimum})")
             return None
-        if rounded_knee_angle > _KNEE_ROT_RANGE[1]:
-            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} <= {_KNEE_ROT_RANGE[1]})")
+        if rounded_knee_angle > _KNEE_ROT_RANGE.maximum:
+            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} <= {_KNEE_ROT_RANGE.maximum})")
             return None
 
         return result
