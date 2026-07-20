@@ -25,8 +25,13 @@ _KNEE_ROT_RANGE         = (-2.7227, -0.83776)  # approx. -155 to -48  deg
 # Output torque limits in Newton-meters #
 _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
 
+# Accuracy #
+#     based on input point accuracy
+_INPUT_ACCURACY = 5  # d.p. | e.g. 5 = 10 microns
+
 # Reachability limits #
-_MAX_RANGE_LENGTH = _THIGH_LENGTH + (_CALF_LENGTH * _KNEE_ROT_RANGE[1])
+_MAX_RANGE_LENGTH = np.sqrt(np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - (2 * _THIGH_LENGTH * _CALF_LENGTH * np.cos(np.pi - _KNEE_ROT_RANGE[1])))
+_MAX_RANGE_LENGTH = np.round(_MAX_RANGE_LENGTH, _INPUT_ACCURACY)
 
 
 def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
@@ -92,7 +97,7 @@ class IK_Solver:
 
         r = np.hypot(local_x, local_z)  # range
         #     Safety check
-        if r > _MAX_RANGE_LENGTH:
+        if np.round(r, _INPUT_ACCURACY) > _MAX_RANGE_LENGTH:
             return None  # Early exit: unreachable point, too far
 
         phi   = np.arctan2(local_z, local_x)
@@ -123,12 +128,12 @@ class IK_Solver:
         # print(f"    psi: {np.round(np.degrees(psi), 2)}°")
         # print(f"  gamma: {np.round(np.degrees(gamma), 2)}°")
         # print()
-        # print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
-        # print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
-        # print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
-        # print()
-        # print(f"   d_target: {np.round(delta_point, 6)}")
-        # print()
+        print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
+        print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
+        print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
+        print()
+        print(f"   d_target: {np.round(delta_point, 6)}")
+        print()
         return abductor_angle, hip_angle, knee_angle
 
     def _clamp_motor_positions(self):
