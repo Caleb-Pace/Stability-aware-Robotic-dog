@@ -13,6 +13,15 @@ _ANGLE_ZERO_OFFSETS = np.array([
      0,        # Knee      0 deg
 ])  # In Radians
 
+# Leg offsets from body origin #
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
+_LEG_OFFSETS_FROM_BODY_ORIGIN = np.array([
+    [ 0.1934,  0.0465, 0.0],  # FL
+    [ 0.1934, -0.0465, 0.0],  # FR
+    [-0.1934,  0.0465, 0.0],  # BL
+    [-0.1934, -0.0465, 0.0]   # BR
+], dtype=float)
+
 # Link Lengths in meters #
 _HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value  # CANNOT BE ZERO
 _THIGH_LENGTH = 0.213
