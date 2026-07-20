@@ -1,5 +1,7 @@
 import numpy as np
-from data_structures import Point3D, Vector
+from data_structures import Point3D, Vector, Point3DList
+from data_structures import LegPoseList
+from kinematic_controller.gait_definition import LEG_COUNT
 from typing import Tuple
 
 
@@ -27,11 +29,15 @@ _KNEE_TORQUE_LIMIT = (-45.43, 45.43)
 
 # Accuracy #
 #     based on input point accuracy
-_INPUT_ACCURACY = 5  # d.p. | e.g. 5 = 10 microns
+_INPUT_ACCURACY = 5  # d.p. of meter | e.g. 5 = 10 microns
+_ANGLE_ACCURACY = 5  # d.p. of radian
 
 # Reachability limits #
 _MAX_RANGE_LENGTH = np.sqrt(np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - (2 * _THIGH_LENGTH * _CALF_LENGTH * np.cos(np.pi - _KNEE_ROT_RANGE[1])))
 _MAX_RANGE_LENGTH = np.round(_MAX_RANGE_LENGTH, _INPUT_ACCURACY)
+
+
+type LegPose = Tuple[float, float, float]  # Angles (abd, hip, knee)
 
 
 def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
@@ -64,7 +70,7 @@ class IK_Solver:
     def __init__(self):
         pass
 
-    def _solve(self, leg_origin:Point3D, point:Point3D):
+    def _solve_internal(self, leg_origin:Point3D, point:Point3D) -> None|LegPose:
         delta_point = point - leg_origin
 
         # Breadth plane
@@ -138,5 +144,52 @@ class IK_Solver:
         print()
         return abductor_angle, hip_angle, knee_angle
 
-    def _clamp_motor_positions(self):
-        pass
+    def _solve_leg(self, leg_origin:Point3D, point:Point3D, is_front_leg:bool) -> None|LegPose:
+        # Solve angles
+        result = self._solve_internal(leg_origin, point)
+        if result is None:
+            return None
+        
+        # Unpack angles
+        abductor_angle, hip_angle, knee_angle = result
+
+        # Ensure angles are within limits
+        rounded_abductor_angle = np.round(abductor_angle, _ANGLE_ACCURACY)
+        rounded_hip_angle      = np.round(hip_angle, _ANGLE_ACCURACY)
+        rounded_knee_angle     = np.round(knee_angle, _ANGLE_ACCURACY)
+        
+        if rounded_abductor_angle < _HIP_ABDUCTOR_ROT_RANGE[0]:
+            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} >= {_HIP_ABDUCTOR_ROT_RANGE[0]})")
+            return None
+        if rounded_abductor_angle > _HIP_ABDUCTOR_ROT_RANGE[1]:
+            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE[1]})")
+            return None
+        
+        _hip_rot_range = _FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE
+        if rounded_hip_angle < _hip_rot_range[0]:
+            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} >= {_hip_rot_range[0]})")
+            return None
+        if rounded_hip_angle > _hip_rot_range[1]:
+            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} <= {_hip_rot_range[1]})")
+            return None
+        
+        if rounded_knee_angle < _KNEE_ROT_RANGE[0]:
+            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} >= {_KNEE_ROT_RANGE[0]})")
+            return None
+        if rounded_knee_angle > _KNEE_ROT_RANGE[1]:
+            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} <= {_KNEE_ROT_RANGE[1]})")
+            return None
+
+        return result
+
+    # TODO: Implement
+    def solve(self, leg_points:Point3DList) -> None|LegPoseList:
+        if len(leg_points) > LEG_COUNT:
+            raise IndexError(f"Too many leg points! ({len(leg_points)} == {LEG_COUNT})")
+        if len(leg_points) < LEG_COUNT:
+            raise IndexError(f"Not enough leg points! ({len(leg_points)} == {LEG_COUNT})")
+
+        for i in range(LEG_COUNT):
+            pass
+
+        # TODO: Check for limb collision
