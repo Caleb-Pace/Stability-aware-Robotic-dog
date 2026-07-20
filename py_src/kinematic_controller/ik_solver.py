@@ -68,7 +68,7 @@ class IK_Solver:
         c = np.hypot(delta_y, delta_z)
         
         alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
-        beta  = np.pi/2 - np.arctan2(_HIP_OFFSET, c)  # Complement: 90 deg - angle
+        beta  = np.arccos((_HIP_OFFSET / c))
         
         abductor_angle = (alpha - beta) + _ANGLE_ZERO_OFFSETS[0]
 
