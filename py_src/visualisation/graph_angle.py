@@ -288,7 +288,7 @@ def main():
     target[1] *= 1 if is_left_side else -1  # Invert Y coordinate if right side (Outward is positive)
 
     ik_solver = IK_Solver()
-    result = ik_solver._solve(origin, target)
+    result = ik_solver._solve_leg(origin, target, is_front_leg)
     if result is None:
         return
     
