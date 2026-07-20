@@ -171,7 +171,7 @@ class IK_Solver:
             print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} >= {_HIP_ABDUCTOR_ROT_RANGE.minimum})")
             return None
         if rounded_abductor_angle > _HIP_ABDUCTOR_ROT_RANGE.maximum:
-            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE.maximum})")
+            print(f"IK fail - joint angle limit hit! (abductor.max; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE.maximum})")
             return None
         
         _hip_rot_range = _FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE
@@ -179,14 +179,14 @@ class IK_Solver:
             print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} >= {_hip_rot_range.minimum})")
             return None
         if rounded_hip_angle > _hip_rot_range.maximum:
-            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} <= {_hip_rot_range.maximum})")
+            print(f"IK fail - joint angle limit hit! (hip.max; {rounded_hip_angle} <= {_hip_rot_range.maximum})")
             return None
         
         if rounded_knee_angle < _KNEE_ROT_RANGE.minimum:
             print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} >= {_KNEE_ROT_RANGE.minimum})")
             return None
         if rounded_knee_angle > _KNEE_ROT_RANGE.maximum:
-            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} <= {_KNEE_ROT_RANGE.maximum})")
+            print(f"IK fail - joint angle limit hit! (knee.max; {rounded_knee_angle} <= {_KNEE_ROT_RANGE.maximum})")
             return None
 
         return result
