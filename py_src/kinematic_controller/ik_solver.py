@@ -66,6 +66,9 @@ class IK_Solver:
         #     Demo: https://www.desmos.com/calculator/godph2jaeb
         _, delta_y, delta_z = delta_point
         c = np.hypot(delta_y, delta_z)
+        #     Safety check
+        if c < _HIP_OFFSET:
+            return None  # Early exit: unreachable point, too close
         
         alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
         beta  = np.arccos((_HIP_OFFSET / c))
@@ -87,7 +90,10 @@ class IK_Solver:
         local_x = np.dot(point_relative_to_plane, u_unit)
         local_z = np.dot(point_relative_to_plane, v_unit)
 
-        r = np.hypot(local_x, local_z)
+        r = np.hypot(local_x, local_z)  # range
+        #     Safety check
+        if r > _MAX_RANGE_LENGTH:
+            return None  # Early exit: unreachable point, too far
 
         phi   = np.arctan2(local_z, local_x)
         psi   = np.arccos((np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - np.square(r)) / (2 * _THIGH_LENGTH * _CALF_LENGTH))  # Find angle c using law of cosines
