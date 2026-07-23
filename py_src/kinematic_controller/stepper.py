@@ -1,13 +1,13 @@
 import math
 import numpy as np
-import numpy.typing as npt   # TODO: Remove, unused
-from data_structures import PointList
+from data_structures import Point3DList
 from kinematic_controller.gait_definition import Gait, LEG_COUNT
+from kinematic_controller.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
 # TODO: Needs to take in current position or preserve position
 # TODO: Implement safety checks to ensure gait arrays are correct length
-def step(gait:Gait, step_num:int) -> PointList:
+def step(gait:Gait, step_num:int) -> Point3DList:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
 
     # TODO: Uncomment, disabled for testing
@@ -31,17 +31,8 @@ def step(gait:Gait, step_num:int) -> PointList:
     
     return foot_positions
 
-
-# Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
-_offsets_from_origin = np.array([
-    [ 0.1934,  0.0465, 0.0],  # FL
-    [ 0.1934, -0.0465, 0.0],  # FR
-    [-0.1934,  0.0465, 0.0],  # BL
-    [-0.1934, -0.0465, 0.0]   # BR
-], dtype=float)
-
-def apply_offset(foot_positions:PointList) -> PointList:
+def apply_offset(foot_positions:Point3DList) -> Point3DList:
     if len(foot_positions) != LEG_COUNT:
         raise ValueError(f"{{foot_positions}} must be equal to the {{LEG_COUNT}}! ({foot_positions} == {LEG_COUNT})")
     
-    return (foot_positions + _offsets_from_origin)  # Translate foot positions
+    return (foot_positions + _LEG_OFFSETS_FROM_BODY_ORIGIN)  # Translate foot positions
