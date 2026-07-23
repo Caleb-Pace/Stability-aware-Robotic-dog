@@ -20,3 +20,4 @@ packages = [
 [project.scripts]
 run-dog = "kinematic_controller.main:main"
 visualise = "visualisation.main:main"
+test-ik = "visualisation.graph_angle:main"

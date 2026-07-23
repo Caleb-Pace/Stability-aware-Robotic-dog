@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from data_structures.points import Point3D, PointList
+from data_structures.points import Point3D, Point3DList
 from typing import override
 from . import Interpolator
 
@@ -29,7 +29,7 @@ class Lagrange(Interpolator):
         return basis
 
     @override
-    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:Point3DList) -> Point3D:
         # Generate weights for all control points
         #   the influence each control point has on the curve (at time t)
         weights = np.array([self.lagrange_basis(i, t, t_anchors) for i in range(len(control_points))])
@@ -38,5 +38,5 @@ class Lagrange(Interpolator):
         return np.dot(weights, control_points)
 
     @override
-    def calculate_time_anchors(self, control_points:PointList) -> npt.NDArray[np.float64]:
+    def calculate_time_anchors(self, control_points:Point3DList) -> npt.NDArray[np.float64]:
         return np.linspace(0, 1, len(control_points))

@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import numpy.typing as npt
-from data_structures.points import Point3D, PointList
+from data_structures.points import Point3D, Point3DList
 from typing import override
 from . import Interpolator
 
@@ -23,7 +23,7 @@ class CatmullRomSpline(Interpolator):
 
         return (weight_prev * point_prev) + (weight_next * point_next)
 
-    def barry_goldman_pyramid(self, t:float, windowed_t_anchors:npt.NDArray[np.float64],  windowed_points:PointList) -> Point3D:
+    def barry_goldman_pyramid(self, t:float, windowed_t_anchors:npt.NDArray[np.float64],  windowed_points:Point3DList) -> Point3D:
         if len(windowed_t_anchors) != 4:
             raise IndexError(f"{{windowed_t_anchors}} must be of length 4! (length: {len(windowed_t_anchors)})")
         if len(windowed_points) != 4:
@@ -43,7 +43,7 @@ class CatmullRomSpline(Interpolator):
         # print(f"C {{{t}}} dt: {(windowed_t_anchors[2] - windowed_t_anchors[1])} ({windowed_t_anchors[2]} - {windowed_t_anchors[1]})")  # TODO: Remove, for debugging
         return c
 
-    def get_active_window(self, t:float, t_anchors:npt.NDArray[np.float64],  points:PointList):
+    def get_active_window(self, t:float, t_anchors:npt.NDArray[np.float64],  points:Point3DList):
         if len(t_anchors) != len(points):
             raise IndexError(f"Length mismatch between {{t_anchors}} and {{points}}! ({len(t_anchors)} != {len(points)})")
        
@@ -53,7 +53,7 @@ class CatmullRomSpline(Interpolator):
 
         # Pre-allocate the window
         windowed_t_anchors:npt.NDArray[np.float64] = np.empty(4)
-        windowed_points:PointList = np.empty((4, 3))
+        windowed_points:Point3DList = np.empty((4, 3))
 
         # Calculate copy ranges
         src_start = idx - 1
@@ -86,7 +86,7 @@ class CatmullRomSpline(Interpolator):
         return (windowed_t_anchors, windowed_points)
 
     @override
-    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:PointList) -> Point3D:
+    def interpolate_point(self, t:float, t_anchors:npt.NDArray[np.float64], control_points:Point3DList) -> Point3D:
         # print(f"interpolate_point(\n\tt = {t},\n\tt_anchors = {repr(t_anchors)},\n\tcontrol_points = {repr(control_points)}\n);")  # TODO: Remove, for debugging
         windowed_t_anchors, windowed_points = self.get_active_window(t, t_anchors, control_points)
 
@@ -102,7 +102,7 @@ class CatmullRomSpline(Interpolator):
         return distance**self.alpha + t_prev
 
     @override
-    def calculate_time_anchors(self, control_points: PointList) -> npt.NDArray[np.float64]:
+    def calculate_time_anchors(self, control_points: Point3DList) -> npt.NDArray[np.float64]:
         if self.pre_phantom_point is None:  # Extrapolate backwards
             self.pre_phantom_point = control_points[0] - (control_points[1] - control_points[0])
         if self.post_phantom_point is None:  # Extrapolate forwards

@@ -3,6 +3,7 @@ import math
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
 from kinematic_controller.stepper import step
+from kinematic_controller.ik_solver import IK_Solver
 
 def main():
     gait:Gait = TROT
@@ -13,6 +14,14 @@ def main():
     for i in range(0, detail):
         foot_positions = step(gait, i)
         print(f"{repr(foot_positions)}")
+
+        # Get motor angles
+        ik = IK_Solver()
+        result = ik.solve(foot_positions)
+        if result is None:
+            return None
+        print(f"    {repr(result)}")
+
 
 if __name__ == "__main__":
     main()
