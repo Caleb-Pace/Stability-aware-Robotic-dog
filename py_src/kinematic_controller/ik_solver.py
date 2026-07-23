@@ -145,12 +145,12 @@ class IK_Solver:
         # print(f"    psi: {np.round(np.degrees(psi), 2)}°")
         # print(f"  gamma: {np.round(np.degrees(gamma), 2)}°")
         # print()
-        print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
-        print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
-        print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
-        print()
-        print(f"   d_target: {np.round(delta_point, 6)}")
-        print()
+        # print(f"  theta_abd: {np.round(np.degrees(abductor_angle), 4)}°")
+        # print(f"  theta_hip: {np.round(np.degrees(hip_angle), 4)}°")
+        # print(f"  theta_kne: {np.round(np.degrees(knee_angle), 4)}°")
+        # print()
+        # print(f"   d_target: {np.round(delta_point, 6)}")
+        # print()
         return abductor_angle, hip_angle, knee_angle
 
     def _solve_leg(self, leg_origin:Point3D, point:Point3D, is_front_leg:bool) -> None|LegPose:
@@ -191,14 +191,20 @@ class IK_Solver:
 
         return result
 
-    # TODO: Implement
-    def solve(self, leg_points:Point3DList) -> None|LegPoseList:
+    def solve(self, leg_points:Point3DList) -> LegPoseList:
         if len(leg_points) > LEG_COUNT:
             raise IndexError(f"Too many leg points! ({len(leg_points)} == {LEG_COUNT})")
         if len(leg_points) < LEG_COUNT:
             raise IndexError(f"Not enough leg points! ({len(leg_points)} == {LEG_COUNT})")
 
+        common_origin:Point3D = np.array([0, 0, 0], dtype=np.float64)
+
+        pose_accumulator = []
         for i in range(LEG_COUNT):
-            pass
+            pose_accumulator.append(self._solve_leg(common_origin, leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
+
+        leg_poses: LegPoseList = np.array(pose_accumulator, dtype=np.float64)
 
         # TODO: Check for limb collision
+
+        return leg_poses
