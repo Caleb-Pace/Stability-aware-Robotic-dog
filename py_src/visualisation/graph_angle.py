@@ -282,7 +282,8 @@ def main():
 
     # target:Point3D = np.array([0.1, 0.1, 0.1], dtype=np.float64)
     # target:Point3D = np.array([0.0, -0.01, -0.426], dtype=np.float64)  # Zero target
-    target:Point3D = np.array([-0.22875, -0.09115, -0.30153], dtype=np.float64)  # -15, 60, -48
+    # target:Point3D = np.array([-0.22875, -0.09115, -0.30153], dtype=np.float64)  # -15, 60, -48
+    target:Point3D = np.array([-0.22783, -0.09127, -0.30199], dtype=np.float64)  # -15, 59.9, -48.1
     # target:Point3D = np.array([0.009999, 0.009999, 0], dtype=np.float64)
 
     target[1] *= 1 if is_left_side else -1  # Invert Y coordinate if right side (Outward is positive)
@@ -296,8 +297,8 @@ def main():
 
     # angles = np.array([
     #     degrees_to_radians(-15),
-    #     degrees_to_radians(60),
-    #     degrees_to_radians(-48)
+    #     degrees_to_radians(59.9),
+    #     degrees_to_radians(-48.1)
     # ], dtype=np.float64)
     # angles = np.array([
     #     degrees_to_radians(45),
