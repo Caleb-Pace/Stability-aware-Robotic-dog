@@ -88,7 +88,7 @@ class IK_Solver:
         c = np.hypot(delta_y, delta_z)
         #     Safety check
         if c < _HIP_OFFSET:
-            print("IK failed - unreachable point! (Too close)")
+            print(f"IK failed - unreachable point! (Too close : {c} < {_HIP_OFFSET})")
             return None  # Early exit: unreachable point, too close
         
         alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
@@ -114,7 +114,7 @@ class IK_Solver:
         r = np.hypot(local_x, local_z)  # range
         #     Safety check
         if np.round(r, _INPUT_ACCURACY) > _MAX_RANGE_LENGTH:
-            print("IK failed - unreachable point! (Too far)")
+            print(f"IK failed - unreachable point! (Too far : {np.round(r, _INPUT_ACCURACY)} > {_MAX_RANGE_LENGTH})")
             return None  # Early exit: unreachable point, too far
 
         phi   = np.arctan2(local_z, local_x)
