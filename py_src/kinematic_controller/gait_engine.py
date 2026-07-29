@@ -29,15 +29,20 @@ class GaitEngine:
 
     def clock_start(self, interval_ms:float) -> None:
         self.clock_tick()
-        time.sleep(interval_ms)
-        self.clock_start(interval_ms)
+
+        try:
+            time.sleep(interval_ms / 1000)
+        except KeyboardInterrupt:
+            pass
+
+        self.clock_start(interval_ms)  # Loop
 
     def _pid(self, expected, actual) -> None:
         # TODO: Call Maanas' implementation
         pass
 
     def _step(self):
-        foot_positions = step(self.gait, self.step)
+        foot_positions = step(self.gait, self.step_num)
         motor_angles = self.ik.solve(foot_positions)
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
@@ -49,11 +54,11 @@ class GaitEngine:
     # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
         if controller_data.left_stick.delta_x > 1:
-            self.step += 1
+            self.step_num += 1
         if controller_data.left_stick.delta_x < 1:
-            self.step -= 1
+            self.step_num -= 1
 
-        self.step %= self.gait.steps_in_gait
+        self.step_num %= self.gait.steps_in_gait
 
         # # Crude step delay implementation
         # self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay
