@@ -1,8 +1,10 @@
 import time
 import numpy as np
+from data_structures.controller_input import ControllerData, JoyStickData
 from kinematic_controller.gait_definition import Gait
 from kinematic_controller.output import RobotOutput
 from kinematic_controller.stepper import step
+from kinematic_controller.ik_solver import IK_Solver
 
 
 class GaitEngine:
@@ -13,11 +15,14 @@ class GaitEngine:
         self.gait = gait
         self.output = output  # Hardware abstraction
 
+        self.ik = IK_Solver()
+
+
     def clock_tick(self) -> None:
         # self._dynamic_recovery
         # if {recovery} then ignore other calls
 
-        # self._step
+        self._step()
         # self._pid
         # combine PID and step results
         pass
@@ -32,12 +37,27 @@ class GaitEngine:
         pass
 
     def _step(self):
-        pass
+        foot_positions = step(self.gait, self.step)
+        motor_angles = self.ik.solve(foot_positions)
+
+        feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
+
+        self.output.send_commands(motor_angles, feedforward_torques)
 
     # _dynamic_recovery
 
-    def input(self) -> None:
-        pass
+    def input(self, controller_data:ControllerData, multiplier:float) -> None:
+        if controller_data.left_stick.delta_x > 1:
+            self.step += 1
+        if controller_data.left_stick.delta_x < 1:
+            self.step -= 1
+
+        self.step %= self.gait.steps_in_gait
+
+        # Crude step delay implementation
+        self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay
+        time.sleep(self.delay_ms)
+
 
 
     def input2(self, delta_x:float) -> None:
@@ -68,7 +88,7 @@ class GaitEngine:
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        pass
+        return np.zeros(12)
     def _dynamic_recovery(self): # -> {Result}|None:
         # is_falling = { Forward Dynamics Solve }
         # if is_falling:  # Save from fall
