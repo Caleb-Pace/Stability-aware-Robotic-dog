@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Stability-aware controler for Unitree Go2"
 dependencies = [
     "numpy",
-    "matplotlib"
+    "matplotlib",
+    "pygame"
 ]
 
 [tool.hatch.build.targets.wheel]
