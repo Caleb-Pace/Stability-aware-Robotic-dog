@@ -1,4 +1,7 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # Silence hello from pygame
 import pygame
+
 import sys
 from data_structures.controller_input import ControllerData, JoyStickData
 from hardware_abstraction_layer.input_layer import InputLayer
