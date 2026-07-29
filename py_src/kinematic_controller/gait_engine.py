@@ -64,33 +64,6 @@ class GaitEngine:
         print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
 
-
-    def input2(self, delta_x:float) -> None:
-        if delta_x > 1:
-            self.step += 1
-        if delta_x < 1:
-            self.step -= 1
-        
-        self._update()
-
-        # Crude step delay implementation
-        self.delay_ms = 2 * (1 - abs(delta_x))  # [0, 2] ms delay
-        time.sleep(self.delay_ms)
-
-    # TODO: Improve update (calling) system
-    def _update(self) -> None:
-        self.step %= self.gait.steps_in_gait
-        foot_positions = step(self.gait, self.step)
-
-        # TODO: Add IK SOLVER
-        motor_angles = []
-        feedforward_torques = np.zeros(12)  # TODO: Calculate Torques properly
-
-        self.output.send_commands(motor_angles, feedforward_torques)
-
-    def _output(self) -> None:
-        pass
-
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
         return np.zeros(12)
