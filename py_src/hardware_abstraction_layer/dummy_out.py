@@ -3,11 +3,17 @@ from kinematic_controller.output import RobotOutput
 
 
 class DummyOutput(RobotOutput):
+    _last_angle_set = None
+    
     def connect(self):
         print("Dummy Output: connected!")
         pass
 
     def send_commands(self, target_angles, torques):
+        if (self._last_angle_set is not None) and np.array_equal(target_angles, self._last_angle_set):
+            return  # Don't send duplicate debug messages
+        self._last_angle_set = target_angles
+
         if len(target_angles) < 4:
             print(f"ERROR: not enough leg angles ({len(target_angles)} == 4)(from Dummy Output)")
             return
