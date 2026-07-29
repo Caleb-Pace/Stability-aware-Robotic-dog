@@ -20,8 +20,9 @@ def main():
     out_layer:RobotOutput = DummyOutput()
 
     engine = GaitEngine(gait, out_layer)
+    clock_interval_ms    = read_delay_ms
     clock_interrupt_flag = threading.Event()
-    clock_thread = threading.Thread(target=engine.clock_start, args=(50, clock_interrupt_flag))
+    clock_thread = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, clock_interrupt_flag))
     clock_thread.start()
 
     while True:
@@ -40,19 +41,6 @@ def main():
             break  # Exit loop
 
     clock_interrupt_flag.set()  # Stop the clock thread
-
-    # print(f"#L1_points: {len(gait.time_anchors[0])}; Gait_steps: {gait.steps_in_gait}")  # TODO: Remove, for debugging
-
-    # for i in range(0, gait_detail):
-    #     foot_positions = step(gait, i)
-    #     print(f"{repr(foot_positions)}")
-
-    #     # Get motor angles
-    #     ik = IK_Solver()
-    #     result = ik.solve(foot_positions)
-    #     if result is None:
-    #         return None
-    #     print(f"    {repr(result)}")
 
 
 if __name__ == "__main__":
