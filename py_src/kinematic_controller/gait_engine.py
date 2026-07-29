@@ -18,7 +18,7 @@ class GaitEngine:
         self.ik = IK_Solver()
 
 
-    def clock_tick(self) -> None:
+    def _clock_tick(self) -> None:
         # self._dynamic_recovery
         # if {recovery} then ignore other calls
 
@@ -29,7 +29,7 @@ class GaitEngine:
 
     def clock_start(self, interval_ms:float, interrupt:bool = False) -> None:
         while not interrupt:
-            self.clock_tick()
+            self._clock_tick()
 
             try:
                 time.sleep(interval_ms / 1000)
