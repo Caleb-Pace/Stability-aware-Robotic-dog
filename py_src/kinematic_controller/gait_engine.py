@@ -1,4 +1,5 @@
 import time
+import threading
 import numpy as np
 from data_structures.controller_input import ControllerData, JoyStickData
 from kinematic_controller.gait_definition import Gait
@@ -9,7 +10,8 @@ from kinematic_controller.ik_solver import IK_Solver
 
 class GaitEngine:
     def __init__(self, gait:Gait, output:RobotOutput):
-        self.step_num:int = 0
+        self._last_step_num:int = -1
+        self._step_num:int = 0
         self.delay_ms:float = 1
         
         self.gait = gait
@@ -22,13 +24,15 @@ class GaitEngine:
         # self._dynamic_recovery
         # if {recovery} then ignore other calls
 
-        self._step()
+        if self._step_num != self._last_step_num:
+            self._step()
+            self._last_step_num = self._step_num
         # self._pid
         # combine PID and step results
         pass
 
-    def clock_start(self, interval_ms:float, interrupt:bool = False) -> None:
-        while not interrupt:
+    def clock_start(self, interval_ms:float, interrupt:threading.Event) -> None:
+        while not interrupt.is_set():
             self._clock_tick()
 
             try:
@@ -41,7 +45,9 @@ class GaitEngine:
         pass
 
     def _step(self):
-        foot_positions = step(self.gait, self.step_num)
+        print("      cheese")  # TODO: Remove, for debugging
+        return
+        foot_positions = step(self.gait, self._step_num)
         motor_angles = self.ik.solve(foot_positions)
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
@@ -53,11 +59,11 @@ class GaitEngine:
     # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
         if controller_data.left_stick.delta_x > 1:
-            self.step_num += 1
+            self._step_num += 1
         if controller_data.left_stick.delta_x < 1:
-            self.step_num -= 1
+            self._step_num -= 1
 
-        self.step_num %= self.gait.steps_in_gait
+        self._step_num %= self.gait.steps_in_gait
 
         # # Crude step delay implementation
         # self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay

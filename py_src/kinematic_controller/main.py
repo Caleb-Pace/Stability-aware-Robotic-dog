@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 import time
+import threading
 import numpy as np
+from hardware_abstraction_layer import InputLayer, GamepadController
+from kinematic_controller.output import RobotOutput
+from hardware_abstraction_layer.dummy_out import DummyOutput
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
 from kinematic_controller.stepper import step
 from kinematic_controller.ik_solver import IK_Solver
 from kinematic_controller.gait_engine import GaitEngine
-from hardware_abstraction_layer import InputLayer, GamepadController
-from kinematic_controller.output import RobotOutput
-from hardware_abstraction_layer.dummy_out import DummyOutput
 
 def main():
     gait:Gait = TROT
@@ -20,7 +21,9 @@ def main():
     out_layer:RobotOutput = DummyOutput()
 
     engine = GaitEngine(gait, out_layer)
-    engine.clock_start(50)
+    clock_interrupt_flag = threading.Event()
+    clock_thread = threading.Thread(target=engine.clock_start, args=(50, clock_interrupt_flag)).start()
+    print("not cheese")
 
     while True:
         input_data = in_layer.poll()
@@ -32,7 +35,12 @@ def main():
 
             engine.input(input_data, 1)
 
-        time.sleep(read_delay_ms / 1000)
+        try:
+            time.sleep(read_delay_ms / 1000)
+        except KeyboardInterrupt:
+            break  # Exit loop
+
+    clock_interrupt_flag.set()  # Stop the clock thread
 
     # print(f"#L1_points: {len(gait.time_anchors[0])}; Gait_steps: {gait.steps_in_gait}")  # TODO: Remove, for debugging
 
