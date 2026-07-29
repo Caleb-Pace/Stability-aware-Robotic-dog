@@ -12,12 +12,11 @@ class GaitEngine:
     def __init__(self, gait:Gait, output:RobotOutput):
         self._last_step_num:int = -1
         self._step_num:int = 0
-        self.delay_ms:float = 1
         
         self.gait = gait
         self.output = output  # Hardware abstraction
 
-        self.ik = IK_Solver()
+        self._ik = IK_Solver()
 
 
     def _clock_tick(self) -> None:
@@ -46,7 +45,7 @@ class GaitEngine:
 
     def _step(self):
         foot_positions = step(self.gait, self._step_num)
-        motor_angles = self.ik.solve(foot_positions)
+        motor_angles = self._ik.solve(foot_positions)
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
@@ -63,10 +62,6 @@ class GaitEngine:
 
         self._step_num %= self.gait.steps_in_gait
         print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-
-        # # Crude step delay implementation
-        # self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay
-        # time.sleep(self.delay_ms)
 
 
 

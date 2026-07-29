@@ -13,7 +13,6 @@ from kinematic_controller.gait_engine import GaitEngine
 
 def main():
     gait:Gait = TROT
-    gait_detail = gait.steps_in_gait  # (Point/Node count)
 
     in_layer:InputLayer = GamepadController()
     read_delay_ms = 100
