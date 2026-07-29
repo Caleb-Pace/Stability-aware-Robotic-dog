@@ -1,26 +1,43 @@
 #!/usr/bin/env python3
-import math
+import time
+import threading
+import numpy as np
+from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
+from hardware_abstraction_layer.dummy_out import DummyOutput
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
-from kinematic_controller.stepper import step
-from kinematic_controller.ik_solver import IK_Solver
+from kinematic_controller.gait_engine import GaitEngine
 
 def main():
     gait:Gait = TROT
 
-    print(f"#L1_points: {len(gait.time_anchors[0])}; Gait_steps: {gait.steps_in_gait}")  # TODO: Remove, for debugging
-    detail = gait.steps_in_gait  # (Point/Node count)
+    in_layer:InputLayer = GamepadController()
+    read_delay_ms = 100
 
-    for i in range(0, detail):
-        foot_positions = step(gait, i)
-        print(f"{repr(foot_positions)}")
+    out_layer:OutputLayer = DummyOutput()
 
-        # Get motor angles
-        ik = IK_Solver()
-        result = ik.solve(foot_positions)
-        if result is None:
-            return None
-        print(f"    {repr(result)}")
+    engine = GaitEngine(gait, out_layer)
+    clock_interval_ms    = read_delay_ms
+    clock_interrupt_flag = threading.Event()
+    clock_thread = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, clock_interrupt_flag))
+    clock_thread.start()
+
+    while True:
+        input_data = in_layer.poll()
+
+        input_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y) + abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
+        has_input = input_sum > 0
+        if has_input:
+            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
+
+            engine.input(input_data, 1)
+
+        try:
+            time.sleep(read_delay_ms / 1000)
+        except KeyboardInterrupt:
+            break  # Exit loop
+
+    clock_interrupt_flag.set()  # Stop the clock thread
 
 
 if __name__ == "__main__":
