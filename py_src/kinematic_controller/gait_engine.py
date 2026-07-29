@@ -56,13 +56,13 @@ class GaitEngine:
 
     # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
-        if controller_data.left_stick.delta_x > 1:
+        if controller_data.left_stick.delta_y > 1:
             self._step_num += 1
-        if controller_data.left_stick.delta_x < 1:
+        if controller_data.left_stick.delta_y < 1:
             self._step_num -= 1
 
         self._step_num %= self.gait.steps_in_gait
-        print(f"[GE]  {self._step_num}    ({np.round(controller_data.left_stick.delta_x, 3):>6})")  # TODO: remove, for debugging
+        print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
         # # Crude step delay implementation
         # self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay
