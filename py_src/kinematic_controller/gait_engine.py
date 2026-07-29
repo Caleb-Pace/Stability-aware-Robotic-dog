@@ -27,15 +27,14 @@ class GaitEngine:
         # combine PID and step results
         pass
 
-    def clock_start(self, interval_ms:float) -> None:
-        self.clock_tick()
+    def clock_start(self, interval_ms:float, interrupt:bool = False) -> None:
+        while not interrupt:
+            self.clock_tick()
 
-        try:
-            time.sleep(interval_ms / 1000)
-        except KeyboardInterrupt:
-            pass
-
-        self.clock_start(interval_ms)  # Loop
+            try:
+                time.sleep(interval_ms / 1000)
+            except KeyboardInterrupt:
+                pass
 
     def _pid(self, expected, actual) -> None:
         # TODO: Call Maanas' implementation
