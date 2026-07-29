@@ -46,6 +46,7 @@ class GaitEngine:
 
     # _dynamic_recovery
 
+    # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
         if controller_data.left_stick.delta_x > 1:
             self.step += 1
@@ -54,9 +55,9 @@ class GaitEngine:
 
         self.step %= self.gait.steps_in_gait
 
-        # Crude step delay implementation
-        self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay
-        time.sleep(self.delay_ms)
+        # # Crude step delay implementation
+        # self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay
+        # time.sleep(self.delay_ms)
 
 
 
