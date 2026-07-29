@@ -1,15 +1,15 @@
 import time
 import threading
 import numpy as np
-from data_structures.controller_input import ControllerData, JoyStickData
+from data_structures.controller_input import ControllerData
+from hardware_abstraction_layer import OutputLayer
 from kinematic_controller.gait_definition import Gait
-from kinematic_controller.output import RobotOutput
 from kinematic_controller.stepper import step
 from kinematic_controller.ik_solver import IK_Solver
 
 
 class GaitEngine:
-    def __init__(self, gait:Gait, output:RobotOutput):
+    def __init__(self, gait:Gait, output:OutputLayer):
         self._last_step_num:int = -1
         self._step_num:int = 0
         

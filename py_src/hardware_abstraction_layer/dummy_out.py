@@ -1,8 +1,8 @@
 import numpy as np
-from kinematic_controller.output import RobotOutput
+from hardware_abstraction_layer.output_layer import OutputLayer
 
 
-class DummyOutput(RobotOutput):
+class DummyOutput(OutputLayer):
     _last_angle_set = None
 
     def connect(self):

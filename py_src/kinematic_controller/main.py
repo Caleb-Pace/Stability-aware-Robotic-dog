@@ -2,13 +2,10 @@
 import time
 import threading
 import numpy as np
-from hardware_abstraction_layer import InputLayer, GamepadController
-from kinematic_controller.output import RobotOutput
+from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
-from kinematic_controller.stepper import step
-from kinematic_controller.ik_solver import IK_Solver
 from kinematic_controller.gait_engine import GaitEngine
 
 def main():
@@ -17,7 +14,7 @@ def main():
     in_layer:InputLayer = GamepadController()
     read_delay_ms = 100
 
-    out_layer:RobotOutput = DummyOutput()
+    out_layer:OutputLayer = DummyOutput()
 
     engine = GaitEngine(gait, out_layer)
     clock_interval_ms    = read_delay_ms
