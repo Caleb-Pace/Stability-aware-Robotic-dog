@@ -56,9 +56,9 @@ class GaitEngine:
 
     # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
-        if controller_data.left_stick.delta_y > 1:
+        if controller_data.left_stick.delta_y > 0:
             self._step_num += 1
-        if controller_data.left_stick.delta_y < 1:
+        if controller_data.left_stick.delta_y < 0:
             self._step_num -= 1
 
         self._step_num %= self.gait.steps_in_gait
