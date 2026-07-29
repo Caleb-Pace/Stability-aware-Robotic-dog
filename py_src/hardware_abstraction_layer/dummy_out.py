@@ -4,7 +4,7 @@ from kinematic_controller.output import RobotOutput
 
 class DummyOutput(RobotOutput):
     _last_angle_set = None
-    
+
     def connect(self):
         print("Dummy Output: connected!")
         pass
@@ -24,15 +24,23 @@ class DummyOutput(RobotOutput):
             print("ERROR: angle-torque mismatch (from Dummy Output)")
             return
 
-        print(f"Dummy Output - Recieved Instructions:")
+        print("Dummy Output - Recieved Instructions:")
+        print(f"    | Leg # |       Abd motor       |       Hip motor       |       Knee motor      |")
+        print(f"    | ----- | --------------------- | --------------------- | --------------------- |")
         leg_num:int = 0
         for angle, torque in zip(target_angles.ravel(), torques):
-            if leg_num % 3 == 0:
-                print(f"  Leg[{(leg_num // 3)}]:")
 
-            print(f"         Motor[{leg_num}] {{angle target: {np.round(np.degrees(angle), 3):>7}° }}; {{torque: {np.round(torque, 5):>8} Nm }}")
+            angle_str  = f"{np.round(np.degrees(angle), 3):>7}°"
+            torque_str = f"{np.round(torque, 5):>8} Nm"
+
+            if leg_num % 3 == 0:
+                print(f"    | {((leg_num // 3) + 1):>5} | ", end="")
+            print(f"{angle_str:>8}; {torque_str:<11} | ", end="")
+            if leg_num % 3 == 2:
+                print()
 
             leg_num += 1
+        print()
     
     def get_low_state(self):
         print("Dummy Output: Low level state requested!")
