@@ -45,8 +45,6 @@ class GaitEngine:
         pass
 
     def _step(self):
-        print("      cheese")  # TODO: Remove, for debugging
-        return
         foot_positions = step(self.gait, self._step_num)
         motor_angles = self.ik.solve(foot_positions)
 
@@ -64,6 +62,7 @@ class GaitEngine:
             self._step_num -= 1
 
         self._step_num %= self.gait.steps_in_gait
+        print(f"[GE]  {self._step_num}    ({np.round(controller_data.left_stick.delta_x, 3):>6})")  # TODO: remove, for debugging
 
         # # Crude step delay implementation
         # self.delay_ms = 2 * (1 - abs(controller_data.left_stick.delta_x))  # [0, 2] ms delay

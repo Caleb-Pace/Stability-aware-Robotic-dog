@@ -6,7 +6,7 @@ class DummyOutput(RobotOutput):
     _last_angle_set = None
 
     def connect(self):
-        print("Dummy Output: connected!")
+        print("[DO]  Dummy Output: connected!")
         pass
 
     def send_commands(self, target_angles, torques):
@@ -16,16 +16,16 @@ class DummyOutput(RobotOutput):
         # self._last_angle_set = target_angles
 
         if len(target_angles) < 4:
-            print(f"ERROR: not enough leg angles ({len(target_angles)} == 4)(from Dummy Output)")
+            print(f"[DO]  ERROR: not enough leg angles ({len(target_angles)} == 4)(from Dummy Output)")
             return
         if len(target_angles) > 4:
-            print(f"ERROR: too many leg angles ({len(target_angles)} == 4)(from Dummy Output)")
+            print(f"[DO]  ERROR: too many leg angles ({len(target_angles)} == 4)(from Dummy Output)")
             return
         if len(target_angles.ravel()) != len(torques):
-            print("ERROR: angle-torque mismatch (from Dummy Output)")
+            print("[DO]  ERROR: angle-torque mismatch (from Dummy Output)")
             return
 
-        print("Dummy Output - Recieved Instructions:")
+        print("[DO]  Dummy Output - Recieved Instructions:")
         print(f"    | Leg # |       Abd motor       |       Hip motor       |       Knee motor      |")
         print(f"    | ----- | --------------------- | --------------------- | --------------------- |")
         leg_num:int = 0
@@ -44,5 +44,5 @@ class DummyOutput(RobotOutput):
         print()
     
     def get_low_state(self):
-        print("Dummy Output: Low level state requested!")
+        print("[DO]  Dummy Output: Low level state requested!")
         pass
