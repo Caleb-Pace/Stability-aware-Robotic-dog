@@ -66,7 +66,7 @@ class GaitEngine:
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        return np.zeros(12)
+        return np.array([23.7, 23.7, 45.43] * 4)  # TODO: Implement properly, currently just returns max torque for each joint
     def _dynamic_recovery(self): # -> {Result}|None:
         # is_falling = { Forward Dynamics Solve }
         # if is_falling:  # Save from fall
