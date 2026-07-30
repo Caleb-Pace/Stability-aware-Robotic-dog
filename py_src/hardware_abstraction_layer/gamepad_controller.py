@@ -7,7 +7,7 @@ from data_structures.controller_input import ControllerData, JoyStickData
 from hardware_abstraction_layer.input_layer import InputLayer
 
 
-JOYSTICK_DEADZONE:float = 0.05
+JOYSTICK_DEADZONE:float = 0.075
 
 # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/controller.py
 class GamepadController(InputLayer):
@@ -45,9 +45,12 @@ class GamepadController(InputLayer):
         ly = self._apply_deadzone(-self.controller.get_axis(1))
         left_stick:JoyStickData = JoyStickData(delta_x=lx, delta_y=ly)
 
-        rx = self._apply_deadzone(self.controller.get_axis(2))
-        ry = self._apply_deadzone(-self.controller.get_axis(3))
+        if self.controller.get_axis(4) == -1.0:  # Using right joysticks as 2 & 3
+            rx = self._apply_deadzone(self.controller.get_axis(2))
+            ry = self._apply_deadzone(-self.controller.get_axis(3))
+        else:                                    # Using right joysticks as 3 & 4
+            rx = self._apply_deadzone(self.controller.get_axis(3))
+            ry = self._apply_deadzone(-self.controller.get_axis(4))
         right_stick:JoyStickData = JoyStickData(delta_x=rx, delta_y=ry)
-
 
         return ControllerData(left_stick, right_stick)
