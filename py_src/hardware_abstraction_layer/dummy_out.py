@@ -9,7 +9,7 @@ class DummyOutput(OutputLayer):
         print("[DO]  Dummy Output: connected!")
         pass
 
-    def send_commands(self, target_angles, torques):
+    def send_action(self, target_angles, feedforward_torques):
         # TODO: Uncomment, for debugging
         # if (self._last_angle_set is not None) and np.array_equal(target_angles, self._last_angle_set):
         #     return  # Don't send duplicate debug messages
@@ -21,7 +21,7 @@ class DummyOutput(OutputLayer):
         if len(target_angles) > 4:
             print(f"[DO]  ERROR: too many leg angles ({len(target_angles)} == 4)(from Dummy Output)")
             return
-        if len(target_angles.ravel()) != len(torques):
+        if len(target_angles.ravel()) != len(feedforward_torques):
             print("[DO]  ERROR: angle-torque mismatch (from Dummy Output)")
             return
 
@@ -29,7 +29,7 @@ class DummyOutput(OutputLayer):
         print(f"    | Leg # |       Abd motor       |       Hip motor       |       Knee motor      |")
         print(f"    | ----- | --------------------- | --------------------- | --------------------- |")
         leg_num:int = 0
-        for angle, torque in zip(target_angles.ravel(), torques):
+        for angle, torque in zip(target_angles.ravel(), feedforward_torques):
 
             angle_str  = f"{np.round(np.degrees(angle), 3):>7}°"
             torque_str = f"{np.round(torque, 5):>8} Nm"

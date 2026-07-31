@@ -49,7 +49,7 @@ class GaitEngine:
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
-        self.output.send_commands(motor_angles, feedforward_torques)
+        self.output.send_action(motor_angles, feedforward_torques)
 
     # _dynamic_recovery
 
