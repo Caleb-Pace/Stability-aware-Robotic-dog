@@ -38,15 +38,8 @@ class Simulator(OutputLayer):
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
 
-    def send_commands(self, target_angles, torques):  # TODO: Remove, to satisfy interface
-        pass
     def send_action(self, target_angles, feedforward_torques):
         pass
 
     def get_low_state(self):
         pass
-
-def main():
-    print("Openning Simulator...")
-    sim = Simulator()
-    sim.connect()
