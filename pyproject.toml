@@ -9,7 +9,8 @@ description = "Stability-aware controler for Unitree Go2"
 dependencies = [
     "numpy",
     "matplotlib",
-    "pygame"
+    "pygame",
+    "mujoco"
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -20,5 +21,6 @@ packages = [
 
 [project.scripts]
 run-dog = "kinematic_controller.main:main"
+sim     = "simulator.main:main"
 visualise = "visualisation.main:main"
-test-ik = "visualisation.graph_angle:main"
+test-ik   = "visualisation.graph_angle:main"
