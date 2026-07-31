@@ -5,6 +5,8 @@ import queue
 import mujoco
 import mujoco.viewer
 
+from data_structures import Action
+
 from hardware_abstraction_layer import OutputLayer
 
 
@@ -12,7 +14,7 @@ SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
 
 class Simulator(OutputLayer):
     def __init__(self):
-        self._action_queue = queue.Queue()
+        self._action_queue:queue.Queue[Action] = queue.Queue()
 
     def connect(self):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
@@ -39,7 +41,8 @@ class Simulator(OutputLayer):
                     time.sleep(time_until_next_step)
 
     def send_action(self, target_angles, feedforward_torques):
-        pass
+        action = Action(target_angles, feedforward_torques)
+        self._action_queue.put(action)
 
     def get_low_state(self):
         pass
