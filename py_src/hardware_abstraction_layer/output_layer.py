@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/output.py
 class OutputLayer(ABC):
     @abstractmethod
