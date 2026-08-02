@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from data_structures import Action
 
 
 # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/output.py
@@ -8,7 +9,7 @@ class OutputLayer(ABC):
         pass
 
     @abstractmethod
-    def send_action(self, target_angles, feedforward_torques):
+    def send_action(self, action:Action):
         pass
     
     @abstractmethod

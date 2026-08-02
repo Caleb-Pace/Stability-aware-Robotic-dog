@@ -6,7 +6,6 @@ import mujoco
 import mujoco.viewer
 
 from data_structures import Action
-
 from hardware_abstraction_layer import OutputLayer
 
 
@@ -44,8 +43,7 @@ class Simulator(OutputLayer):
         print("Openning simulator...")
         self._run()
 
-    def send_action(self, target_angles, feedforward_torques):
-        action = Action(target_angles, feedforward_torques)
+    def send_action(self, action:Action):
         self._action_queue.put(action)
 
     def get_low_state(self):
