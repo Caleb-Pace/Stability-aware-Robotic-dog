@@ -1,11 +1,16 @@
 import time
 import threading
 import numpy as np
+
+from data_structures import Action
 from data_structures.controller_input import ControllerData
+
 from hardware_abstraction_layer import OutputLayer
-from kinematic_controller.gait_definition import Gait
+
+from kinematic_controller.gait_definition import Gait, LEG_COUNT
 from kinematic_controller.stepper import step
 from kinematic_controller.ik_solver import IK_Solver
+from kinematic_controller.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
 class GaitEngine:
@@ -45,11 +50,12 @@ class GaitEngine:
 
     def _step(self):
         foot_positions = step(self.gait, self._step_num)
-        motor_angles = self._ik.solve(foot_positions)
+        target_motor_angles = self._ik.solve(foot_positions)
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
-        self.output.send_action(motor_angles, feedforward_torques)
+        action = Action(target_motor_angles, feedforward_torques)
+        self.output.send_action(action)
 
     # _dynamic_recovery
 
@@ -66,7 +72,7 @@ class GaitEngine:
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        return np.zeros(12)
+        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT] * LEG_COUNT), dtype=np.float64)
     def _dynamic_recovery(self): # -> {Result}|None:
         # is_falling = { Forward Dynamics Solve }
         # if is_falling:  # Save from fall
