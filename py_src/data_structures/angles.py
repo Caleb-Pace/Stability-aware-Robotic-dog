@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from data_structures import Point3D, Vector
+from data_structures.points import Point3D, Vector
 from typing import Annotated, NamedTuple
 
 type LegPoseList = Annotated[npt.NDArray[np.float64], (None, 3)]  # 2D array of leg angle sets (abd, hip, knee)
