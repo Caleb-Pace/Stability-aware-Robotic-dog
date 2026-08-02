@@ -16,7 +16,7 @@ class Simulator(OutputLayer):
     def __init__(self):
         self._action_queue:queue.Queue[Action] = queue.Queue()
 
-    def connect(self):
+    def _run(self):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
         data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
         with mujoco.viewer.launch_passive(model, data) as viewer:
@@ -39,6 +39,10 @@ class Simulator(OutputLayer):
                 time_until_next_step = model.opt.timestep - (time.time() - step_start)
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
+
+    def connect(self):
+        print("Openning simulator...")
+        self._run()
 
     def send_action(self, target_angles, feedforward_torques):
         action = Action(target_angles, feedforward_torques)
