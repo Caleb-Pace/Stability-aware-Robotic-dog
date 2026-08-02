@@ -1,9 +1,11 @@
 import math
 import numpy as np
 import numpy.typing as npt
+
 from interpolation import Interpolator, CatmullRomSpline
 
 LEG_COUNT:int = 4
+
 
 class Gait:
     leg_phase_offset:   npt.NDArray[np.float64]  # (Time start offset)

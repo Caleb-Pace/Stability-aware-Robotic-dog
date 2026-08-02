@@ -2,11 +2,14 @@
 import time
 import threading
 import numpy as np
+
 from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
+
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
 from kinematic_controller.gait_engine import GaitEngine
+
 
 def main():
     gait:Gait = TROT

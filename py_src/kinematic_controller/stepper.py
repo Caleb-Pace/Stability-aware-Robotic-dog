@@ -1,6 +1,8 @@
 import math
 import numpy as np
+
 from data_structures import Point3DList
+
 from kinematic_controller.gait_definition import Gait, LEG_COUNT
 from kinematic_controller.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
 

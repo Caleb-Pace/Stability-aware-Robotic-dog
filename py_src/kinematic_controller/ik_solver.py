@@ -1,8 +1,11 @@
 import numpy as np
+
+from typing import Tuple
 from data_structures import Point3D, Vector, Point3DList
 from data_structures import AngleLimits, LegPoseList
+
 from kinematic_controller.gait_definition import LEG_COUNT
-from typing import Tuple
+
 
 
 # Zero offsets for angles #

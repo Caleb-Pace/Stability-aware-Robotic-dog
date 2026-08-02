@@ -1,9 +1,12 @@
 import numpy as np
 import numpy.typing as npt
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Line3DCollection
+
 from kinematic_controller.gait_definition import Gait, LEG_COUNT
 from kinematic_controller.stepper import step, apply_offset
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
+
 
 def show_full_gait(gait:Gait):
     ax = plt.figure().add_subplot(projection='3d')
