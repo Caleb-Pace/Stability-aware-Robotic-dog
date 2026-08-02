@@ -23,18 +23,23 @@ _LEG_OFFSETS_FROM_BODY_ORIGIN = np.array([
 ], dtype=float)
 
 # Link Lengths in meters #
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
 _HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value  # CANNOT BE ZERO
 _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
 # Rotation limits (min, max) in Radians #
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
 _HIP_ABDUCTOR_ROT_RANGE = AngleLimits(-1.0472,  1.0472)   # approx. -60  to  60  deg
 _FRONT_HIP_ROT_RANGE    = AngleLimits(-1.5708,  3.4907)   # approx. -90  to  200 deg
 _BACK_HIP_ROT_RANGE     = AngleLimits(-0.5236,  4.5379)   # approx. -30  to  260 deg
 _KNEE_ROT_RANGE         = AngleLimits(-2.7227, -0.83776)  # approx. -155 to -48  deg
 
 # Output torque limits in Newton-meters #
-_KNEE_TORQUE_LIMIT = (-45.43, 45.43)
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
+_HIP_ABDUCTOR_TORQUE_LIMIT = (-23.7, 23.7)  # Nm
+_HIP_TORQUE_LIMIT = _HIP_ABDUCTOR_TORQUE_LIMIT  # Nm
+_KNEE_TORQUE_LIMIT = (-45.43, 45.43)  # Nm
 
 # Accuracy #
 #     based on input point accuracy
