@@ -3,8 +3,8 @@ import numpy as np
 
 from data_structures import Point3DList
 
-from kinematic_controller.gait_definition import Gait, LEG_COUNT
-from kinematic_controller.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
+from kinematics.gait_definition import Gait, LEG_COUNT
+from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
 # TODO: Needs to take in current position or preserve position

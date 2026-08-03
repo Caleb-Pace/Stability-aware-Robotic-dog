@@ -10,8 +10,8 @@ import mujoco.viewer
 from data_structures import Action
 from hardware_abstraction_layer import OutputLayer
 
-from kinematic_controller.gait_definition import LEG_COUNT
-from kinematic_controller.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
+from kinematics.gait_definition import LEG_COUNT
+from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
 SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
