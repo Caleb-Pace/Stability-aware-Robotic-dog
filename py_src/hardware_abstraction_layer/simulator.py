@@ -10,27 +10,43 @@ import mujoco.viewer
 from data_structures import Action
 from hardware_abstraction_layer import OutputLayer
 
-from kinematics.gait_definition import LEG_COUNT
+from data_structures.gait_definition import LEG_COUNT, JOINT_COUNT
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
+
+from control.pid import PIDController
 
 
 SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
 
 class Simulator(OutputLayer):
-    def __init__(self):
+    def __init__(self, pids:list[PIDController]):
         self._action_queue:queue.Queue[Action] = queue.Queue()
+
+        self.pids = pids
 
     def _run(self, interrupt:threading.Event):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
         data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
+
+        # Persist angle targets
+        target_angles = np.zeros(JOINT_COUNT)
+
+        # Run simulation loop
         with mujoco.viewer.launch_passive(model, data) as viewer:
             while ( not interrupt.is_set() ) and ( viewer.is_running() ):
                 step_start = time.time()
+                dt = model.opt.timestep  # Get simulation time
+
+                # Create/Clear feedforward torque buffer
+                feedforward_torques = np.zeros(JOINT_COUNT)
 
                 # 1. Update targets if a new action has arrived
                 try:
                     # Non-blocking check for new event
                     new_action = self._action_queue.get_nowait()
+
+                    target_angles       = new_action.target_angles
+                    feedforward_torques = new_action.feedforward_torques
                 except queue.Empty:
                     pass  # Keep previous action in data.ctrl automatically
 
@@ -39,10 +55,14 @@ class Simulator(OutputLayer):
                 current_velocities = data.qvel[:12]
 
                 # 3. Calculate applied torques using PID controller
-                applied_torques = 0  # TODO: Implement
+                applied_torques = np.empty(JOINT_COUNT)
+                zipped = zip(self.pids, target_angles, current_angles, current_velocities)
+                
+                for i, (pid, target, current, vel) in enumerate(zipped):
+                    applied_torques[i] = pid.update(target, current, vel, dt)
 
                 # 4. Send the calculated applied torques to MuJoCo
-                data.ctrl[:] = applied_torques
+                data.ctrl[:] = (applied_torques + feedforward_torques)
 
                 # Physics engine steps continuously holding the last action state
                 mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
