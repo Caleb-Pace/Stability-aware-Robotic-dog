@@ -2,7 +2,7 @@ import numpy as np
 
 from typing import Tuple
 from data_structures import Point3D, Vector, Point3DList
-from data_structures import AngleLimits, LegPoseList
+from data_structures import AngleLimits, TorqueLimits, LegPoseList
 
 from kinematic_controller.gait_definition import LEG_COUNT
 
@@ -40,9 +40,9 @@ _KNEE_ROT_RANGE         = AngleLimits(-2.7227, -0.83776)  # approx. -155 to -48 
 
 # Output torque limits in Newton-meters #
 #     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
-_HIP_ABDUCTOR_TORQUE_LIMIT = (-23.7, 23.7)  # Nm
-_HIP_TORQUE_LIMIT = _HIP_ABDUCTOR_TORQUE_LIMIT  # Nm
-_KNEE_TORQUE_LIMIT = (-45.43, 45.43)  # Nm
+_HIP_ABDUCTOR_TORQUE_LIMIT = TorqueLimits(-23.7, 23.7)  # Nm
+_HIP_TORQUE_LIMIT          = _HIP_ABDUCTOR_TORQUE_LIMIT  # Nm
+_KNEE_TORQUE_LIMIT         = TorqueLimits(-45.43, 45.43)  # Nm
 
 # Accuracy #
 #     based on input point accuracy
