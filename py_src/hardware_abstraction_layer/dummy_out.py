@@ -8,12 +8,12 @@ from hardware_abstraction_layer.output_layer import OutputLayer
 class DummyOutput(OutputLayer):
     _last_angle_set = None
 
-    def connect(self, interrupt:threading.Event):
+    def connect(self, terminate_connection:threading.Event):
         print("[DO]  Dummy Output: connected!")
 
-        while not interrupt.is_set():
+        while not terminate_connection.is_set():
             pass
-        print("[DO]  Interrupt triggered!")
+        print("[DO]  Dummy Output: connection terminated!")
 
     def send_action(self, action:Action):
         target_angles       = action.target_angles
@@ -44,7 +44,8 @@ class DummyOutput(OutputLayer):
 
             leg_num += 1
         print()
-    
+
+    # TODO: Implement
     def get_low_state(self):
         print("[DO]  Dummy Output: Low level state requested!")
         pass

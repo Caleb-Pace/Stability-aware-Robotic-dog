@@ -7,7 +7,7 @@ from data_structures import Action
 # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/output.py
 class OutputLayer(ABC):
     @abstractmethod
-    def connect(self, interrupt:threading.Event):
+    def connect(self, terminate_connection:threading.Event):
         pass
 
     @abstractmethod

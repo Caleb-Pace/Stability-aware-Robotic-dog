@@ -45,9 +45,9 @@ class Simulator(OutputLayer):
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
 
-    def connect(self, interrupt:threading.Event):
+    def connect(self, terminate_connection:threading.Event):
         print("[SO]  Openning simulator...")
-        self._run(interrupt)
+        self._run(terminate_connection)
 
     def send_action(self, action:Action):
         self._action_queue.put(action)
