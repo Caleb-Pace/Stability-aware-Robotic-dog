@@ -71,19 +71,19 @@ class Simulator(OutputLayer):
     #     Angle data from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_IK.py#L244
     def send_stand_action(self):
         REAL_STAND = {
-            "FL": (-0.018,  0.663, -1.369),
             "FR": ( 0.018,  0.667, -1.377),
-            "RL": (-0.082,  0.658, -1.351),
+            "FL": (-0.018,  0.663, -1.369),
             "RR": ( 0.085,  0.660, -1.353),
+            "RL": (-0.082,  0.658, -1.351),
         }
         self._send_action_preset(REAL_STAND)
 
     #     Angle data from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_IK.py#L251
     def send_lay_down_action(self):
         REAL_SIT = {
-            "FL": (-0.068,  1.241, -2.770),
             "FR": ( 0.061,  1.236, -2.761),
-            "RL": (-0.402,  1.244, -2.758),
+            "FL": (-0.068,  1.241, -2.770),
             "RR": ( 0.383,  1.243, -2.756),
+            "RL": (-0.402,  1.244, -2.758),
         }
         self._send_action_preset(REAL_SIT)

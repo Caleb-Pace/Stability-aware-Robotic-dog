@@ -20,8 +20,8 @@ def main():
 
     interrupt_flag = threading.Event()
 
-    out_layer:OutputLayer = DummyOutput()
-    # out_layer:OutputLayer = Simulator()
+    # out_layer:OutputLayer = DummyOutput()
+    out_layer:OutputLayer = Simulator()
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 

@@ -4,7 +4,7 @@ from kinematic_controller.gait_definition import Gait
 # # # < Notes > # # #
 # 
 # Scale: 1.0 = 1 meter
-# Legs order: ["FL", "FR", "BL", "BR"]
+# Legs order: ["FR", "FL", "RR", "RL"]
 #
 # # # # # # # # # # #
 
