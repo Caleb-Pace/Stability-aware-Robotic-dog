@@ -1,5 +1,5 @@
 import numpy as np
-from kinematics.gait_definition import Gait
+from data_structures.gait_definition import Gait
 
 # # # < Notes > # # #
 # 

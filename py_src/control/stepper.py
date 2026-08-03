@@ -2,8 +2,8 @@ import math
 import numpy as np
 
 from data_structures import Point3DList
+from data_structures.gait_definition import Gait, LEG_COUNT
 
-from kinematics.gait_definition import Gait, LEG_COUNT
 from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
