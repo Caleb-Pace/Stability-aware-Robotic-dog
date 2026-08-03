@@ -1,12 +1,16 @@
 import os
 import time
 import queue
+import numpy as np
 
 import mujoco
 import mujoco.viewer
 
 from data_structures import Action
 from hardware_abstraction_layer import OutputLayer
+
+from kinematic_controller.gait_definition import LEG_COUNT
+from kinematic_controller.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
 SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
@@ -22,6 +26,7 @@ class Simulator(OutputLayer):
             while viewer.is_running():
                 step_start = time.time()
 
+                # TODO: Handle target angles and torques properly
                 # Event Check: Has an action event arrived?
                 try:
                     # Non-blocking check for new event
@@ -48,3 +53,36 @@ class Simulator(OutputLayer):
 
     def get_low_state(self):
         pass
+
+
+    # TODO: Later, dynamics model
+    def _get_feedforward_torques(self):
+        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT] * LEG_COUNT), dtype=np.float64)
+
+    def _send_action_preset(self, angle_targets_dict:dict):
+        # Convert dict of tuples into 1D array
+        target_angles = np.array([item for tup in angle_targets_dict.values() for item in tup])
+
+        action = Action(target_angles, self._get_feedforward_torques())
+        self.send_action(action)
+
+
+    #     Angle data from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_IK.py#L244
+    def send_stand_action(self):
+        REAL_STAND = {
+            "FL": (-0.018,  0.663, -1.369),
+            "FR": ( 0.018,  0.667, -1.377),
+            "RL": (-0.082,  0.658, -1.351),
+            "RR": ( 0.085,  0.660, -1.353),
+        }
+        self._send_action_preset(REAL_STAND)
+
+    #     Angle data from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_IK.py#L251
+    def send_lay_down_action(self):
+        REAL_SIT = {
+            "FL": (-0.068,  1.241, -2.770),
+            "FR": ( 0.061,  1.236, -2.761),
+            "RL": (-0.402,  1.244, -2.758),
+            "RR": ( 0.383,  1.243, -2.756),
+        }
+        self._send_action_preset(REAL_SIT)
