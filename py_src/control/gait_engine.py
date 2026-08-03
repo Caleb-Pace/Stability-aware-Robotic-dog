@@ -8,7 +8,7 @@ from data_structures.controller_input import ControllerData
 from hardware_abstraction_layer import OutputLayer
 
 from kinematics.gait_definition import Gait, LEG_COUNT
-from kinematics.stepper import step
+from control.stepper import step
 from kinematics.ik_solver import IK_Solver
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
