@@ -2,7 +2,7 @@ import numpy as np
 
 from typing import Tuple
 from data_structures import Point3D, Vector, Point3DList
-from data_structures import AngleLimits, TorqueLimits, LegPoseList
+from data_structures import AngleLimits, TorqueLimits, LegPose, LegPoseList
 
 from kinematic_controller.gait_definition import LEG_COUNT
 
@@ -52,9 +52,6 @@ _ANGLE_ACCURACY = 5  # d.p. of radian
 # Reachability limits #
 _MAX_RANGE_LENGTH = np.sqrt(np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - (2 * _THIGH_LENGTH * _CALF_LENGTH * np.cos(np.pi - _KNEE_ROT_RANGE[1])))
 _MAX_RANGE_LENGTH = np.round(_MAX_RANGE_LENGTH, _INPUT_ACCURACY)
-
-
-type LegPose = Tuple[float, float, float]  # Angles (abd, hip, knee)
 
 
 def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:

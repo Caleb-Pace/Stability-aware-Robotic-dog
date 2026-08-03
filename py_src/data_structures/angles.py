@@ -1,8 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 from data_structures.points import Point3D, Vector
-from typing import Annotated, NamedTuple, TypeAlias
+from typing import Annotated, Tuple, NamedTuple, TypeAlias
 
+
+type LegPose = Tuple[float, float, float]  # Angles (abd, hip, knee)
 type LegPoseList = Annotated[npt.NDArray[np.float64], (None, 3)]  # 2D array of leg angle sets (abd, hip, knee)
 
 class AngleLimits(NamedTuple):
