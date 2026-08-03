@@ -19,13 +19,7 @@ class DummyOutput(OutputLayer):
         #     return  # Don't send duplicate debug messages
         # self._last_angle_set = target_angles
 
-        if len(target_angles) < 4:
-            print(f"[DO]  ERROR: not enough leg angles ({len(target_angles)} == 4)(from Dummy Output)")
-            return
-        if len(target_angles) > 4:
-            print(f"[DO]  ERROR: too many leg angles ({len(target_angles)} == 4)(from Dummy Output)")
-            return
-        if len(target_angles.ravel()) != len(feedforward_torques):
+        if len(target_angles) != len(feedforward_torques):
             print("[DO]  ERROR: angle-torque mismatch (from Dummy Output)")
             return
 
@@ -33,7 +27,7 @@ class DummyOutput(OutputLayer):
         print(f"    | Leg # |       Abd motor       |       Hip motor       |       Knee motor      |")
         print(f"    | ----- | --------------------- | --------------------- | --------------------- |")
         leg_num:int = 0
-        for angle, torque in zip(target_angles.ravel(), feedforward_torques):
+        for angle, torque in zip(target_angles, feedforward_torques):
 
             angle_str  = f"{np.round(np.degrees(angle), 3):>7}°"
             torque_str = f"{np.round(torque, 5):>8} Nm"
