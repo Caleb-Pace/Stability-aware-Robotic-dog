@@ -7,9 +7,9 @@ from hardware_abstraction_layer import InputLayer, GamepadController, OutputLaye
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
-from kinematic_controller.gaits import TROT
-from kinematic_controller.gait_definition import Gait
-from kinematic_controller.gait_engine import GaitEngine
+from kinematics.gaits import TROT
+from kinematics.gait_definition import Gait
+from kinematics.gait_engine import GaitEngine
 
 
 def main():

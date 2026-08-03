@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.typing as npt
 
-from kinematic_controller.gait_definition import Gait, LEG_COUNT
-from kinematic_controller.stepper import step, apply_offset
+from kinematics.gait_definition import Gait, LEG_COUNT
+from kinematics.stepper import step, apply_offset
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Line3DCollection

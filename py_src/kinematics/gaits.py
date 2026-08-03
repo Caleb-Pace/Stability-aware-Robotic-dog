@@ -1,5 +1,5 @@
 import numpy as np
-from kinematic_controller.gait_definition import Gait
+from kinematics.gait_definition import Gait
 
 # # # < Notes > # # #
 # 
