@@ -7,21 +7,24 @@ from hardware_abstraction_layer import InputLayer, GamepadController, OutputLaye
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
-from control.gaits import TROT
 from data_structures.gait_definition import Gait
+from control.gaits import TROT
 from control.gait_engine import GaitEngine
+from control.pid import PIDController, get_pid_controllers
 
 
 def main():
     gait:Gait = TROT
 
-    in_layer:InputLayer = GamepadController()
-    read_delay_ms = 100
+    pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
 
+    in_layer:InputLayer = GamepadController()
+    read_delay_ms = 100
+
     # out_layer:OutputLayer = DummyOutput()
-    out_layer:OutputLayer = Simulator()
+    out_layer:OutputLayer = Simulator(pid_controllers)
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
