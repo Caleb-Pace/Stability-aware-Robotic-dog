@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 
-from kinematics.gait_definition import Gait, LEG_COUNT
+from data_structures.gait_definition import Gait, LEG_COUNT
 from kinematics.stepper import step, apply_offset
 
 import matplotlib.pyplot as plt

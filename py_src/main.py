@@ -8,7 +8,7 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from kinematics.gaits import TROT
-from kinematics.gait_definition import Gait
+from data_structures.gait_definition import Gait
 from kinematics.gait_engine import GaitEngine
 
 
