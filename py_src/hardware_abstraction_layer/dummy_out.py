@@ -1,3 +1,4 @@
+import threading
 import numpy as np
 
 from data_structures import Action
@@ -7,9 +8,12 @@ from hardware_abstraction_layer.output_layer import OutputLayer
 class DummyOutput(OutputLayer):
     _last_angle_set = None
 
-    def connect(self):
+    def connect(self, interrupt:threading.Event):
         print("[DO]  Dummy Output: connected!")
-        pass
+
+        while not interrupt.is_set():
+            pass
+        print("[DO]  Interrupt triggered!")
 
     def send_action(self, action:Action):
         target_angles       = action.target_angles

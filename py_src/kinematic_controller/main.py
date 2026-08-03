@@ -5,6 +5,7 @@ import numpy as np
 
 from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
+from hardware_abstraction_layer.simulator import Simulator
 
 from kinematic_controller.gaits import TROT
 from kinematic_controller.gait_definition import Gait
@@ -15,30 +16,28 @@ def main():
     gait:Gait = TROT
 
     in_layer:InputLayer = GamepadController()
-    read_delay_ms = 10
+    read_delay_ms = 100
+
+    interrupt_flag = threading.Event()
 
     out_layer:OutputLayer = DummyOutput()
-    out_layer.connect()
+    # out_layer:OutputLayer = Simulator()
+    output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
+    output_thread.start()
 
     engine = GaitEngine(gait, out_layer)
-    clock_interval_ms    = read_delay_ms
-    clock_interrupt_flag = threading.Event()
-    clock_thread = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, clock_interrupt_flag))
+    clock_interval_ms = read_delay_ms
+    clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
+    a_btn_down_prev:bool = False
+
+    print("[M ]  Input loop started!")
     while True:
         input_data = in_layer.poll()
         # TODO: Remove, for debugging
         if input_data.a_btn_down:
-            print("'A' pressed; ", end="")
-        if input_data.b_btn_down:
-            print("'B' pressed; ", end="")
-        if input_data.x_btn_down:
-            print("'X' pressed; ", end="")
-        if input_data.y_btn_down:
-            print("'Y' pressed; ", end="")
-        if input_data.a_btn_down or input_data.b_btn_down or input_data.x_btn_down or input_data.y_btn_down:
-            print()
+            print("'A' pressed; ")
 
         input_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y) + abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = input_sum > 0
@@ -51,8 +50,9 @@ def main():
             time.sleep(read_delay_ms / 1000)
         except KeyboardInterrupt:
             break  # Exit loop
+    print("[M ]  Input loop finished!")
 
-    clock_interrupt_flag.set()  # Stop the clock thread
+    interrupt_flag.set()  # Stop the clock thread
 
 
 if __name__ == "__main__":

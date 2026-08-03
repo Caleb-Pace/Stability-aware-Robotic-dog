@@ -1,3 +1,5 @@
+import threading
+
 from abc import ABC, abstractmethod
 from data_structures import Action
 
@@ -5,7 +7,7 @@ from data_structures import Action
 # Adapted from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/output.py
 class OutputLayer(ABC):
     @abstractmethod
-    def connect(self):
+    def connect(self, interrupt:threading.Event):
         pass
 
     @abstractmethod

@@ -1,5 +1,6 @@
 import os
 import time
+import threading
 import queue
 import numpy as np
 
@@ -19,11 +20,11 @@ class Simulator(OutputLayer):
     def __init__(self):
         self._action_queue:queue.Queue[Action] = queue.Queue()
 
-    def _run(self):
+    def _run(self, interrupt:threading.Event):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
         data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
         with mujoco.viewer.launch_passive(model, data) as viewer:
-            while viewer.is_running():
+            while ( not interrupt.is_set() ) and ( viewer.is_running() ):
                 step_start = time.time()
 
                 # TODO: Handle target angles and torques properly
@@ -44,9 +45,9 @@ class Simulator(OutputLayer):
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
 
-    def connect(self):
-        print("Openning simulator...")
-        self._run()
+    def connect(self, interrupt:threading.Event):
+        print("[SO]  Openning simulator...")
+        self._run(interrupt)
 
     def send_action(self, action:Action):
         self._action_queue.put(action)
