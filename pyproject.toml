@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "kinematic_controller"
-version = "0.1.0"
-description = "Stability-aware controler for Unitree Go2"
+name = "whole_body_controller"
+version = "0.2.0"
+description = "Stability-aware controller for Unitree Go2"
 dependencies = [
     "numpy",
     "matplotlib",
@@ -15,11 +15,14 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "py_src/kinematic_controller",
-    "py_src/visualisation"
+    "py_src/control",
+    "py_src/data_structures",
+    "py_src/hardware_abstraction_layer",
+    "py_src/interpolation",
+    "py_src/kinematics"
 ]
 
 [project.scripts]
-run-dog = "kinematic_controller.main:main"
+run-dog   = "main:main"
 visualise = "visualisation.main:main"
 test-ik   = "visualisation.graph_angle:main"
