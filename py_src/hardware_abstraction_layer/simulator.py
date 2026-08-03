@@ -27,14 +27,22 @@ class Simulator(OutputLayer):
             while ( not interrupt.is_set() ) and ( viewer.is_running() ):
                 step_start = time.time()
 
-                # TODO: Handle target angles and torques properly
-                # Event Check: Has an action event arrived?
+                # 1. Update targets if a new action has arrived
                 try:
                     # Non-blocking check for new event
                     new_action = self._action_queue.get_nowait()
-                    data.ctrl[:] = new_action
                 except queue.Empty:
                     pass  # Keep previous action in data.ctrl automatically
+
+                # 2. Get current state from MuJoCo
+                current_angles = data.qpos[:12]
+                current_velocities = data.qvel[:12]
+
+                # 3. Calculate applied torques using PID controller
+                applied_torques = 0  # TODO: Implement
+
+                # 4. Send the calculated applied torques to MuJoCo
+                data.ctrl[:] = applied_torques
 
                 # Physics engine steps continuously holding the last action state
                 mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
