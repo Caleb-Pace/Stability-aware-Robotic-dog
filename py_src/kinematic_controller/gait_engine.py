@@ -72,7 +72,7 @@ class GaitEngine:
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT] * LEG_COUNT), dtype=np.float64)
+        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
     def _dynamic_recovery(self): # -> {Result}|None:
         # is_falling = { Forward Dynamics Solve }
         # if is_falling:  # Save from fall

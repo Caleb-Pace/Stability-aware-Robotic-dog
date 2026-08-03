@@ -57,7 +57,7 @@ class Simulator(OutputLayer):
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT] * LEG_COUNT), dtype=np.float64)
+        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
 
     def _send_action_preset(self, angle_targets_dict:dict):
         # Convert dict of tuples into 1D array
