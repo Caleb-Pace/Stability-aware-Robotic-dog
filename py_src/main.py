@@ -41,6 +41,7 @@ def main():
         # TODO: Remove, for debugging
         if input_data.a_btn_down:
             print("'A' pressed; ")
+            out_layer.send_stand_action()
 
         input_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y) + abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = input_sum > 0
