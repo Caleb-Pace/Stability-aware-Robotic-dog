@@ -26,7 +26,8 @@ class PIDController:
         return np.clip(output, -self.max_torque, self.max_torque)
 
 def get_pid_controllers() -> list[PIDController]:
+    # 3 motors per leg
     pids = [
-        PIDController(KP[i], KI[i], KD[i], TORQUE_MAX[i]) for i in range(JOINT_COUNT)
+        PIDController(KP[i % 3], KI[i % 3], KD[i % 3], TORQUE_MAX[i % 3]) for i in range(JOINT_COUNT)
     ]
     return pids
