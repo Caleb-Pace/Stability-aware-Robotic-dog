@@ -47,6 +47,17 @@ class Simulator(OutputLayer):
 
         self.pids = pids
 
+    def _set_pose(self, data, pose, z_height:float):
+        data.qpos[:] = 0.0  # Reset positions
+        data.qvel[:] = 0.0  # Reset velocities
+
+        # Set position and orientation
+        data.qpos[2] = z_height
+        data.qpos[3] = 1.0  # Set orientation; (w: real part of quaternion)
+
+        # Apply pose
+        data.qpos[QPOS_INDEXES] = pose[:12]
+
     # TODO: Fix dog not responding
     def _run(self, interrupt:threading.Event):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
@@ -56,8 +67,13 @@ class Simulator(OutputLayer):
         DT = 0.002  # 500Hz loop
         model.opt.timestep = DT
 
+        # Initialise position
+        initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
+        self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
+        mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
+
         # Persist angle targets
-        target_angles = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
+        target_angles = initial_pose
 
         # Run simulation loop
         with mujoco.viewer.launch_passive(model, data) as viewer:
