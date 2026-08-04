@@ -63,6 +63,9 @@ class Simulator(OutputLayer):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
         data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
 
+        for i in range(model.njnt):
+            print(i, model.joint(i).name, "qpos_adr:", model.jnt_qposadr[i], "qvel_adr:", model.jnt_dofadr[i])
+
         # Timestep
         DT = 0.002  # 500Hz loop
         model.opt.timestep = DT
