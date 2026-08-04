@@ -76,18 +76,21 @@ class Simulator(OutputLayer):
 
         # Persist angle targets
         target_angles = initial_pose
-        
+
+        # Bounded catch-up setup
         sim_time = 0.0
         wall_origin = time.perf_counter()
 
         # Run simulation loop
         with mujoco.viewer.launch_passive(model, data) as viewer:
             while ( not interrupt.is_set() ) and ( viewer.is_running() ):
-                # step_start = time.time()
-                
-                target_sim = min(time.perf_counter() - wall_origin, sim_time + 0.050)
-                
+
+                # Catch physics up to real time
+                #     but capped so that a stall doesn't trigger a step runaway
+                target_sim = min(time.perf_counter() - wall_origin, sim_time + 0.050) # Capped at 50ms
+
                 while sim_time < target_sim:
+
                     # # Create/Clear feedforward torque buffer
                     # feedforward_torques = np.zeros(JOINT_COUNT)
 
@@ -143,17 +146,11 @@ class Simulator(OutputLayer):
                     #     # print(f"[S2]    ff_t: {_feedforward_torques}")
                     #     print(f"[S2]    t_ag: {target_angles}")
 
-                    # Physics engine steps continuously holding the last action state
                     mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
                     sim_time += DT
 
-                viewer.sync()
-
-                # # Maintain physics rate
-                # time_until_next_step = model.opt.timestep - (time.time() - step_start)
-                # if time_until_next_step > 0:
-                #     time.sleep(time_until_next_step)
-
+                viewer.sync()  # Render
+    
     def connect(self, terminate_connection:threading.Event):
         print("[SO]  Openning simulator...")
         self._run(terminate_connection)
