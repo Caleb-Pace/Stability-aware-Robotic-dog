@@ -20,9 +20,9 @@ SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
 
 # MuJoCo Indexes
 #     from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/main.py#L18
-CTRL_INDEXES = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]).flatten()
-QPOS_INDEXES = np.array([[7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]]).flatten()
-QVEL_INDEXES = np.array([[6, 7, 8], [9, 10, 11], [12, 13, 14], [15, 16, 17]]).flatten()
+CTRL_INDEXES = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]).flatten()         # 0 to 11, Output signals (Torque or Angles??)
+QPOS_INDEXES = np.array([[7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]]).flatten()  # 7 to 18, Joint Angles
+QVEL_INDEXES = np.array([[6, 7, 8], [9, 10, 11], [12, 13, 14], [15, 16, 17]]).flatten()   # 6 to 17, Joint Angular Velocities
 # TODO: Implement cleaner alternative
 # CTRL_IDX = slice(0, 12)    # 0 to 11
 # QPOS_IDX = slice(7, 19)    # 7 to 18
@@ -67,38 +67,57 @@ class Simulator(OutputLayer):
                 # Create/Clear feedforward torque buffer
                 feedforward_torques = np.zeros(JOINT_COUNT)
 
-                # 1. Update targets if a new action has arrived
-                try:
-                    # Non-blocking check for new event
-                    new_action = self._action_queue.get_nowait()
+                # # 1. Update targets if a new action has arrived
+                # try:
+                #     # Non-blocking check for new event
+                #     new_action = self._action_queue.get_nowait()
 
-                    target_angles       = new_action.target_angles
-                    feedforward_torques = new_action.feedforward_torques
-                except queue.Empty:
-                    pass  # Keep previous action in data.ctrl automatically
+                #     target_angles       = new_action.target_angles
+                #     feedforward_torques = new_action.feedforward_torques
+                # except queue.Empty:
+                #     pass  # Keep previous action in data.ctrl automatically  # TODO: Correct comment
 
-                # 2. Get current state from MuJoCo
-                current_angles     = data.qpos[QPOS_INDEXES]
-                current_velocities = data.qvel[QVEL_INDEXES]
+                # # 2. Get current state from MuJoCo
+                # current_angles     = data.qpos[QPOS_INDEXES]
+                # current_velocities = data.qvel[QVEL_INDEXES]
 
-                # 3. Calculate applied torques using PID controller
-                applied_torques = np.empty(JOINT_COUNT)
-                zipped = zip(self.pids, target_angles, current_angles, current_velocities)
+                # # 3. Calculate applied torques using PID controller
+                # applied_torques = np.empty(JOINT_COUNT)
+                # zipped = zip(self.pids, target_angles, current_angles, current_velocities)
 
-                for i, (pid, target, current, vel) in enumerate(zipped):
-                    applied_torques[i] = pid.update(target, current, vel, DT)
+                # for i, (pid, target, angle, vel) in enumerate(zipped):
+                #     applied_torques[i] = pid.update(target, angle, vel, DT)
 
-                # 4. Send the calculated applied torques to MuJoCo
-                data.ctrl[:] = (applied_torques + feedforward_torques)  # TODO: Use CTRL_INDEXES
+                # # 4. Send the calculated applied torques to MuJoCo
+                # # data.ctrl[:12] = target_angles  # TODO: Use CTRL_INDEXES
+                # data.ctrl[:12] = applied_torques  # TODO: Use CTRL_INDEXES
+                # # data.ctrl[:] = (applied_torques + feedforward_torques)  # TODO: Use CTRL_INDEXES
+                for leg in range(4):
+                    leg_num = leg * 3
+                    hip_t, thigh_t, calf_t = target_angles[leg_num:(leg_num+3)]
 
-                # # TODO: Remove, for debugging
-                # if int(time.time() * 1000) % 100 == 0:
-                #     threshold = 1e-6
-                #     _applied_torques = np.where(np.abs(applied_torques) < threshold, 0, applied_torques)
-                #     _feedforward_torques = np.where(np.abs(feedforward_torques) < threshold, 0, feedforward_torques)
-                #
-                #     np.set_printoptions(suppress=True, precision=6)
-                #     print(f"{str(int(time.time() * 1000))[-6:-2]} | {_applied_torques} + {_feedforward_torques}")
+                    targets = [hip_t, thigh_t, calf_t]
+                    for j in range(3):
+                        current_p = data.qpos[QPOS_INDEXES[leg_num + j]]
+                        current_v = data.qvel[QVEL_INDEXES[leg_num + j]] 
+                        data.ctrl[leg_num + j] = self.pids[leg_num + j].update(targets[j], current_p, current_v, DT)
+
+                # TODO: Remove, for debugging
+                if int(time.time() * 1000) % 100 == 0:
+                    # threshold = 1e-6
+                    # _applied_torques = np.where(np.abs(applied_torques) < threshold, 0, applied_torques)
+                    # _feedforward_torques = np.where(np.abs(feedforward_torques) < threshold, 0, feedforward_torques)
+                
+                    np.set_printoptions(suppress=True, precision=6)
+                    # print(f"{str(int(time.time() * 1000))[-6:-2]} | {_applied_torques} + {_feedforward_torques}")
+                    print(f"[S2]  {str(int(time.time() * 1000))[-6:-2]}")
+                    # print(f"[S2]        : {np.asarray(range(20))}")
+                    # print(f"[S2]    d_qp: {data.qpos}")
+                    # print(f"[S2]    d_qv: {data.qvel}")
+                    print(f"[S2]    d_ct: {data.ctrl}")
+                    # print(f"[S2]    ap_t: {_applied_torques}")
+                    # print(f"[S2]    ff_t: {_feedforward_torques}")
+                    print(f"[S2]    t_ag: {target_angles}")
 
                 # Physics engine steps continuously holding the last action state
                 mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
