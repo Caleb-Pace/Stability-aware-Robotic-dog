@@ -102,22 +102,22 @@ class Simulator(OutputLayer):
                         current_v = data.qvel[QVEL_INDEXES[leg_num + j]] 
                         data.ctrl[leg_num + j] = self.pids[leg_num + j].update(targets[j], current_p, current_v, DT)
 
-                # TODO: Remove, for debugging
-                if int(time.time() * 1000) % 100 == 0:
-                    # threshold = 1e-6
-                    # _applied_torques = np.where(np.abs(applied_torques) < threshold, 0, applied_torques)
-                    # _feedforward_torques = np.where(np.abs(feedforward_torques) < threshold, 0, feedforward_torques)
+                # # TODO: Remove, for debugging
+                # if int(time.time() * 1000) % 100 == 0:
+                #     # threshold = 1e-6
+                #     # _applied_torques = np.where(np.abs(applied_torques) < threshold, 0, applied_torques)
+                #     # _feedforward_torques = np.where(np.abs(feedforward_torques) < threshold, 0, feedforward_torques)
                 
-                    np.set_printoptions(suppress=True, precision=6)
-                    # print(f"{str(int(time.time() * 1000))[-6:-2]} | {_applied_torques} + {_feedforward_torques}")
-                    print(f"[S2]  {str(int(time.time() * 1000))[-6:-2]}")
-                    # print(f"[S2]        : {np.asarray(range(20))}")
-                    # print(f"[S2]    d_qp: {data.qpos}")
-                    # print(f"[S2]    d_qv: {data.qvel}")
-                    print(f"[S2]    d_ct: {data.ctrl}")
-                    # print(f"[S2]    ap_t: {_applied_torques}")
-                    # print(f"[S2]    ff_t: {_feedforward_torques}")
-                    print(f"[S2]    t_ag: {target_angles}")
+                #     np.set_printoptions(suppress=True, precision=6)
+                #     # print(f"{str(int(time.time() * 1000))[-6:-2]} | {_applied_torques} + {_feedforward_torques}")
+                #     print(f"[S2]  {str(int(time.time() * 1000))[-6:-2]}")
+                #     # print(f"[S2]        : {np.asarray(range(20))}")
+                #     # print(f"[S2]    d_qp: {data.qpos}")
+                #     # print(f"[S2]    d_qv: {data.qvel}")
+                #     print(f"[S2]    d_ct: {data.ctrl}")
+                #     # print(f"[S2]    ap_t: {_applied_torques}")
+                #     # print(f"[S2]    ff_t: {_feedforward_torques}")
+                #     print(f"[S2]    t_ag: {target_angles}")
 
                 # Physics engine steps continuously holding the last action state
                 mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
