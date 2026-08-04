@@ -21,8 +21,10 @@ SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
 # MuJoCo Indexes
 #     from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/main.py#L18
 CTRL_INDEXES = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]).flatten()         # 0 to 11, Output signals (Torque or Angles??)
-QPOS_INDEXES = np.array([[7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]]).flatten()  # 7 to 18, Joint Angles
-QVEL_INDEXES = np.array([[6, 7, 8], [9, 10, 11], [12, 13, 14], [15, 16, 17]]).flatten()   # 6 to 17, Joint Angular Velocities
+# QPOS_INDEXES = np.array([[7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]]).flatten()  # 7 to 18, Joint Angles
+# QVEL_INDEXES = np.array([[6, 7, 8], [9, 10, 11], [12, 13, 14], [15, 16, 17]]).flatten()   # 6 to 17, Joint Angular Velocities
+QPOS_INDEXES = np.array([[10, 11, 12], [7, 8, 9], [16, 17, 18], [13, 14, 15]]).flatten()
+QVEL_INDEXES = np.array([[9, 10, 11], [6, 7, 8], [15, 16, 17], [12, 13, 14]]).flatten()
 # TODO: Implement cleaner alternative
 # CTRL_IDX = slice(0, 12)    # 0 to 11
 # QPOS_IDX = slice(7, 19)    # 7 to 18
@@ -62,9 +64,6 @@ class Simulator(OutputLayer):
     def _run(self, interrupt:threading.Event):
         model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
         data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
-
-        for i in range(model.njnt):
-            print(i, model.joint(i).name, "qpos_adr:", model.jnt_qposadr[i], "qvel_adr:", model.jnt_dofadr[i])
 
         # Timestep
         DT = 0.002  # 500Hz loop
