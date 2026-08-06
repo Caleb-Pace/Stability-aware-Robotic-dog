@@ -31,7 +31,7 @@ def main():
     engine = GaitEngine(gait, out_layer)
     clock_interval_ms = read_delay_ms
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
-    clock_thread.start()
+    # clock_thread.start()
 
     a_btn_down_prev:bool = False
 
