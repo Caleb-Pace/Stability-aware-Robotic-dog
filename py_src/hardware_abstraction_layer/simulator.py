@@ -91,43 +91,43 @@ class Simulator(OutputLayer):
 
                 while sim_time < target_sim:
 
-                    # # Create/Clear feedforward torque buffer
-                    # feedforward_torques = np.zeros(JOINT_COUNT)
+                    # Create/Clear feedforward torque buffer
+                    feedforward_torques = np.zeros(JOINT_COUNT)
 
-                    # # 1. Update targets if a new action has arrived
-                    # try:
-                    #     # Non-blocking check for new event
-                    #     new_action = self._action_queue.get_nowait()
+                    # 1. Update targets if a new action has arrived
+                    try:
+                        # Non-blocking check for new event
+                        new_action = self._action_queue.get_nowait()
 
-                    #     target_angles       = new_action.target_angles
-                    #     feedforward_torques = new_action.feedforward_torques
-                    # except queue.Empty:
-                    #     pass  # Keep previous action in data.ctrl automatically  # TODO: Correct comment
+                        target_angles       = new_action.target_angles
+                        feedforward_torques = new_action.feedforward_torques
+                    except queue.Empty:
+                        pass  # Keep previous action in data.ctrl automatically  # TODO: Correct comment
 
-                    # # 2. Get current state from MuJoCo
-                    # current_angles     = data.qpos[QPOS_INDEXES]
-                    # current_velocities = data.qvel[QVEL_INDEXES]
+                    # 2. Get current state from MuJoCo
+                    current_angles     = data.qpos[QPOS_INDEXES]
+                    current_velocities = data.qvel[QVEL_INDEXES]
 
-                    # # 3. Calculate applied torques using PID controller
-                    # applied_torques = np.empty(JOINT_COUNT)
-                    # zipped = zip(self.pids, target_angles, current_angles, current_velocities)
+                    # 3. Calculate applied torques using PID controller
+                    applied_torques = np.empty(JOINT_COUNT)
+                    zipped = zip(self.pids, target_angles, current_angles, current_velocities)
 
-                    # for i, (pid, target, angle, vel) in enumerate(zipped):
-                    #     applied_torques[i] = pid.update(target, angle, vel, DT)
+                    for i, (pid, target, angle, vel) in enumerate(zipped):
+                        applied_torques[i] = pid.update(target, angle, vel, DT)
 
-                    # # 4. Send the calculated applied torques to MuJoCo
-                    # # data.ctrl[:12] = target_angles  # TODO: Use CTRL_INDEXES
-                    # data.ctrl[:12] = applied_torques  # TODO: Use CTRL_INDEXES
-                    # # data.ctrl[:] = (applied_torques + feedforward_torques)  # TODO: Use CTRL_INDEXES
-                    for leg in range(4):
-                        leg_num = leg * 3
-                        hip_t, thigh_t, calf_t = target_angles[leg_num:(leg_num+3)]
+                    # 4. Send the calculated applied torques to MuJoCo
+                    data.ctrl[:12] = applied_torques  # TODO: Use CTRL_INDEXES
+                    # data.ctrl[:12] = (applied_torques + feedforward_torques)  # TODO: Use CTRL_INDEXES
 
-                        targets = [hip_t, thigh_t, calf_t]
-                        for j in range(3):
-                            current_p = data.qpos[QPOS_INDEXES[leg_num + j]]
-                            current_v = data.qvel[QVEL_INDEXES[leg_num + j]] 
-                            data.ctrl[leg_num + j] = self.pids[leg_num + j].update(targets[j], current_p, current_v, DT)
+                    # for leg in range(4):
+                    #     leg_num = leg * 3
+                    #     hip_t, thigh_t, calf_t = target_angles[leg_num:(leg_num+3)]
+
+                    #     targets = [hip_t, thigh_t, calf_t]
+                    #     for j in range(3):
+                    #         current_p = data.qpos[QPOS_INDEXES[leg_num + j]]
+                    #         current_v = data.qvel[QVEL_INDEXES[leg_num + j]] 
+                    #         data.ctrl[leg_num + j] = self.pids[leg_num + j].update(targets[j], current_p, current_v, DT)
 
                     # # TODO: Remove, for debugging
                     # if int(time.time() * 1000) % 100 == 0:
@@ -157,6 +157,7 @@ class Simulator(OutputLayer):
 
     def send_action(self, action:Action):
         self._action_queue.put(action)
+        print("Action added")
 
     def get_low_state(self):
         pass
