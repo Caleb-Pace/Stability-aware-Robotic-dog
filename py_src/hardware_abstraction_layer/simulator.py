@@ -157,7 +157,6 @@ class Simulator(OutputLayer):
 
     def send_action(self, action:Action):
         self._action_queue.put(action)
-        print("Action added")
 
     def get_low_state(self):
         pass
