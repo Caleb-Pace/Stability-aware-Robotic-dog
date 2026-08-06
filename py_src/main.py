@@ -21,7 +21,7 @@ def main():
     interrupt_flag = threading.Event()
 
     in_layer:InputLayer = GamepadController()
-    read_delay_ms = 100
+    read_delay_ms = 10
 
     # out_layer:OutputLayer = DummyOutput()
     out_layer:OutputLayer = Simulator(pid_controllers)
@@ -31,24 +31,24 @@ def main():
     engine = GaitEngine(gait, out_layer)
     clock_interval_ms = read_delay_ms
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
-    # clock_thread.start()
+    clock_thread.start()
 
     a_btn_down_prev:bool = False
 
     print("[M ]  Input loop started!")
     while True:
         input_data = in_layer.poll()
-        # TODO: Remove, for debugging
-        if input_data.a_btn_down:
-            print("'A' pressed; ")
-            out_layer.send_stand_action()
+        # # TODO: Remove, for debugging
+        # if input_data.a_btn_down:
+        #     print("'A' pressed; ")
+        #     out_layer.send_stand_action()
 
         input_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y) + abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = input_sum > 0
         if has_input:
             print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
-            # engine.input(input_data, 1)
+            engine.input(input_data, 1)
 
         try:
             time.sleep(read_delay_ms / 1000)
