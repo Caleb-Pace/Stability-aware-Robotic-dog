@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+import argparse
+import os
 import time
 import threading
 import numpy as np
 
 from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
+from hardware_abstraction_layer.robot_output import UnitreeGo2Output
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
@@ -13,7 +16,25 @@ from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Run the robot controller")
+    parser.add_argument(
+        "--backend",
+        choices=("robot", "simulator", "dummy"),
+        default=os.getenv("DOG_BACKEND", "robot"),
+        help="Select the hardware abstraction backend",
+    )
+    parser.add_argument(
+        "--interface",
+        default=os.getenv("DOG_NETWORK_INTERFACE", "eth0"),
+        help="Network interface used by the robot backend",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = _parse_args()
+
     gait:Gait = TROT
 
     pid_controllers:list[PIDController] = get_pid_controllers()
@@ -23,8 +44,13 @@ def main():
     in_layer:InputLayer = GamepadController()
     read_delay_ms = 100
 
-    # out_layer:OutputLayer = DummyOutput()
-    out_layer:OutputLayer = Simulator(pid_controllers)
+    if args.backend == "dummy":
+        out_layer:OutputLayer = DummyOutput()
+    elif args.backend == "simulator":
+        out_layer = Simulator(pid_controllers)
+    else:
+        out_layer = UnitreeGo2Output(network_interface=args.interface)
+
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
