@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
 
+# TODO: Show every direction change timestamp on all curves. This is to aid in gait creation/debugging
+#      (show time when gait first pushes back on ground as point on all curves)
 def show_full_gait(gait:Gait):
     ax = plt.figure().add_subplot(projection='3d')
     ax.set_xlim3d([-0.4, 0.4])
