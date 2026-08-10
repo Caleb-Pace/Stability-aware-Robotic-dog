@@ -57,7 +57,30 @@ class GaitEngine:
         action = Action(target_motor_angles, feedforward_torques)
         self.output.send_action(action)
 
-    # _dynamic_recovery
+
+
+    def _convert_distance_to_steps(self):
+        # Take:
+        #     Gait,
+        #     Current step number,
+        #     Target distance
+        # Return:
+        #     Steps to take to achieve distance
+        pass
+
+    def move(self, distance:float, speed:float):
+        # 1. Calculate pushing steps (negative x, with ground contact z = 0)
+        
+        # 2. Calculate steps needed to achieve that distance
+        
+        # 3. Calculate how long movement should be (distance / speed)
+        movement_time = distance / speed  # seconds
+
+        # 4. Calculate time per step to fit that timeframe (step_interval_ms)
+        step_interval_ms = 0
+
+
+        
 
     # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
@@ -71,6 +94,7 @@ class GaitEngine:
 
 
     # TODO: Later, dynamics model
+    # _dynamic_recovery
     def _get_feedforward_torques(self):
         return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
     def _dynamic_recovery(self): # -> {Result}|None:
