@@ -12,8 +12,8 @@ def show_full_gait(gait:Gait):
     ax = plt.figure().add_subplot(projection='3d')
     ax.set_xlim3d([-0.4, 0.4])
     ax.set_ylim3d([-0.4, 0.4])
-    ax.set_zlim3d([0, 0.4])
-    ax.set_box_aspect((1, 1, 1)) 
+    ax.set_zlim3d([-0.3, 0.4])
+    ax.set_box_aspect((1, 1, 1))
 
     # Mark Origin
     ax.plot([0], [0], [0], 'ro', markersize=3, label='Origin')
