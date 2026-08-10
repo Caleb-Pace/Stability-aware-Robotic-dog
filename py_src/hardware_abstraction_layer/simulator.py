@@ -177,6 +177,7 @@ class Simulator(OutputLayer):
         self.send_action(action)
 
     # Presets
+    # TODO: Separate actions from simulator class and store as action objects (pending creation)
     # TODO: Add in transition between sit (lay down) and stand. (Just queue up those actions for each time step?)
     def send_stand_action(self):
         self._send_action_preset(self._REAL_STAND)
