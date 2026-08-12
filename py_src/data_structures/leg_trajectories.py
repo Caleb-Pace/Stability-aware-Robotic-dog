@@ -62,7 +62,7 @@ class LegTrajectories:
         # Sum time calculation, per leg
         return np.sum(distances**alpha, axis=1)
 
-    def _calculate_time_horizon(self) -> None:
+    def _calculate_time_horizon(self, alpha:float = 0.5) -> None:
         self.parametric_time_horizon = 0.0  # Clear previous value
         max_movement_horizon         = self._find_max_movement_horizon()
 
@@ -73,19 +73,20 @@ class LegTrajectories:
         leg_durations = movement_delays + movement_horizons   # Parametric duration
         self.parametric_time_horizon = np.max(leg_durations)  # Parametric duration of the gait
 
-    # TODO: fix, incorrect implementation, generates too many points?
     def calculate_foot_trajectories(self, sample_count:int) -> None:
+        ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
-        interpolator:Interpolator  = CatmullRomSpline()
+        self._calculate_time_horizon(ALPHA)
+        interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
+        # TODO: fix, incorrect implementation, generates too many points?
         self.foot_trajectories = np.empty((LEG_COUNT, self.steps_in_gait, 3), np.float64)  # (Leg, Control Point, 3D Point)
         self.time_anchors      = np.empty((LEG_COUNT, self.steps_in_gait), np.float64)     # (Leg, time anchor)
 
-        # TODO: Need to implement constant time, can just calculate last time anchor
+        # Interpolate foot trajectiories with constant time
         for leg in range(LEG_COUNT):
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
-                                                                      self.steps_in_gait
+                                                                      self.steps_in_gait,
+                                                                      self.parametric_time_horizon
                                                                   )
-
-        self._calculate_time_horizon()
