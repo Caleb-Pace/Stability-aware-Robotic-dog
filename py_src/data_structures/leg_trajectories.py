@@ -45,7 +45,7 @@ class LegTrajectories:
     
         self.calculate_foot_trajectories(sample_count)
 
-    def _calculate_last_time_anchor(self, leg:int, alpha:float = 0.5) -> npt.NDArray[np.float64]:
+    def _calculate_last_time_anchor(self, leg:int, alpha:float = 0.5) -> float:
         """
         Calculates the final time anchor for a leg.
 
@@ -55,14 +55,19 @@ class LegTrajectories:
         Args:
             alpha: Knot spacing parameter (e.g., 0.5 for centripetal).
         """
+        if len(self._control_points[leg]) <= 1:
+            return 0.0  # Early exit: hold point
+
+        control_points = np.asarray(self._control_points[leg], dtype=np.float64)
+
         # Differences between consecutive control points
-        diffs = np.diff(self._control_points[leg], axis=0)
+        diffs = np.diff(control_points, axis=0)
         
         # Euclidean distances between consecutive control points
         distances = np.linalg.norm(diffs, axis=-1)
         
         # Sum time calculation, per leg
-        return np.sum(distances**alpha)
+        return float(np.sum(distances**alpha))
 
     def _calculate_time_horizon(self, alpha:float = 0.5) -> None:
         movement_horizons        = np.asarray([
@@ -76,18 +81,23 @@ class LegTrajectories:
         leg_durations = movement_delays + movement_horizons  # Parametric duration
         self.parametric_time_horizon = max(leg_durations)    # Parametric duration of the gait
 
+    # TODO: fix, incorrect implementation, generates too many points?
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
         self._calculate_time_horizon(ALPHA)
         interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
-        # TODO: fix, incorrect implementation, generates too many points?
         self.foot_trajectories = np.empty((LEG_COUNT, self.steps_in_gait, 3), np.float64)  # (Leg, Control Point, 3D Point)
         self.time_anchors      = np.empty((LEG_COUNT, self.steps_in_gait), np.float64)     # (Leg, time anchor)
 
         # Interpolate foot trajectiories with constant time
         for leg in range(LEG_COUNT):
+            if len(self._control_points[leg]) == 1:  # Handle hold point
+                self.foot_trajectories[leg] = self._control_points[leg][0]
+                self.time_anchors[leg]      = 0.0
+                continue
+
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
                                                                       self.steps_in_gait,
