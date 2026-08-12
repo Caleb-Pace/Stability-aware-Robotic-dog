@@ -43,24 +43,35 @@ class LegTrajectories:
         """Finds the maximum movement parametric duration among all the legs"""
         return float(np.max(self.time_anchors[:, -1]))
 
-    # TODO: simplify, so that it can be used as constant time
-    #       need to cut out time_anchor generation
-    #       maybe ask interpolator directly
+    def _calculate_last_time_anchors(self, alpha:float = 0.5) -> npt.NDArray[np.float64]:
+        """
+        Calculates the final time anchor for each leg.
+
+        Returns:
+            npt.NDArray[np.float64]: Movement parametric duration per leg.
+
+        Args:
+            alpha: Knot spacing parameter (e.g., 0.5 for centripetal).
+        """
+        # Differences between consecutive control points
+        diffs = np.diff(self._control_points, axis=1)
+        
+        # Euclidean distances between consecutive control points
+        distances = np.linalg.norm(diffs, axis=-1)
+        
+        # Sum time calculation, per leg
+        return np.sum(distances**alpha, axis=1)
+
     def _calculate_time_horizon(self) -> None:
         self.parametric_time_horizon = 0.0  # Clear previous value
         max_movement_horizon         = self._find_max_movement_horizon()
 
-        for leg in range(LEG_COUNT):
-            movement_horizon = self.time_anchors[leg][-1]  # Current movement parametric duration
+        movement_horizons        = self._calculate_last_time_anchors()   # Parametric duration
+        normalized_phase_offsets = self._phase_offset % 1.0
+        movement_delays          = normalized_phase_offsets * max_movement_horizon   # Parametric duration
 
-            normalized_phase = self._phase_offset[leg] % 1.0
-            movement_delay = max_movement_horizon * normalized_phase  # Parametric duration
-
-            leg_duration = (movement_delay + movement_horizon)  # Parametric duration
-
-            # Last step contender
-            if leg_duration > self.parametric_time_horizon:
-                self.parametric_time_horizon = leg_duration  # Parametric duration of the gait
+        leg_durations = movement_delays + movement_horizons   # Parametric duration
+        self.parametric_time_horizon = np.max(leg_durations)  # Parametric duration of the gait
 
     # TODO: fix, incorrect implementation, generates too many points?
     def calculate_foot_trajectories(self, sample_count:int) -> None:
