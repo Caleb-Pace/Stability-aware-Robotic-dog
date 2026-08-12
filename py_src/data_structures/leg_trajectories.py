@@ -10,9 +10,9 @@ from interpolation import Interpolator, CatmullRomSpline
 _GROUND_LEVEL = 0.0
 
 class LegTrajectories:
-    _phase_offset:         npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
-    _control_points:       npt.NDArray[np.float64]  # (Leg, Control Points, Relative Coordinates)
-    _control_frequency_hz: int  # Determines node and step count
+    _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
+    _control_points: npt.NDArray[np.float64]  # (Leg, Control Points, Relative Coordinates)
+    sample_count:    int  # Determines step count
 
     foot_trajectories:       npt.NDArray[np.float64]  # (Leg, Knot/Point, Relative Coordinates)
     time_anchors:            npt.NDArray[np.float64]  # (Leg, time anchor)
@@ -22,7 +22,7 @@ class LegTrajectories:
     distance_covered: float  # TODO: Implement
 
 
-    def __init__(self, control_frequency_hz:int,
+    def __init__(self, sample_count:int,
                        leg_phase_offset:npt.NDArray[np.float64],
                        leg_control_points:npt.NDArray[np.float64]):
         # Shape checks
@@ -38,7 +38,7 @@ class LegTrajectories:
         self._phase_offset         = leg_phase_offset
         self._control_points       = leg_control_points
     
-        self.calculate_foot_trajectories(control_frequency_hz)
+        self.calculate_foot_trajectories(sample_count)
 
     def _find_max_movement_horizon(self) -> float:
         """Finds the maximum movement parametric duration among all the legs"""
@@ -59,20 +59,22 @@ class LegTrajectories:
             # Last step contender
             if leg_duration > self.parametric_time_horizon:
                 self.parametric_time_horizon = leg_duration  # Parametric duration of the gait
-                self.steps_in_gait = math.ceil(leg_duration * self._control_frequency_hz)  # Convert duration to steps
 
-    def calculate_foot_trajectories(self, control_frequency_hz:int) -> None:
-        self._control_frequency_hz = control_frequency_hz
+                scale = leg_duration / movement_horizon  # [1.0, 2.0)
+                self.steps_in_gait = math.ceil(scale * self.sample_count)  # Convert duration to steps
+
+    def calculate_foot_trajectories(self, sample_count:int) -> None:
+        self.sample_count = sample_count
         interpolator:Interpolator  = CatmullRomSpline()
 
-        self.foot_trajectories = np.empty((LEG_COUNT, self._control_frequency_hz, 3), np.float64)  # (Leg, Control Point, 3D Point)
-        self.time_anchors      = np.empty((LEG_COUNT, self._control_frequency_hz), np.float64)     # (Leg, time anchor)
+        self.foot_trajectories = np.empty((LEG_COUNT, self.sample_count, 3), np.float64)  # (Leg, Control Point, 3D Point)
+        self.time_anchors      = np.empty((LEG_COUNT, self.sample_count), np.float64)     # (Leg, time anchor)
 
         # TODO: Need to implement constant time, can just calculate last time anchor
         for leg in range(LEG_COUNT):
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
-                                                                      self._control_frequency_hz
+                                                                      self.sample_count
                                                                   )
 
         self._calculate_step_count_and_time_horizon()
