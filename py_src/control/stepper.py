@@ -11,6 +11,7 @@ from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
 # TODO: Implement safety checks to ensure gait arrays are correct length
 def step(gait:Gait, step_num:int) -> Point3DList:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
+    motion_path = gait.loop
 
     # TODO: Uncomment, disabled for testing
     # steps_in_gait = len(foot_trajectories[0])
@@ -18,18 +19,19 @@ def step(gait:Gait, step_num:int) -> Point3DList:
 
     # Need time anchors to determine phase offset
 
-    for i in range(LEG_COUNT):
-        movement_length_in_steps = len(gait.time_anchors[i])
-        phase_offset_as_steps = math.ceil(gait.steps_in_gait * gait.leg_phase_offset[i])
+    phase_offsets_as_steps = np.ceil((motion_path.steps_in_gait * motion_path._phase_offset))
+    
+    for leg in range(LEG_COUNT):
+        movement_length_in_steps = len(motion_path.time_anchors[leg])
 
         # print(f"Leg{i} | step{step_num} | gaitFT[{(step_num - phase_offset_as_steps)}] | Mvmnt: ( pO{{{phase_offset_as_steps}}} + mvL{{{movement_length_in_steps}}} ) = {(phase_offset_as_steps + movement_length_in_steps)} / {gait.steps_in_gait} | tRef: {gait.time_reference}")  # TODO: Remove, for debugging
 
-        if step_num < phase_offset_as_steps:  # Before
-            foot_positions[i] = gait.foot_trajectories[i][0]  # Starting position
-        elif step_num >= (phase_offset_as_steps + movement_length_in_steps):  # After
-            foot_positions[i] = gait.foot_trajectories[i][-1]  # End position
+        if step_num < phase_offsets_as_steps[leg]:  # Before
+            foot_positions[leg] = motion_path.foot_trajectories[leg][0]  # Starting position
+        elif step_num >= (phase_offsets_as_steps[leg] + movement_length_in_steps):  # After
+            foot_positions[leg] = motion_path.foot_trajectories[leg][-1]  # End position
         else:
-            foot_positions[i] = gait.foot_trajectories[i][(step_num - phase_offset_as_steps)]
+            foot_positions[leg] = motion_path.foot_trajectories[leg][(step_num - phase_offsets_as_steps[leg])]
     
     return foot_positions
 
