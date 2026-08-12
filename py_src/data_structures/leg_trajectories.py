@@ -42,7 +42,7 @@ class LegTrajectories:
 
     def _find_max_movement_horizon(self) -> float:
         """Finds the maximum movement parametric duration among all the legs"""
-        return max(leg_time_anchors[-1] for leg_time_anchors in self.time_anchors)
+        return float(np.max(self.time_anchors[:, -1]))
     
     def _calculate_step_count_and_time_horizon(self) -> None:
         self.parametric_time_horizon = 0.0  # Clear previous value
@@ -51,8 +51,8 @@ class LegTrajectories:
         for leg in range(LEG_COUNT):
             movement_horizon = self.time_anchors[leg][-1]  # Current movement parametric duration
 
-            phase_multiplier = (1 - self._phase_offset[leg])
-            movement_delay   = max_movement_horizon * phase_multiplier  # Parametric duration
+            normalized_phase = self._phase_offset[leg] % 1.0
+            movement_delay = max_movement_horizon * normalized_phase  # Parametric duration
 
             leg_duration = (movement_delay + movement_horizon)  # Parametric duration
 
@@ -70,6 +70,9 @@ class LegTrajectories:
 
         # TODO: Need to implement constant time, can just calculate last time anchor
         for leg in range(LEG_COUNT):
-            self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(self._control_points[leg], self._control_frequency_hz)
+            self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
+                                                                      self._control_points[leg],
+                                                                      self._control_frequency_hz
+                                                                  )
 
         self._calculate_step_count_and_time_horizon()
