@@ -12,7 +12,6 @@ _GROUND_LEVEL = 0.0
 class LegTrajectories:
     _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
     _control_points: npt.NDArray[np.float64]  # (Leg, Control Points, Relative Coordinates)
-    sample_count:    int  # Determines step count
 
     foot_trajectories:       npt.NDArray[np.float64]  # (Leg, Knot/Point, Relative Coordinates)
     time_anchors:            npt.NDArray[np.float64]  # (Leg, time anchor)
@@ -44,7 +43,7 @@ class LegTrajectories:
         """Finds the maximum movement parametric duration among all the legs"""
         return float(np.max(self.time_anchors[:, -1]))
     
-    def _calculate_step_count_and_time_horizon(self) -> None:
+    def _calculate_time_horizon(self) -> None:
         self.parametric_time_horizon = 0.0  # Clear previous value
         max_movement_horizon         = self._find_max_movement_horizon()
 
@@ -60,21 +59,18 @@ class LegTrajectories:
             if leg_duration > self.parametric_time_horizon:
                 self.parametric_time_horizon = leg_duration  # Parametric duration of the gait
 
-                scale = leg_duration / movement_horizon  # [1.0, 2.0)
-                self.steps_in_gait = math.ceil(scale * self.sample_count)  # Convert duration to steps
-
     def calculate_foot_trajectories(self, sample_count:int) -> None:
-        self.sample_count = sample_count
+        self.steps_in_gait = sample_count
         interpolator:Interpolator  = CatmullRomSpline()
 
-        self.foot_trajectories = np.empty((LEG_COUNT, self.sample_count, 3), np.float64)  # (Leg, Control Point, 3D Point)
-        self.time_anchors      = np.empty((LEG_COUNT, self.sample_count), np.float64)     # (Leg, time anchor)
+        self.foot_trajectories = np.empty((LEG_COUNT, self.steps_in_gait, 3), np.float64)  # (Leg, Control Point, 3D Point)
+        self.time_anchors      = np.empty((LEG_COUNT, self.steps_in_gait), np.float64)     # (Leg, time anchor)
 
         # TODO: Need to implement constant time, can just calculate last time anchor
         for leg in range(LEG_COUNT):
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
-                                                                      self.sample_count
+                                                                      self.steps_in_gait
                                                                   )
 
-        self._calculate_step_count_and_time_horizon()
+        self._calculate_time_horizon()
