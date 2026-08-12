@@ -1,11 +1,9 @@
 import numpy as np
 import numpy.typing as npt
 
+from data_structures.constants import LEG_COUNT, JOINT_COUNT  # Related constants
 from data_structures.leg_trajectories import LegTrajectories
 
-
-LEG_COUNT:int = 4
-JOINT_COUNT:int = LEG_COUNT * 3  # LEG_COUNT * (Abductor, Hip, Knee)
 
 class Gait:
     transition_in:LegTrajectories

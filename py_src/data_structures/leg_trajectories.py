@@ -2,7 +2,7 @@ import math
 import numpy as np
 import numpy.typing as npt
 
-from data_structures.gait_definition import LEG_COUNT
+from data_structures.constants import LEG_COUNT
 
 from interpolation import Interpolator, CatmullRomSpline
 
