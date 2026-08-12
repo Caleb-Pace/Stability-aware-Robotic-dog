@@ -42,7 +42,10 @@ class LegTrajectories:
     def _find_max_movement_horizon(self) -> float:
         """Finds the maximum movement parametric duration among all the legs"""
         return float(np.max(self.time_anchors[:, -1]))
-    
+
+    # TODO: simplify, so that it can be used as constant time
+    #       need to cut out time_anchor generation
+    #       maybe ask interpolator directly
     def _calculate_time_horizon(self) -> None:
         self.parametric_time_horizon = 0.0  # Clear previous value
         max_movement_horizon         = self._find_max_movement_horizon()
@@ -59,6 +62,7 @@ class LegTrajectories:
             if leg_duration > self.parametric_time_horizon:
                 self.parametric_time_horizon = leg_duration  # Parametric duration of the gait
 
+    # TODO: fix, incorrect implementation, generates too many points?
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         self.steps_in_gait = sample_count
         interpolator:Interpolator  = CatmullRomSpline()
