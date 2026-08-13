@@ -56,6 +56,7 @@ class Simulator(OutputLayer):
         # Set position and orientation
         data.qpos[2] = z_height
         data.qpos[3] = 1.0  # Set orientation; (w: real part of quaternion)
+        data.qpos[4] = np.pi  # Start upside-down; roll 180
 
         # Apply pose
         data.qpos[QPOS_INDEXES] = pose[:12]
