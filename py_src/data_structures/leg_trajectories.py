@@ -13,8 +13,8 @@ class LegTrajectories:
     _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
 
-    foot_trajectories:       npt.NDArray[np.float64]  # (Leg, Knot/Point, Relative Coordinates)
-    time_anchors:            npt.NDArray[np.float64]  # (Leg, time anchor)
+    foot_trajectories:       list  # (Leg, Knot/Point, Relative Coordinates)
+    time_anchors:            list  # (Leg, time anchor)
     parametric_time_horizon: float  # The last parametric time entry
 
     steps_in_gait:    int
@@ -81,15 +81,14 @@ class LegTrajectories:
         leg_durations = movement_delays + movement_horizons  # Parametric duration
         self.parametric_time_horizon = max(leg_durations)    # Parametric duration of the gait
 
-    # TODO: fix, incorrect implementation, generates too many points?
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
         self._calculate_time_horizon(ALPHA)
         interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
-        self.foot_trajectories = np.empty((LEG_COUNT, self.steps_in_gait, 3), np.float64)  # (Leg, Control Point, 3D Point)
-        self.time_anchors      = np.empty((LEG_COUNT, self.steps_in_gait), np.float64)     # (Leg, time anchor)
+        self.foot_trajectories = [None] * LEG_COUNT
+        self.time_anchors      = [None] * LEG_COUNT
 
         # Interpolate foot trajectiories with constant time
         for leg in range(LEG_COUNT):

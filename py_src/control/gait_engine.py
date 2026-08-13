@@ -59,7 +59,10 @@ class GaitEngine:
 
 
 
+    # TODO: May need to move to a more relevant class/file
     def _convert_distance_to_steps(self):
+        GROUND_LEVEL_OFFSET = -0.3  # TODO: Temporary, remove after gait ground level update has been implemented
+        
         # Take:
         #     Gait,
         #     Current step number,
@@ -89,7 +92,7 @@ class GaitEngine:
         if controller_data.left_stick.delta_y < 0:
             self._step_num -= 1
 
-        self._step_num %= self.gait.steps_in_gait
+        self._step_num %= self.gait.loop.steps_in_gait
         print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
 

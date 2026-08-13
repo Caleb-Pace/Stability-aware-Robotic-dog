@@ -31,7 +31,7 @@ def step(gait:Gait, step_num:int) -> Point3DList:
         elif step_num >= (phase_offsets_as_steps[leg] + movement_length_in_steps):  # After
             foot_positions[leg] = motion_path.foot_trajectories[leg][-1]  # End position
         else:
-            foot_positions[leg] = motion_path.foot_trajectories[leg][(step_num - phase_offsets_as_steps[leg])]
+            foot_positions[leg] = motion_path.foot_trajectories[leg][int(step_num - phase_offsets_as_steps[leg])]
     
     return foot_positions
 
