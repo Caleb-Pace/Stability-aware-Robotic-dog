@@ -99,8 +99,8 @@ class LegTrajectories:
 
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
-                                                                      self.steps_in_gait,
-                                                                      self.parametric_time_horizon
+                                                                      self.steps_in_gait #,
+                                                                     #self.parametric_time_horizon
                                                                   )
 
         # TODO: Remove, for debugging
