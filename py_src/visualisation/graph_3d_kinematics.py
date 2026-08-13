@@ -7,6 +7,8 @@ from control.stepper import step, apply_offset
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
+from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN  # TODO: Remove, for debugging
+
 
 # TODO: Show every direction change timestamp on all curves. This is to aid in gait creation/debugging
 #      (show time when gait first pushes back on ground as point on all curves)
@@ -21,12 +23,13 @@ def show_full_gait(gait:Gait):
     ax.plot([0], [0], [0], 'ro', markersize=3, label='Origin')
 
     # Get foot positions
-    gait_steps = np.array([apply_offset(step(gait, i)) for i in range(gait.steps_in_gait)], dtype=np.float64)
+    gait_steps = np.array([apply_offset(step(gait, i)) for i in range(gait.loop.steps_in_gait)], dtype=np.float64)
     points_by_leg = np.moveaxis(gait_steps, 1, 0)
     
     # Graph settings
     colour_map = 'plasma'
-    leg_labels = ["FL", "FR", "BL", "BR"]
+    leg_labels = ["FR", "FL", "RR", "RL"]
+    print(points_by_leg[:, 0] - _LEG_OFFSETS_FROM_BODY_ORIGIN)  # TODO: Remove, for debugging
 
     # Plot foot positions for each leg
     for i in range(LEG_COUNT):
@@ -40,7 +43,10 @@ def show_full_gait(gait:Gait):
         ax.scatter(x, y, z, c=by_point_number, cmap=colour_map, label=leg_labels[i], s=5)
 
     ax.legend(bbox_to_anchor=(1.325, -0.125), loc='lower right')
-    plt.show()
+    try:
+        plt.show()
+    except KeyboardInterrupt:
+        pass
 
 def show_motor_positions(gait:Gait):
     pass
