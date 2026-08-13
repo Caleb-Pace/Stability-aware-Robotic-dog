@@ -1,3 +1,4 @@
+import inspect
 import threading
 from types import SimpleNamespace
 from typing import Any
@@ -30,12 +31,41 @@ def _create_fallback_low_state():
     )
 
 
+def _create_fallback_motor_cmd():
+    return SimpleNamespace(q=0.0, dq=0.0, kp=0.0, kd=0.0, tau=0.0)
+
+
+def _create_low_cmd():
+    if not UNITREE_SDK_AVAILABLE:
+        return None
+
+    try:
+        return LowCmd_()
+    except TypeError:
+        sig = inspect.signature(LowCmd_)
+        kwargs = {}
+
+        for name, param in sig.parameters.items():
+            if name in ("motor_cmd", "motor_cmds"):
+                kwargs[name] = [_create_fallback_motor_cmd() for _ in range(12)]
+            elif name in ("wireless_remote", "sn", "reserve"):
+                kwargs[name] = [0] * 40 if name == "wireless_remote" else [0] * 8 if name == "sn" else 0
+            elif name in ("bms_cmd", "led", "fan", "gpio"):
+                kwargs[name] = None
+            elif param.default is not inspect._empty:
+                kwargs[name] = param.default
+            else:
+                kwargs[name] = 0
+
+        return LowCmd_(**kwargs)
+
+
 class UnitreeGo2Output(OutputLayer):
     def __init__(self, network_interface: str = "eth0", command_rate_hz: float = 200.0):
         self.network_interface = network_interface
         self.command_period = 1.0 / command_rate_hz if command_rate_hz > 0 else 0.005
 
-        self.low_cmd = LowCmd_() if UNITREE_SDK_AVAILABLE else None
+        self.low_cmd = _create_low_cmd()
         self.low_state = _create_fallback_low_state()
 
         self.cmd_pub = None
@@ -44,6 +74,7 @@ class UnitreeGo2Output(OutputLayer):
         self._connected = False
         self._latest_action: Action | None = None
         self._lock = threading.Lock()
+
 
     def _state_callback(self, msg: Any):
         self.low_state = msg
