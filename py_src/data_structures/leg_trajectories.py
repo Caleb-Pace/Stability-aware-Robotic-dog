@@ -97,10 +97,6 @@ class LegTrajectories:
                 self.time_anchors[leg]      = 0.0
                 continue
 
-            # TODO: Remove, for debugging
-            if len(self._control_points[leg]) > 3:
-                print(f"[{leg}] {self._control_points[leg][0]} #{len(self._control_points[leg])}")
-
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
                                                                       self.steps_in_gait,

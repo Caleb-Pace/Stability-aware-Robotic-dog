@@ -7,8 +7,6 @@ from control.stepper import step, apply_offset
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
-from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN  # TODO: Remove, for debugging
-
 
 # TODO: Show every direction change timestamp on all curves. This is to aid in gait creation/debugging
 #      (show time when gait first pushes back on ground as point on all curves)
@@ -29,7 +27,6 @@ def show_full_gait(gait:Gait):
     # Graph settings
     colour_map = 'plasma'
     leg_labels = ["FR", "FL", "RR", "RL"]
-    print(points_by_leg[:, 0] - _LEG_OFFSETS_FROM_BODY_ORIGIN)  # TODO: Remove, for debugging
 
     # Plot foot positions for each leg
     for i in range(LEG_COUNT):
