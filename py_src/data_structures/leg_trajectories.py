@@ -89,7 +89,7 @@ class LegTrajectories:
 
         self.foot_trajectories = [None] * LEG_COUNT
         self.time_anchors      = [None] * LEG_COUNT
-
+        
         # Interpolate foot trajectiories with constant time
         for leg in range(LEG_COUNT):
             if len(self._control_points[leg]) == 1:  # Handle hold point
@@ -97,8 +97,17 @@ class LegTrajectories:
                 self.time_anchors[leg]      = 0.0
                 continue
 
+            # TODO: Remove, for debugging
+            if len(self._control_points[leg]) > 3:
+                print(f"[{leg}] {self._control_points[leg][0]} #{len(self._control_points[leg])}")
+
             self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
                                                                       self._control_points[leg],
                                                                       self.steps_in_gait,
                                                                       self.parametric_time_horizon
                                                                   )
+
+        # TODO: Remove, for debugging
+        for leg in range(LEG_COUNT):
+            if len(self._control_points[leg]) > 3:
+                print(f"[{leg}] {self._control_points[leg][0]} #{len(self._control_points[leg])}")
