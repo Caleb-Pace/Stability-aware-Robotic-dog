@@ -196,6 +196,7 @@ class IK_Solver:
 
         return result
 
+    # TODO: Handle different point counts per leg
     def solve(self, leg_points:Point3DList) -> LegPoseList:
         if len(leg_points) > LEG_COUNT:
             raise IndexError(f"Too many leg points! ({len(leg_points)} == {LEG_COUNT})")
@@ -204,11 +205,9 @@ class IK_Solver:
 
         common_origin:Point3D = np.array([0, 0, 0], dtype=np.float64)
 
-        pose_accumulator = []
+        leg_poses = []
         for i in range(LEG_COUNT):
-            pose_accumulator.append(self._solve_leg(common_origin, leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
-
-        leg_poses: LegPoseList = np.array(pose_accumulator, dtype=np.float64)
+            leg_poses.append(self._solve_leg(common_origin, leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
 
         # TODO: Check for limb collision
 

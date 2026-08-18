@@ -5,7 +5,7 @@ from typing import Annotated, Tuple, NamedTuple, TypeAlias
 
 
 type LegPose = Tuple[float, float, float]  # Angles (abd, hip, knee)
-type LegPoseList = Annotated[npt.NDArray[np.float64], (None, 3)]  # 2D array of leg angle sets (abd, hip, knee)
+type LegPoseList = list[LegPose]
 
 class AngleLimits(NamedTuple):
     minimum:float

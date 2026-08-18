@@ -51,6 +51,8 @@ class GaitEngine:
     def _step(self):
         foot_positions = step(self.gait, self._step_num)
         target_motor_angles = self._ik.solve(foot_positions)
+        if None in target_motor_angles:
+            return  # Early exit: IK - Failed
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
