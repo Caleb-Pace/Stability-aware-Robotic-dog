@@ -92,21 +92,13 @@ class LegTrajectories:
         distance_moved:float = 0.0
         for p1, p2 in zip(points[:-1], points[1:]):
 
-            # TODO: Remove, for debugging
-            if self.steps_in_gait == 16:
-                print(f"{{ z: {round(-p1[2], 4):>6} | {round(-p2[2], 4):>6}}}    ", end="")
-
             if p1[2] <= _GROUND_LEVEL and p2[2] <= _GROUND_LEVEL:
                 distance_moved += float( p2[0] - p1[0] )  # By change in x
-                print(f"{round(distance_moved, 4)} = {round(p2[0], 4)} - {round(p1[0], 4)}")  # TODO: Remove, for debugging
-            else:
-                print()  # TODO: Remove, for debugging
 
         return -distance_moved
 
     def _calculate_distance(self) -> None:
         distance_covered_per_leg = [ self._calculate_distance_between_steps(i) for i in range(LEG_COUNT) ]
-        print(repr(distance_covered_per_leg))
         self.distance_covered = max(distance_covered_per_leg)
         
     def calculate_foot_trajectories(self, sample_count:int) -> None:

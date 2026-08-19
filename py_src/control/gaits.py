@@ -46,7 +46,7 @@ TROT = Gait(
         ], dtype=object)
     ),
     loop            = LegTrajectories(
-        sample_count       = 16,
+        sample_count       = 256,
         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
         leg_control_points = trot_ctrl_pts
     )
