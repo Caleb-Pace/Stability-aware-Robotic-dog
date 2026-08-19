@@ -50,7 +50,7 @@ def main():
 
             print(f"{datetime.now().strftime("%Y-%m-%d %H:%M:S.%f")} 'A' pressed; {press_count}")
             press_count += 1
-            # out_layer.send_stand_action()
+            # out_layer.send_stand_position()
         elif ( not input_data.a_btn_down ) and a_btn_was_down:
             a_btn_was_down = False
 

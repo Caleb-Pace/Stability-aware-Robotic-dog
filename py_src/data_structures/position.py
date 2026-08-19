@@ -4,7 +4,7 @@ from itertools import chain
 
 from data_structures.angles import LegPoseList
 
-class Action():
+class Position():
     target_angles:npt.NDArray[np.float64]        # 1D
     feedforward_torques:npt.NDArray[np.float64]  # 1D
 

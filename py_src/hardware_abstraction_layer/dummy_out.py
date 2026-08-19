@@ -1,7 +1,7 @@
 import threading
 import numpy as np
 
-from data_structures import Action
+from data_structures import Position
 from hardware_abstraction_layer.output_layer import OutputLayer
 
 
@@ -15,9 +15,9 @@ class DummyOutput(OutputLayer):
             pass
         print("[DO]  Dummy Output: connection terminated!")
 
-    def send_action(self, action:Action):
-        target_angles       = action.target_angles
-        feedforward_torques = action.feedforward_torques
+    def send_position(self, position:Position):
+        target_angles       = position.target_angles
+        feedforward_torques = position.feedforward_torques
         # TODO: Uncomment, for debugging
         # if (self._last_angle_set is not None) and np.array_equal(target_angles, self._last_angle_set):
         #     return  # Don't send duplicate debug messages

@@ -2,7 +2,7 @@ import time
 import threading
 import numpy as np
 
-from data_structures import Action
+from data_structures import Position
 from data_structures.controller_input import ControllerData
 
 from hardware_abstraction_layer import OutputLayer
@@ -56,8 +56,8 @@ class GaitEngine:
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
-        action = Action(target_motor_angles, feedforward_torques)
-        self.output.send_action(action)
+        position = Position(target_motor_angles, feedforward_torques)
+        self.output.send_position(position)
 
 
 

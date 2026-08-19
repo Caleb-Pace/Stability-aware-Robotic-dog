@@ -7,7 +7,7 @@ import numpy as np
 import mujoco
 import mujoco.viewer
 
-from data_structures import Action
+from data_structures import Position
 from hardware_abstraction_layer import OutputLayer
 
 from data_structures.gait_definition import LEG_COUNT, JOINT_COUNT
@@ -45,7 +45,7 @@ class Simulator(OutputLayer):
     } # from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_IK.py#L244
 
     def __init__(self, pids:list[PIDController]):
-        self._action_queue:queue.Queue[Action] = queue.Queue()
+        self._position_queue:queue.Queue[Position] = queue.Queue()
 
         self.pids = pids
 
@@ -95,15 +95,15 @@ class Simulator(OutputLayer):
                     # Create/Clear feedforward torque buffer
                     feedforward_torques = np.zeros(JOINT_COUNT)
 
-                    # 1. Update targets if a new action has arrived
+                    # 1. Update targets if a new position has arrived
                     try:
                         # Non-blocking check for new event
-                        new_action = self._action_queue.get_nowait()
+                        new_position = self._position_queue.get_nowait()
 
-                        target_angles       = new_action.target_angles
-                        feedforward_torques = new_action.feedforward_torques
+                        target_angles       = new_position.target_angles
+                        feedforward_torques = new_position.feedforward_torques
                     except queue.Empty:
-                        pass  # Keep previous action in data.ctrl automatically  # TODO: Correct comment
+                        pass  # Keep previous position in data.ctrl automatically  # TODO: Correct comment
 
                     # 2. Get current state from MuJoCo
                     current_angles     = data.qpos[QPOS_INDEXES]
@@ -156,8 +156,8 @@ class Simulator(OutputLayer):
         print("[SO]  Opening simulator...")
         self._run(terminate_connection)
 
-    def send_action(self, action:Action):
-        self._action_queue.put(action)
+    def send_position(self, position:Position):
+        self._position_queue.put(position)
 
     def get_low_state(self):
         pass
@@ -171,17 +171,17 @@ class Simulator(OutputLayer):
         # Convert dict of tuples into 1D array
         return np.array([item for tup in preset_dict.values() for item in tup])
 
-    def _send_action_preset(self, angle_targets_dict:dict):
+    def _send_position_preset(self, angle_targets_dict:dict):
         target_angles = self._get_target_angles_from_dict(angle_targets_dict)
 
-        action = Action(target_angles, self._get_feedforward_torques())
-        self.send_action(action)
+        position = Position(target_angles, self._get_feedforward_torques())
+        self.send_position(position)
 
     # Presets
-    # TODO: Separate actions from simulator class and store as action objects (pending creation)
-    # TODO: Add in transition between sit (lay down) and stand. (Just queue up those actions for each time step?)
-    def send_stand_action(self):
-        self._send_action_preset(self._REAL_STAND)
+    # TODO: Separate positions from simulator class and store as position objects (pending creation)
+    # TODO: Add in transition between sit (lay down) and stand. (Just queue up those positions for each time step?)
+    def send_stand_position(self):
+        self._send_position_preset(self._REAL_STAND)
 
-    def send_lay_down_action(self):
-        self._send_action_preset(self._REAL_LAY_DOWN)
+    def send_lay_down_position(self):
+        self._send_position_preset(self._REAL_LAY_DOWN)
