@@ -153,7 +153,7 @@ class Simulator(OutputLayer):
                 viewer.sync()  # Render
     
     def connect(self, terminate_connection:threading.Event):
-        print("[SO]  Openning simulator...")
+        print("[SO]  Opening simulator...")
         self._run(terminate_connection)
 
     def send_action(self, action:Action):
