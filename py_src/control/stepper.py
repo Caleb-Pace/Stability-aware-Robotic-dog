@@ -2,16 +2,17 @@ import math
 import numpy as np
 
 from data_structures import Point3DList
-from data_structures.gait_definition import Gait, LEG_COUNT
+from data_structures.leg_trajectories import LegTrajectories
+from data_structures.gait_definition import LEG_COUNT
 
 from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
 # TODO: Needs to take in current position or preserve position
 # TODO: Implement safety checks to ensure gait arrays are correct length
-def step(gait:Gait, step_num:int) -> Point3DList:
+def step(trajectory:LegTrajectories, step_num:int) -> Point3DList:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
-    motion_path = gait.loop
+    motion_path = trajectory
 
     # TODO: Uncomment, disabled for testing
     # steps_in_gait = len(foot_trajectories[0])
