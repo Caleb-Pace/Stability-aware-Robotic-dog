@@ -1,7 +1,7 @@
-import math
 import numpy as np
 import numpy.typing as npt
 
+from data_structures import Point3D
 from data_structures.constants import LEG_COUNT
 
 from interpolation import Interpolator, CatmullRomSpline
@@ -13,8 +13,8 @@ class LegTrajectories:
     _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
 
-    foot_trajectories:       list  # (Leg, Knot/Point, Relative Coordinates)
-    time_anchors:            list  # (Leg, time anchor)
+    foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
+    time_anchors:            list   # (Leg, time anchor)
     parametric_time_horizon: float  # The last parametric time entry
 
     steps_in_gait:    int
@@ -81,6 +81,29 @@ class LegTrajectories:
         leg_durations = movement_delays + movement_horizons  # Parametric duration
         self.parametric_time_horizon = max(leg_durations)    # Parametric duration of the gait
 
+    def _calculate_distance_between_steps(self, leg:int, start:int|None = None, end:int|None = None) -> float:
+        if start is None:
+            start = 0
+        if end is None:
+            end = len(self.foot_trajectories[leg])
+        points = np.asarray( self.foot_trajectories[leg][start:end] )
+        print(repr(points))
+
+        # Calculate distance moved on ground
+        distance_moved:float = 0.0
+        print(f"{len(points[:-1])} | {len(points[1:])}")
+        for p1, p2 in zip(points[:-1], points[1:]):
+            print(f"p1:{type(p1)} ({p1})    p2:{type(p2)} ({p2})") # TODO: Remove, for debugging
+
+            if p1[2] <= _GROUND_LEVEL and p2[2] <= _GROUND_LEVEL:
+                distance_moved += float( np.linalg.norm(p2 - p1) )
+
+        return distance_moved
+
+    def _calculate_distance(self) -> None:
+        distance_covered_per_leg = [ self._calculate_distance_between_steps(i) for i in range(LEG_COUNT) ]
+        self.distance_covered = max(distance_covered_per_leg)
+        
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
@@ -93,7 +116,7 @@ class LegTrajectories:
         # Interpolate foot trajectiories with constant time
         for leg in range(LEG_COUNT):
             if len(self._control_points[leg]) == 1:  # Handle hold point
-                self.foot_trajectories[leg] = self._control_points[leg][0]
+                self.foot_trajectories[leg] = [ self._control_points[leg][0] ]
                 self.time_anchors[leg]      = 0.0
                 continue
 
@@ -102,6 +125,8 @@ class LegTrajectories:
                                                                       self.steps_in_gait #,
                                                                      #self.parametric_time_horizon
                                                                   )
+
+        self._calculate_distance()
 
         # TODO: Remove, for debugging
         for leg in range(LEG_COUNT):

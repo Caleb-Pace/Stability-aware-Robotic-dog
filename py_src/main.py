@@ -16,6 +16,10 @@ from control.pid import PIDController, get_pid_controllers
 def main():
     gait:Gait = TROT
 
+    # TODO: Remove, for debugging
+    print(f"Distance covered by loop: {gait.loop.distance_covered}m")
+    return
+
     pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
