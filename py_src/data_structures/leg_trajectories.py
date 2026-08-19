@@ -87,13 +87,10 @@ class LegTrajectories:
         if end is None:
             end = len(self.foot_trajectories[leg])
         points = np.asarray( self.foot_trajectories[leg][start:end] )
-        print(repr(points))
 
         # Calculate distance moved on ground
         distance_moved:float = 0.0
-        print(f"{len(points[:-1])} | {len(points[1:])}")
         for p1, p2 in zip(points[:-1], points[1:]):
-            print(f"p1:{type(p1)} ({p1})    p2:{type(p2)} ({p2})") # TODO: Remove, for debugging
 
             if p1[2] <= _GROUND_LEVEL and p2[2] <= _GROUND_LEVEL:
                 distance_moved += float( np.linalg.norm(p2 - p1) )
