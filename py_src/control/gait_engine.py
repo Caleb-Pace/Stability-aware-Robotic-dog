@@ -4,6 +4,7 @@ import numpy as np
 
 from data_structures import Position
 from data_structures.controller_input import ControllerData
+from data_structures.leg_trajectories import LegTrajectories
 
 from hardware_abstraction_layer import OutputLayer
 
@@ -14,6 +15,8 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 
 
 class GaitEngine:
+    _current_action:LegTrajectories|None
+
     def __init__(self, gait:Gait, output:OutputLayer):
         self._last_step_num:int = -1
         self._step_num:int = 0
@@ -49,16 +52,32 @@ class GaitEngine:
         pass
 
     def _step(self):
-        foot_positions = step(self.gait, self._step_num)
+        trajectory:LegTrajectories = self.gait.loop
+
+        # Action support
+        if self._current_action is not None:
+            if self._step_num == self._current_action.steps_in_gait:
+                self._current_action = None
+                self._step_num       = 0
+            else:
+                trajectory = self._current_action
+
+        # Retrieve position
+        foot_positions = step(trajectory, self._step_num)
         target_motor_angles = self._ik.solve(foot_positions)
         if None in target_motor_angles:
             return  # Early exit: IK - Failed
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
+        # Send position
         position = Position(target_motor_angles, feedforward_torques)
         self.output.send_position(position)
 
+
+    def perform_action(self, action:LegTrajectories):
+        self._current_action = action
+        self._step_num       = 0
 
 
     # TODO: May need to move to a more relevant class/file
@@ -85,7 +104,7 @@ class GaitEngine:
         step_interval_ms = 0
 
 
-        
+    # TODO: Need some sort of method, action to bring feet back to ground, for stabilisation.
 
     # TODO: Implement multiplier
     def input(self, controller_data:ControllerData, multiplier:float) -> None:
@@ -108,4 +127,5 @@ class GaitEngine:
         #     correction_forces = { Inverse Dynamics Solve }
         #     TODO: Calculate safe/stable position
         #     TODO: You are working in a time frame not instantly moving with those forces
+
         pass
