@@ -2,6 +2,7 @@
 import time
 import threading
 import numpy as np
+from datetime import datetime
 
 from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
@@ -16,9 +17,9 @@ from control.pid import PIDController, get_pid_controllers
 def main():
     gait:Gait = TROT
 
-    # TODO: Remove, for debugging
-    print(f"Distance covered by loop: {gait.loop.distance_covered}m")
-    return
+    # # TODO: Remove, for debugging
+    # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
+    # return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -37,15 +38,21 @@ def main():
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
-    a_btn_down_prev:bool = False
+    a_btn_was_down:bool = False  # TODO: Extract button state logic into its own class
+    press_count = 0
 
     print("[M ]  Input loop started!")
     while True:
         input_data = in_layer.poll()
-        # # TODO: Remove, for debugging
-        # if input_data.a_btn_down:
-        #     print("'A' pressed; ")
-        #     out_layer.send_stand_action()
+        # TODO: Remove, for debugging
+        if input_data.a_btn_down and ( not a_btn_was_down ):
+            a_btn_was_down = True
+
+            print(f"{datetime.now().strftime("%Y-%m-%d %H:%M:S.%f")} 'A' pressed; {press_count}")
+            press_count += 1
+            # out_layer.send_stand_action()
+        elif ( not input_data.a_btn_down ) and a_btn_was_down:
+            a_btn_was_down = False
 
         input_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y) + abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = input_sum > 0
