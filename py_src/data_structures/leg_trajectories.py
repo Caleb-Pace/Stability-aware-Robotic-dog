@@ -6,13 +6,18 @@ from data_structures.constants import LEG_COUNT
 
 from interpolation import Interpolator, CatmullRomSpline
 
+from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
+
 
 _GROUND_LEVEL = -0.3
 
 class LegTrajectories:
-    _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
+    _body_heights:   npt.NDArray[np.float64]  # z values
+    _orientations:   npt.NDArray[np.float64]  # (Control Points, Euler angles)
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
+    _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
 
+    leg_origins:             list   # (Leg, Knot/Point, Relative Coordinates)
     foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
     time_anchors:            list   # (Leg, time anchor)
     parametric_time_horizon: float  # The last parametric time entry
@@ -22,6 +27,8 @@ class LegTrajectories:
 
 
     def __init__(self, sample_count:int,
+                       heights:npt.NDArray[np.float64],
+                       orientations:npt.NDArray[np.float64],
                        leg_phase_offset:npt.NDArray[np.float64],
                        leg_control_points:npt.NDArray[np.object_]):
         # Shape checks
@@ -29,6 +36,13 @@ class LegTrajectories:
         required_shape = (LEG_COUNT,)
         if leg_phase_offset.shape != required_shape:
             raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
+        if heights.shape != required_shape:
+            raise ValueError(f"Invalid shape {heights.shape}. Must be {required_shape}!")
+        
+        #     (Control Points, Euler angles)
+        required_shape = (None,3)
+        if orientations.shape != required_shape:
+            raise ValueError(f"Invalid shape {orientations.shape}. Must be {required_shape}!")
         
         #     (Leg, Control Point, Coordinates)
         if len(leg_control_points) != LEG_COUNT:
@@ -39,7 +53,9 @@ class LegTrajectories:
                 raise ValueError(f"Invalid shape {arr.shape} for leg {i}. Must be (*, 3)!")
             if len(arr) == 0:
                 raise ValueError(f"Invalid point count 0 at leg {i}. Must be at least 1!")
-        
+
+        self._body_heights         = heights
+        self._orientations         = orientations
         self._phase_offset         = leg_phase_offset
         self._control_points       = leg_control_points
     
@@ -101,9 +117,13 @@ class LegTrajectories:
         distance_covered_per_leg = [ self._calculate_distance_between_steps(i) for i in range(LEG_COUNT) ]
         self.distance_covered = max(distance_covered_per_leg)
         
+    def _calculate_leg_origins(self, sample_count:int, alpha:float = 0.5) -> None:
+        pass
+
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
+        self._calculate_leg_origins(sample_count, ALPHA)
         self._calculate_time_horizon(ALPHA)
         interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
