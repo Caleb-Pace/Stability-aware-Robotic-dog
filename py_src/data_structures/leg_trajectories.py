@@ -7,7 +7,7 @@ from data_structures.constants import LEG_COUNT
 from interpolation import Interpolator, CatmullRomSpline
 
 
-_GROUND_LEVEL = 0.0
+_GROUND_LEVEL = -0.3
 
 class LegTrajectories:
     _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
@@ -92,13 +92,21 @@ class LegTrajectories:
         distance_moved:float = 0.0
         for p1, p2 in zip(points[:-1], points[1:]):
 
-            if p1[2] <= _GROUND_LEVEL and p2[2] <= _GROUND_LEVEL:
-                distance_moved += float( np.linalg.norm(p2 - p1) )
+            # TODO: Remove, for debugging
+            if self.steps_in_gait == 16:
+                print(f"{{ z: {round(-p1[2], 4):>6} | {round(-p2[2], 4):>6}}}    ", end="")
 
-        return distance_moved
+            if p1[2] <= _GROUND_LEVEL and p2[2] <= _GROUND_LEVEL:
+                distance_moved += float( p2[0] - p1[0] )  # By change in x
+                print(f"{round(distance_moved, 4)} = {round(p2[0], 4)} - {round(p1[0], 4)}")  # TODO: Remove, for debugging
+            else:
+                print()  # TODO: Remove, for debugging
+
+        return -distance_moved
 
     def _calculate_distance(self) -> None:
         distance_covered_per_leg = [ self._calculate_distance_between_steps(i) for i in range(LEG_COUNT) ]
+        print(repr(distance_covered_per_leg))
         self.distance_covered = max(distance_covered_per_leg)
         
     def calculate_foot_trajectories(self, sample_count:int) -> None:
