@@ -9,16 +9,17 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT
+# from control.gaits import TROT
+from control.actions import SIT
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
 def main():
-    gait:Gait = TROT
+    # gait:Gait = TROT
 
     # TODO: Remove, for debugging
-    print(f"{gait.loop.leg_origins}")
+    # print(f"{gait.loop.leg_origins}\nshape: {np.asarray(gait.loop.leg_origins).shape}")
     # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
     return
 

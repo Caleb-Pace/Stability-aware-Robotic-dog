@@ -148,19 +148,33 @@ class LegTrajectories:
     def _calculate_origins_over_time(self, interpolator:Interpolator) -> None:
         body_relative_positions = np.empty((LEG_COUNT, len(self._body_heights), 3))
         body_relative_positions[:, :, :2] = LEG_OFFSETS_FROM_BODY_ORIGIN[:, np.newaxis, :2]
-        body_relative_positions[:, :, 2]  = self._body_heights
+        body_relative_positions[:, :,  2] = self._body_heights
 
-        interpolated_positions, _ = zip(*[ self._interpolate(interpolator, pos) for pos in body_relative_positions ])
-        interpolated_orientations, _  = self._interpolate(interpolator, self._orientations)
+        interpolated_positions    = [ self._interpolate(interpolator, pos)[0] for pos in body_relative_positions ]
+        interpolated_orientations = self._interpolate(interpolator, self._orientations)[0]
+
+        # TODO: Remove, for debugging
+        print(f"intp_pos: [ {interpolated_positions[0].shape}|{interpolated_positions[1].shape}|{interpolated_positions[2].shape}|{interpolated_positions[3].shape} ]")
+        print(f"    _ori: {self._orientations.shape}")
+        print(f"intp_ori: {interpolated_orientations.shape}")
 
         # Calculate leg origins
         self.leg_origins = []
-        for positions, orientation in zip(interpolated_positions, interpolated_orientations):
+        for leg in range(LEG_COUNT):
 
-            rotated_positions  = self._apply_orientation(positions, orientation)
-            displacements = np.asarray( rotated_positions - positions )
-            
-            self.leg_origins.append( displacements )
+            displacements = []
+            for time_step in range(self.steps_in_gait):
+                positions   = interpolated_positions[leg][time_step]
+                orientation = interpolated_orientations[time_step]
+
+                print(f"    [{leg} : {time_step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
+
+                rotated_positions  = self._apply_orientation(positions, orientation)
+                displacements.append( rotated_positions - positions ) 
+                
+            self.leg_origins.append( np.asarray( displacements ) )
+
+        print()  # TODO: Remove, for debugging
 
     # TODO: Rename
     def calculate_foot_trajectories(self, sample_count:int) -> None:
