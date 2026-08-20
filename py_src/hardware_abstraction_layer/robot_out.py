@@ -1,5 +1,5 @@
 
-# filepath: /home/maanas/Desktop/Projects/Stability-aware-Robotic-dog/py_src/hardware_abstraction_layer/robot_out.py
+# filepath: /home/maanas/Desktop/Projects/Stability-aware-Robotic-dog/py_src/hardware_abstrposition_layer/robot_out.py
 import inspect
 import threading
 from types import SimpleNamespace
@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from data_structures import Action
+from data_structures import Position
 from hardware_abstraction_layer.output_layer import OutputLayer
 
 try:
@@ -79,18 +79,18 @@ class UnitreeGo2Output(OutputLayer):
         self.cmd_pub = None
         self.state_sub = None
         self._connected = False
-        self._latest_action: Action | None = None
+        self._latest_position: Position | None = None
         self._lock = threading.Lock()
 
     def _state_callback(self, msg: Any):
         self.low_state = msg
 
-    def _publish_action(self, action: Action):
+    def _publish_position(self, position: Position):
         if not self._connected or self.cmd_pub is None or self.low_cmd is None:
             return
 
-        target_angles = np.asarray(action.target_angles, dtype=np.float64).flatten()
-        feedforward_torques = np.asarray(action.feedforward_torques, dtype=np.float64).flatten()
+        target_angles = np.asarray(position.target_angles, dtype=np.float64).flatten()
+        feedforward_torques = np.asarray(position.feedforward_torques, dtype=np.float64).flatten()
 
         if target_angles.size != 12 or feedforward_torques.size != 12:
             raise ValueError("UnitreeGo2Output expects 12 joint targets and 12 feedforward torques")
@@ -125,21 +125,21 @@ class UnitreeGo2Output(OutputLayer):
 
         while not terminate_connection.is_set():
             with self._lock:
-                latest_action = self._latest_action
-            if latest_action is not None:
-                self._publish_action(latest_action)
+                latest_position = self._latest_position
+            if latest_position is not None:
+                self._publish_position(latest_position)
             terminate_connection.wait(self.command_period)
 
         self._connected = False
         print("[RO]  Unitree Go2 connection terminated")
 
-    def send_action(self, action: Action):
+    def send_position(self, position: Position):
         with self._lock:
-            self._latest_action = action
-        self._publish_action(action)
+            self._latest_position = position
+        self._publish_position(position)
 
     def send_stand_position(self):
-        self.send_action(Action(target_angles=np.zeros(12), feedforward_torques=np.zeros(12)))
+        self.send_position(Position(target_angles=np.zeros(12), feedforward_torques=np.zeros(12)))
 
     def get_low_state(self):
         return self.low_state

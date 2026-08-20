@@ -15,7 +15,7 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 
 
 class GaitEngine:
-    _current_action:LegTrajectories|None
+    _current_action:LegTrajectories|None = None
 
     def __init__(self, gait:Gait, output:OutputLayer):
         self._last_step_num:int = -1

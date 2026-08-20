@@ -36,13 +36,12 @@ class LegTrajectories:
         required_shape = (LEG_COUNT,)
         if leg_phase_offset.shape != required_shape:
             raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
-        if heights.shape != required_shape:
-            raise ValueError(f"Invalid shape {heights.shape}. Must be {required_shape}!")
-        
-        #     (Control Points, Euler angles)
-        required_shape = (None,3)
-        if orientations.shape != required_shape:
-            raise ValueError(f"Invalid shape {orientations.shape}. Must be {required_shape}!")
+
+        # TODO: Re-implement
+        # #     (Control Points, Euler angles)
+        # required_shape = (None,3)
+        # if orientations.shape != required_shape:
+        #     raise ValueError(f"Invalid shape {orientations.shape}. Must be {required_shape}!")
         
         #     (Leg, Control Point, Coordinates)
         if len(leg_control_points) != LEG_COUNT:
