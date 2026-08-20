@@ -5,7 +5,7 @@ from data_structures import Point3DList
 from data_structures.leg_trajectories import LegTrajectories
 from data_structures.gait_definition import LEG_COUNT
 
-from kinematics.ik_solver import _LEG_OFFSETS_FROM_BODY_ORIGIN
+from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
 # TODO: Needs to take in current position or preserve position
@@ -40,4 +40,4 @@ def apply_offset(foot_positions:Point3DList) -> Point3DList:
     if len(foot_positions) != LEG_COUNT:
         raise ValueError(f"{{foot_positions}} must be equal to the {{LEG_COUNT}}! ({foot_positions} == {LEG_COUNT})")
     
-    return (foot_positions + _LEG_OFFSETS_FROM_BODY_ORIGIN)  # Translate foot positions
+    return (foot_positions + LEG_OFFSETS_FROM_BODY_ORIGIN)  # Translate foot positions
