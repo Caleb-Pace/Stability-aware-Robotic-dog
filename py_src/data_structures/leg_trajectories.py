@@ -1,12 +1,12 @@
 import numpy as np
 import numpy.typing as npt
 
-from data_structures import Point3D
+from data_structures import Point3D, EulerAngles, Point3DList
+
 from data_structures.constants import LEG_COUNT
+from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
 
 from interpolation import Interpolator, CatmullRomSpline
-
-from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
 _GROUND_LEVEL = -0.3
@@ -17,7 +17,7 @@ class LegTrajectories:
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
     _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
 
-    leg_origins:             list   # (Leg, Knot/Point, Relative Coordinates)
+    leg_origins:             list[Point3DList]   # (Leg, Knot/Point, Relative Coordinates)
     foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
     time_anchors:            list   # (Leg, time anchor)
     parametric_time_horizon: float  # The last parametric time entry
@@ -36,13 +36,10 @@ class LegTrajectories:
         required_shape = (LEG_COUNT,)
         if leg_phase_offset.shape != required_shape:
             raise ValueError(f"Invalid shape {leg_phase_offset.shape}. Must be {required_shape}!")
-        if heights.shape != required_shape:
-            raise ValueError(f"Invalid shape {heights.shape}. Must be {required_shape}!")
         
         #     (Control Points, Euler angles)
-        required_shape = (None,3)
-        if orientations.shape != required_shape:
-            raise ValueError(f"Invalid shape {orientations.shape}. Must be {required_shape}!")
+        if orientations.ndim != 2 or orientations.shape[1] != 3:
+            raise ValueError(f"Invalid shape {orientations.shape}. Must be (N, {3})!")
         
         #     (Leg, Control Point, Coordinates)
         if len(leg_control_points) != LEG_COUNT:
@@ -116,36 +113,73 @@ class LegTrajectories:
     def _calculate_distance(self) -> None:
         distance_covered_per_leg = [ self._calculate_distance_between_steps(i) for i in range(LEG_COUNT) ]
         self.distance_covered = max(distance_covered_per_leg)
-        
-    def _calculate_leg_origins(self, sample_count:int, alpha:float = 0.5) -> None:
-        pass
 
+    def _interpolate(self, interpolator:Interpolator, data:Point3DList, sample_count:int|None = None) -> tuple[Point3DList, npt.NDArray[np.float64]]:
+        if len(data) == 1:  # Handle hold point
+           point:Point3DList = np.array([ data[0] ], dtype=np.float64)
+           time_anchor       = np.array([ 0.0 ], dtype=float)
+           return ( point, time_anchor )  # Early exit: only 1 point
+
+        if sample_count == None:
+            sample_count = self.steps_in_gait
+
+        return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
+
+    def _apply_orientation(self, points:Point3DList, orientation:EulerAngles) -> npt.NDArray[np.float64]:
+        """
+        points:      (4, 3) array of coordinates
+        orientation: [roll, pitch, yaw] in radians
+        """
+        roll, pitch, yaw = orientation
+        cr, sr = np.cos(roll),  np.sin(roll)
+        cp, sp = np.cos(pitch), np.sin(pitch)
+        cy, sy = np.cos(yaw),   np.sin(yaw)
+
+        # Composite Z-Y-X rotation matrix  (Aerospace standard)
+        R = np.array([
+            [cy*cp,  cy*sp*sr - sy*cr,  cy*sp*cr + sy*sr],
+            [sy*cp,  sy*sp*sr + cy*cr,  sy*sp*cr - cy*sr],
+            [  -sp,             cp*sr,             cp*cr]
+        ])
+
+        # Apply to all points at once: (4, 3) @ (3, 3) -> (4, 3)
+        return np.asarray(points) @ R.T
+
+    def _calculate_origins_over_time(self, interpolator:Interpolator) -> None:
+        body_relative_positions = np.empty((LEG_COUNT, len(self._body_heights), 3))
+        body_relative_positions[:, :, :2] = LEG_OFFSETS_FROM_BODY_ORIGIN[:, np.newaxis, :2]
+        body_relative_positions[:, :, 2]  = self._body_heights
+
+        interpolated_positions, _ = zip(*[ self._interpolate(interpolator, pos) for pos in body_relative_positions ])
+        interpolated_orientations, _  = self._interpolate(interpolator, self._orientations)
+
+        # Calculate leg origins
+        self.leg_origins = []
+        for positions, orientation in zip(interpolated_positions, interpolated_orientations):
+
+            rotated_positions  = self._apply_orientation(positions, orientation)
+            displacements = np.asarray( rotated_positions - positions )
+            
+            self.leg_origins.append( displacements )
+
+    # TODO: Rename
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
-        self._calculate_leg_origins(sample_count, ALPHA)
         self._calculate_time_horizon(ALPHA)
         interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
+        # Find leg origins for each time anchor
+        self._calculate_origins_over_time(interpolator)
+
+        # Interpolate foot trajectiories with constant time
         self.foot_trajectories = [None] * LEG_COUNT
         self.time_anchors      = [None] * LEG_COUNT
-        
-        # Interpolate foot trajectiories with constant time
+
         for leg in range(LEG_COUNT):
-            if len(self._control_points[leg]) == 1:  # Handle hold point
-                self.foot_trajectories[leg] = [ self._control_points[leg][0] ]
-                self.time_anchors[leg]      = 0.0
-                continue
+            data = self._control_points[leg]
 
-            self.foot_trajectories[leg], self.time_anchors[leg] = interpolator.compute_interpolated_points(
-                                                                      self._control_points[leg],
-                                                                      self.steps_in_gait #,
-                                                                     #self.parametric_time_horizon
-                                                                  )
+            self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data)
 
+        # Find travel distance
         self._calculate_distance()
-
-        # TODO: Remove, for debugging
-        for leg in range(LEG_COUNT):
-            if len(self._control_points[leg]) > 3:
-                print(f"[{leg}] {self._control_points[leg][0]} #{len(self._control_points[leg])}")
