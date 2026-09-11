@@ -25,7 +25,11 @@ except ImportError:
 
 def _create_fallback_low_state():
     return SimpleNamespace(
-        imu_state=SimpleNamespace(accelerometer=np.array([0.0, 0.0, 9.81], dtype=np.float64)),
+        imu_state=SimpleNamespace(
+            accelerometer=np.array([0.0, 0.0, 9.81], dtype=np.float64),
+            gyroscope=np.zeros(3, dtype=np.float64),
+        ),
+        foot_contacts=np.ones(4, dtype=bool),
         wireless_remote=[0] * 40,
     )
 
