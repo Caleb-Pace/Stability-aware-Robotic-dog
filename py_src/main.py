@@ -9,36 +9,20 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-# from control.gaits import TROT
-# from control.actions import SIT
+from control.gaits import TROT
+from control.actions import SIT
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
 def main():
-    ### TODO: Remove, for debugging
-    from control.gaits import trot_ctrl_pts, LegTrajectories
-    _ = LegTrajectories(
-        sample_count       = 16,
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.0, 0.0, -0.3], [0.05, 0.0, -0.22], [0.1, 0.0, -0.2]]),
-            np.array([[0.0, 0.0, -0.3]]),
-            np.array([[0.0, 0.0, -0.3]]),
-            np.array([[0.0, 0.0, -0.3], [0.05, 0.0, -0.22], [0.1, 0.0, -0.2]]),
-        ], dtype=object)
-    )
-    ###
-
-
-    # gait:Gait = TROT
+    gait:Gait = TROT
 
     # # TODO: Remove, for debugging
-    # print(f"{gait.loop.leg_origins}\nshape: {np.asarray(gait.loop.leg_origins).shape}")
+    # # print(f"{gait.loop.leg_origins}")
+    # print(f"shape: {np.asarray(gait.loop.leg_origins).shape}")
     # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
-    return
+    # return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 

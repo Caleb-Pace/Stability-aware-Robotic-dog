@@ -157,10 +157,10 @@ class LegTrajectories:
         interpolated_positions    = [ self._interpolate(interpolator, pos, False)[0] for pos in body_relative_positions ]
         interpolated_orientations = self._interpolate(interpolator, self._orientations, False)[0]
 
-        # TODO: Remove, for debugging
-        print(f"intp_pos: [ {interpolated_positions[0].shape}|{interpolated_positions[1].shape}|{interpolated_positions[2].shape}|{interpolated_positions[3].shape} ]")
-        print(f"    _ori: {self._orientations.shape}")
-        print(f"intp_ori: {interpolated_orientations.shape}")
+        # # TODO: Remove, for debugging
+        # print(f"intp_pos: [ {interpolated_positions[0].shape}|{interpolated_positions[1].shape}|{interpolated_positions[2].shape}|{interpolated_positions[3].shape} ]")
+        # print(f"    _ori: {self._orientations.shape}")
+        # print(f"intp_ori: {interpolated_orientations.shape}")
 
         # Calculate leg origins
         self.leg_origins = []
@@ -173,7 +173,7 @@ class LegTrajectories:
                 positions   = interpolated_positions[leg][step if (pos_len < 1) else 0]
                 orientation = interpolated_orientations[step if (ori_len < 1) else 0]
 
-                print(f"    [{leg} : {step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
+                # print(f"    [{leg} : {step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
 
                 # Orient/rotate leg origins to achieve desired orientation
                 rotated_positions  = self._apply_orientation(positions, orientation)
@@ -186,7 +186,7 @@ class LegTrajectories:
                 
             self.leg_origins.append( np.asarray( displacements ) )
 
-        print()  # TODO: Remove, for debugging
+        # print()  # TODO: Remove, for debugging
 
     # TODO: Rename
     def calculate_foot_trajectories(self, sample_count:int) -> None:
