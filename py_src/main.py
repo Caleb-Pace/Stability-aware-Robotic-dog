@@ -10,7 +10,7 @@ from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
 # from control.gaits import TROT
-from control.actions import SIT
+# from control.actions import SIT
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
@@ -19,7 +19,7 @@ def main():
     ### TODO: Remove, for debugging
     from control.gaits import trot_ctrl_pts, LegTrajectories
     test = LegTrajectories(
-        sample_count       = 256,
+        sample_count       = 32,
         heights            = np.array([0.3, 0.2], dtype=float),
         orientations       = np.array([[0, 0, 0], [0, 1, 0]], dtype=float),
         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
