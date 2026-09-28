@@ -7,7 +7,7 @@ import numpy as np
 import mujoco
 import mujoco.viewer
 
-from data_structures import Position
+from data_structures import Position, LegPoseList
 from hardware_abstraction_layer import OutputLayer
 
 from data_structures.gait_definition import LEG_COUNT, JOINT_COUNT
@@ -172,7 +172,7 @@ class Simulator(OutputLayer):
         return np.array([item for tup in preset_dict.values() for item in tup])
 
     def _send_position_preset(self, angle_targets_dict:dict):
-        target_angles = self._get_target_angles_from_dict(angle_targets_dict)
+        target_angles:LegPoseList = self._get_target_angles_from_dict(angle_targets_dict).tolist()
 
         position = Position(target_angles, self._get_feedforward_torques())
         self.send_position(position)
