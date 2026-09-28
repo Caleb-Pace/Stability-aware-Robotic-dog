@@ -31,9 +31,11 @@ class GaitEngine:
         # self._dynamic_recovery
         # if {recovery} then ignore other calls
 
-        if self._step_num != self._last_step_num:
-            self._step()
-            self._last_step_num = self._step_num
+        self._step()  # TODO: Remove, for testing
+        self._step_num += 1
+        # if self._step_num != self._last_step_num:
+        #     self._step()
+        #     self._last_step_num = self._step_num
         # self._pid
         # combine PID and step results
         pass
@@ -57,7 +59,7 @@ class GaitEngine:
 
         # Action support
         if self._current_action is not None:
-            if self._step_num == self._current_action.steps_in_gait:
+            if self._step_num == self._current_action.steps_in_gait: # Action finished
                 self._current_action = None
                 self._step_num       = 0
             else:

@@ -10,7 +10,7 @@ from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
 from control.gaits import TROT
-from control.actions import SIT
+from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
@@ -47,6 +47,7 @@ def main():
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
+    is_sitting:bool = False
     a_btn_was_down:bool = False  # TODO: Extract button state logic into its own class
     press_count = 0
 
@@ -60,8 +61,14 @@ def main():
             print(f"[M ]  {datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")} 'A' pressed; {press_count}")
             press_count += 1
 
-            engine.perform_action(SIT)
-            print(f"[M ]  Sit action triggered!")
+            if is_sitting:
+                engine.perform_action(STAND)
+                print(f"[M ]  Stand action triggered!")
+            else:
+                engine.perform_action(SIT)
+                print(f"[M ]  Sit action triggered!")
+            is_sitting = not is_sitting
+            
             # out_layer.send_stand_position()
         elif ( not input_data.a_btn_down ) and a_btn_was_down:
             a_btn_was_down = False
