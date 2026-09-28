@@ -16,9 +16,21 @@ from control.pid import PIDController, get_pid_controllers
 
 
 def main():
+    ### TODO: Remove, for debugging
+    from control.gaits import trot_ctrl_pts, LegTrajectories
+    test = LegTrajectories(
+        sample_count       = 256,
+        heights            = np.array([0.3, 0.2], dtype=float),
+        orientations       = np.array([[0, 0, 0], [0, 1, 0]], dtype=float),
+        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+        leg_control_points = trot_ctrl_pts
+    )
+    ###
+
+
     # gait:Gait = TROT
 
-    # TODO: Remove, for debugging
+    # # TODO: Remove, for debugging
     # print(f"{gait.loop.leg_origins}\nshape: {np.asarray(gait.loop.leg_origins).shape}")
     # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
     return
