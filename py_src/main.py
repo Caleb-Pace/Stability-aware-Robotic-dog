@@ -61,13 +61,14 @@ def main():
             print(f"[M ]  {datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")} 'A' pressed; {press_count}")
             press_count += 1
 
-            if is_sitting:
-                engine.perform_action(STAND)
-                print(f"[M ]  Stand action triggered!")
-            else:
-                engine.perform_action(SIT)
-                print(f"[M ]  Sit action triggered!")
-            is_sitting = not is_sitting
+            engine.perform_action(TWISTING_TEST)
+            # if is_sitting:
+            #     engine.perform_action(STAND)
+            #     print(f"[M ]  Stand action triggered!")
+            # else:
+            #     engine.perform_action(SIT)
+            #     print(f"[M ]  Sit action triggered!")
+            # is_sitting = not is_sitting
             
             # out_layer.send_stand_position()
         elif ( not input_data.a_btn_down ) and a_btn_was_down:
