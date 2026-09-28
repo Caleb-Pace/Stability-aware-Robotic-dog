@@ -71,9 +71,15 @@ def main():
         rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = movement_stick_sum > 0
         if has_input:
-            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
+            # print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
+            # engine.input(input_data, 1)
 
-            engine.input(input_data, 1)
+            dist  = 1.0  # m
+            speed = 0.5  # m/s
+
+            # TODO: For test
+            engine.move(dist, speed)
+            time.sleep(dist / speed)
 
         # Delay
         try:
