@@ -15,7 +15,7 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 
 
 class GaitEngine:
-    _current_action:LegTrajectories|None
+    _current_action:LegTrajectories|None = None
 
     def __init__(self, gait:Gait, output:OutputLayer):
         self._last_step_num:int = -1
@@ -64,7 +64,7 @@ class GaitEngine:
 
         # Retrieve position
         foot_positions = step(trajectory, self._step_num)
-        target_motor_angles = self._ik.solve(foot_positions)
+        target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins[self._step_num])
         if None in target_motor_angles:
             return  # Early exit: IK - Failed
 
