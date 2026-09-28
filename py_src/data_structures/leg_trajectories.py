@@ -165,17 +165,24 @@ class LegTrajectories:
         # Calculate leg origins
         self.leg_origins = []
         for leg in range(LEG_COUNT):
+            pos_len = len(interpolated_positions[leg])
+            ori_len = len(interpolated_orientations)
 
             displacements = []
-            for time_step in range(self.steps_in_gait):
-                positions   = interpolated_positions[leg][time_step]
-                orientation = interpolated_orientations[time_step]
+            for step in range(self.steps_in_gait):
+                positions   = interpolated_positions[leg][step if (pos_len < 1) else 0]
+                orientation = interpolated_orientations[step if (ori_len < 1) else 0]
 
-                print(f"    [{leg} : {time_step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
+                print(f"    [{leg} : {step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
 
                 # Orient/rotate leg origins to achieve desired orientation
                 rotated_positions  = self._apply_orientation(positions, orientation)
                 displacements.append( rotated_positions - positions ) 
+
+                # Single origin set optimisation
+                if pos_len == 1 and ori_len == 1:
+                    displacements = displacements * self.steps_in_gait  # Duplicate entries across gait steps
+                    break  # Early exit: single origin set
                 
             self.leg_origins.append( np.asarray( displacements ) )
 

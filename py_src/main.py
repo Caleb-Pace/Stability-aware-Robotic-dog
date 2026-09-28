@@ -18,12 +18,17 @@ from control.pid import PIDController, get_pid_controllers
 def main():
     ### TODO: Remove, for debugging
     from control.gaits import trot_ctrl_pts, LegTrajectories
-    test = LegTrajectories(
-        sample_count       = 32,
-        heights            = np.array([0.3, 0.2], dtype=float),
-        orientations       = np.array([[0, 0, 0], [0, 1, 0]], dtype=float),
+    _ = LegTrajectories(
+        sample_count       = 16,
+        heights            = np.array([0.3], dtype=float),
+        orientations       = np.array([[0, 0, 0]], dtype=float),
         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = trot_ctrl_pts
+        leg_control_points = np.array([
+            np.array([[0.0, 0.0, -0.3], [0.05, 0.0, -0.22], [0.1, 0.0, -0.2]]),
+            np.array([[0.0, 0.0, -0.3]]),
+            np.array([[0.0, 0.0, -0.3]]),
+            np.array([[0.0, 0.0, -0.3], [0.05, 0.0, -0.22], [0.1, 0.0, -0.2]]),
+        ], dtype=object)
     )
     ###
 
