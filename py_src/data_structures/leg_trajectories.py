@@ -170,14 +170,14 @@ class LegTrajectories:
 
             displacements = []
             for step in range(self.steps_in_gait):
-                positions   = interpolated_positions[leg][step if (pos_len < 1) else 0]
-                orientation = interpolated_orientations[step if (ori_len < 1) else 0]
+                positions   = interpolated_positions[leg][step if (pos_len > 1) else 0]
+                orientation = interpolated_orientations[step if (ori_len > 1) else 0]
 
                 # print(f"    [{leg} : {step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
 
                 # Orient/rotate leg origins to achieve desired orientation
-                rotated_positions  = self._apply_orientation(positions, orientation)
-                displacements.append( rotated_positions - positions ) 
+                rotated_positions = self._apply_orientation(positions, orientation)
+                displacements.append( rotated_positions - LEG_OFFSETS_FROM_BODY_ORIGIN[leg] )
 
                 # Single origin set optimisation
                 if pos_len == 1 and ori_len == 1:

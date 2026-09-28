@@ -85,6 +85,7 @@ class IK_Solver:
         pass
 
     def _solve_internal(self, leg_origin:Point3D, point:Point3D) -> None|LegPose:
+        # print(f"[IK]:1  o:{leg_origin}, p:{point}")  # TODO: Remove, for debugging
         delta_point = point - leg_origin
 
         # Breadth plane
@@ -160,6 +161,7 @@ class IK_Solver:
 
     def _solve_leg(self, leg_origin:Point3D, point:Point3D, is_front_leg:bool) -> None|LegPose:
         # Solve angles
+        # print(f"[IK]:2  o:{leg_origin}, p:{point}")  # TODO: Remove, for debugging
         result = self._solve_internal(leg_origin, point)
         if result is None:
             return None
@@ -209,6 +211,7 @@ class IK_Solver:
 
         leg_poses = []
         for i in range(LEG_COUNT):
+            # print(f"[IK]:3  o:{leg_origins[i]}, p:{leg_points[i]}")  # TODO: Remove, for debugging
             leg_poses.append(self._solve_leg(leg_origins[i], leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
 
         # TODO: Check for limb collision

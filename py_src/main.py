@@ -22,6 +22,12 @@ def main():
     # # print(f"{gait.loop.leg_origins}")
     # print(f"shape: {np.asarray(gait.loop.leg_origins).shape}")
     # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
+    
+    # # TODO: Remove, for debugging
+    # print(f"    steps_count: {SIT.steps_in_gait}")
+    # print(f"foot placements: {len(SIT.foot_trajectories[0])}")
+    # print(f"       distance: {SIT.distance_covered}")
+    # print(f"        origins: {np.asarray(SIT.leg_origins_by_step).shape}\n{np.asarray(SIT.leg_origins_by_step).transpose(1, 0, 2)[0]}")
     # return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
