@@ -52,7 +52,8 @@ class GaitEngine:
         pass
 
     def _step(self):
-        trajectory:LegTrajectories = self.gait.loop
+        # trajectory:LegTrajectories|None = self.gait.loop
+        trajectory:LegTrajectories|None = None
 
         # Action support
         if self._current_action is not None:
@@ -62,22 +63,25 @@ class GaitEngine:
             else:
                 trajectory = self._current_action
 
-        # Retrieve position
-        foot_positions = step(trajectory, self._step_num)
-        target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins_by_step[self._step_num])
-        if None in target_motor_angles:
-            return  # Early exit: IK - Failed
+        if trajectory:
+            # Retrieve position
+            foot_positions = step(trajectory, self._step_num)
+            target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins_by_step[self._step_num])
+            if None in target_motor_angles:
+                return  # Early exit: IK - Failed
 
-        feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
+            feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
-        # Send position
-        position = Position(target_motor_angles, feedforward_torques)
-        self.output.send_position(position)
+            # Send position
+            position = Position(target_motor_angles, feedforward_torques)
+            self.output.send_position(position)
 
 
     def perform_action(self, action:LegTrajectories):
+        print(f"[GE]  action requested")  # TODO: Remove, for debugging
         self._current_action = action
         self._step_num       = 0
+        self._last_step_num  = -1
 
 
     # TODO: May need to move to a more relevant class/file
