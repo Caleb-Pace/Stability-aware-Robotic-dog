@@ -3,10 +3,11 @@ import threading
 import numpy as np
 
 from data_structures import Position
-from data_structures.controller_input import ControllerData
 from data_structures.leg_trajectories import LegTrajectories
+from typing import Tuple
 
 from hardware_abstraction_layer import OutputLayer
+from queue import Queue
 
 from data_structures.gait_definition import Gait, LEG_COUNT
 from control.stepper import step
@@ -14,8 +15,27 @@ from kinematics.ik_solver import IK_Solver
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
+class Instruction:
+    DEFAULT_STEP_INTERVAL_MS = 5
+
+    step_interval_ms:float = DEFAULT_STEP_INTERVAL_MS
+    trajectory:LegTrajectories
+    repeat:int
+
+    def __init__(self, instruction:LegTrajectories, step_interval_ms:float|None = None, repeat:int = 1):
+        if step_interval_ms:
+            self.step_interval_ms = step_interval_ms
+
+        self.trajectory = instruction
+        self.repeat     = repeat
+
 class GaitEngine:
-    _current_action:LegTrajectories|None = None
+    _instruction_queue = Queue()
+    _current_instruction:Instruction|None = None
+    # _current_pose =  # Stores current position of all end-effectors
+    
+    gait:Gait
+
 
     def __init__(self, gait:Gait, output:OutputLayer):
         self._last_step_num:int = -1
@@ -25,6 +45,45 @@ class GaitEngine:
         self.output = output  # Hardware abstraction
 
         self._ik = IK_Solver()
+
+
+    def _send_position(self):
+        if self._current_instruction is None:
+            return  # Early exit: no work to do
+
+        trajectory = self._current_instruction.trajectory
+
+        # Retrieve position
+        hip_origins         = trajectory.leg_origins_by_step[self._step_num]
+        foot_positions      = step(trajectory, self._step_num)
+        # Calculate motor angles
+        target_motor_angles = self._ik.solve(foot_positions, hip_origins)
+        if None in target_motor_angles:
+            return  # Early exit: IK - Failed
+
+        feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
+
+        # Send position
+        position = Position(target_motor_angles, feedforward_torques)
+        self.output.send_position(position)
+
+    def _step(self):
+        if self._current_instruction is None:  # Request new instruction
+            if self._instruction_queue.empty():
+                return # Early exit: no work to do
+
+            # New instruction
+            self._current_instruction = self._instruction_queue.get()
+            self._step_num            = 0
+
+        # Work instruction
+        self._send_position()
+
+        # Check if instruction finished
+        if self._current_instruction:
+            self._current_instruction.repeat -= 1  # Performed instruction
+            if self._current_instruction.repeat <= 0:  # Clear finished instruction
+                self._current_instruction = None
 
 
     def _clock_tick(self) -> None:
@@ -49,11 +108,66 @@ class GaitEngine:
             except KeyboardInterrupt:
                 pass
 
+
+    def clear_instruction_queue(self):
+        self._instruction_queue.queue.clear()
+
+    # # TODO: Need some sort of method, action to bring feet back to ground, for stabilisation.
+    # def abort(self):
+    #     self.clear_instruction_queue()
+    #     # TODO: Add stablise method
+
+
+    def perform_action(self, action:LegTrajectories, step_interval_ms:float|None = None):
+        instruction = Instruction(action, step_interval_ms)
+        self._instruction_queue.put(instruction)
+        print(f"[GE]  action requested")  # TODO: Remove, for debugging
+
+    def _calculate_move_distance_data(self, distance:float, speed:float) -> Tuple[float, int]:
+        # 1. Handle gait transitions
+        distance -= (self.gait.transition_in.distance_covered + self.gait.transistion_out.distance_covered)
+
+        # 2. Calculate pushing steps (negative x, with ground contact z = 0)
+        cycle_distance = self.gait.loop.distance_covered
+
+        # 3. Calculate steps needed to achieve that distance
+        cycles = round(distance / cycle_distance)
+        steps  = (cycles * self.gait.loop.steps_in_gait)
+
+        # 4. Calculate how long movement should be (distance / speed)
+        movement_time = distance / speed  # seconds
+
+        # 5. Calculate time per step to fit that timeframe (step_interval_ms)
+        step_interval_ms = movement_time / steps
+
+        print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval_ms}ms)")  # TODO: Remove, for debugging
+        return (step_interval_ms, cycles)
+
+    def move(self, distance:float, speed:float):
+        step_interval_ms, repeat_loop = self._calculate_move_distance_data(distance, speed)
+        loop_instruction = Instruction(self.gait.loop, step_interval_ms, repeat_loop)
+        
+        self._instruction_queue.put( Instruction(self.gait.transition_in, step_interval_ms) )
+        self._instruction_queue.put( loop_instruction )
+        self._instruction_queue.put( Instruction(self.gait.transistion_out, step_interval_ms) )
+        print(f"[GE]  move({distance}m, {speed}m/s) requested")  # TODO: Remove, for debugging
+
+    def move_direction(self, distance:float, bearing:float, speed:float):
+        step_interval_ms, repeat_loop = self._calculate_move_distance_data(distance, speed)
+        pass
+    def move2(self, distance_x:float, distance_y:float, speed:float):
+        pass
+    def rotate(self, bearing:float):  # TODO: Note, potentially could add speed parameter.
+        pass
+
+
+
+
     def _pid(self, expected, actual) -> None:
         # TODO: Call Maanas' implementation
         pass
 
-    def _step(self):
+    def _step_old(self):
         # trajectory:LegTrajectories|None = self.gait.loop
         trajectory:LegTrajectories|None = None
 
@@ -79,48 +193,15 @@ class GaitEngine:
             self.output.send_position(position)
 
 
-    def perform_action(self, action:LegTrajectories):
-        print(f"[GE]  action requested")  # TODO: Remove, for debugging
-        self._current_action = action
-        self._step_num       = 0
-        self._last_step_num  = -1
+    # # TODO: Implement multiplier
+    # def input(self, controller_data:ControllerData, multiplier:float) -> None:
+    #     if controller_data.left_stick.delta_y > 0:
+    #         self._step_num += 1
+    #     if controller_data.left_stick.delta_y < 0:
+    #         self._step_num -= 1
 
-
-    # TODO: May need to move to a more relevant class/file
-    def _convert_distance_to_steps(self):
-        GROUND_LEVEL_OFFSET = -0.3  # TODO: Temporary, remove after gait ground level update has been implemented
-        
-        # Take:
-        #     Gait,
-        #     Current step number,
-        #     Target distance
-        # Return:
-        #     Steps to take to achieve distance
-        pass
-
-    def move(self, distance:float, speed:float):
-        # 1. Calculate pushing steps (negative x, with ground contact z = 0)
-        
-        # 2. Calculate steps needed to achieve that distance
-        
-        # 3. Calculate how long movement should be (distance / speed)
-        movement_time = distance / speed  # seconds
-
-        # 4. Calculate time per step to fit that timeframe (step_interval_ms)
-        step_interval_ms = 0
-
-
-    # TODO: Need some sort of method, action to bring feet back to ground, for stabilisation.
-
-    # TODO: Implement multiplier
-    def input(self, controller_data:ControllerData, multiplier:float) -> None:
-        if controller_data.left_stick.delta_y > 0:
-            self._step_num += 1
-        if controller_data.left_stick.delta_y < 0:
-            self._step_num -= 1
-
-        self._step_num %= self.gait.loop.steps_in_gait
-        print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
+    #     self._step_num %= self.gait.loop.steps_in_gait
+    #     print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
 
     # TODO: Later, dynamics model
