@@ -115,13 +115,16 @@ class LegTrajectories:
         self.distance_covered = max(distance_covered_per_leg)
 
     def _interpolate(self, interpolator:Interpolator, data:Point3DList, sample_count:int|None = None) -> tuple[Point3DList, npt.NDArray[np.float64]]:
-        if len(data) == 1:  # Handle hold point
-           point:Point3DList = np.array([ data[0] ], dtype=np.float64)
-           time_anchor       = np.array([ 0.0 ], dtype=float)
-           return ( point, time_anchor )  # Early exit: only 1 point
-
-        if sample_count == None:
+        if sample_count is None:
             sample_count = self.steps_in_gait
+
+        # Handle hold point / static position
+        if len(data) == 1:
+            points = np.tile(data[0], (sample_count, 1))  # (sample_count, 3) | Duplicate point across all sample points
+            # Generate time anchors across parametric_time_horizon (evenly spaced, no distance between points)
+            time_anchors = np.linspace(0.0, self.parametric_time_horizon, sample_count)
+
+            return (points, time_anchors) # Early exit: only 1 point
 
         return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
 
@@ -146,6 +149,7 @@ class LegTrajectories:
         return np.asarray(points) @ R.T
 
     def _calculate_origins_over_time(self, interpolator:Interpolator) -> None:
+        # Combine hip/shoulder positions with desired height points
         body_relative_positions = np.empty((LEG_COUNT, len(self._body_heights), 3))
         body_relative_positions[:, :, :2] = LEG_OFFSETS_FROM_BODY_ORIGIN[:, np.newaxis, :2]
         body_relative_positions[:, :,  2] = self._body_heights
@@ -169,6 +173,7 @@ class LegTrajectories:
 
                 print(f"    [{leg} : {time_step}]  pos: {positions.shape}, ori: {orientation.shape}")  # TODO: Remove, for debugging
 
+                # Orient/rotate leg origins to achieve desired orientation
                 rotated_positions  = self._apply_orientation(positions, orientation)
                 displacements.append( rotated_positions - positions ) 
                 
