@@ -3,9 +3,21 @@ from pygame.joystick import JoystickType
 
 JOYSTICK_DEADZONE:float = 0.05
 
+
 class JoyStickData(NamedTuple):
     delta_x:float
     delta_y:float
+
+class Button():
+    _was_down:bool = False
+
+    def is_held(self, is_down:bool) -> bool:
+        if is_down and ( not self._was_down ):
+            return True
+        elif ( not is_down ) and self._was_down:
+            self._was_down = False
+        
+        return False
 
 class ControllerData():
     left_stick:JoyStickData

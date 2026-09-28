@@ -7,6 +7,7 @@ from datetime import datetime
 from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
+from data_structures.controller_input import Button
 
 from data_structures.gait_definition import Gait
 from control.gaits import TROT
@@ -34,8 +35,9 @@ def main():
 
     interrupt_flag = threading.Event()
 
-    in_layer:InputLayer = GamepadController()
     read_delay_ms = 10
+    in_layer:InputLayer = GamepadController()
+    a_btn = Button()
 
     # out_layer:OutputLayer = DummyOutput()
     out_layer:OutputLayer = Simulator(pid_controllers)
@@ -47,20 +49,15 @@ def main():
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
+    # State 
     is_sitting:bool = False
-    a_btn_was_down:bool = False  # TODO: Extract button state logic into its own class
-    press_count = 0
 
     print("[M ]  Input loop started!")
     while True:
         input_data = in_layer.poll()
-        # TODO: Remove, for debugging
-        if input_data.a_btn_down and ( not a_btn_was_down ):
-            a_btn_was_down = True
 
-            print(f"[M ]  {datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")} 'A' pressed; {press_count}")
-            press_count += 1
-
+        # Buttons
+        if a_btn.is_held(input_data.a_btn_down):
             if is_sitting:
                 engine.perform_action(STAND)
                 print(f"[M ]  Stand action triggered!")
@@ -68,18 +65,17 @@ def main():
                 engine.perform_action(SIT)
                 print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
-            
-            # out_layer.send_stand_position()
-        elif ( not input_data.a_btn_down ) and a_btn_was_down:
-            a_btn_was_down = False
 
-        input_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y) + abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
-        has_input = input_sum > 0
+        # Sticks
+        movement_stick_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y)
+        rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
+        has_input = movement_stick_sum > 0
         if has_input:
             print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
             engine.input(input_data, 1)
 
+        # Delay
         try:
             time.sleep(read_delay_ms / 1000)
         except KeyboardInterrupt:
