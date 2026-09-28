@@ -115,16 +115,13 @@ class LegTrajectories:
         self.distance_covered = max(distance_covered_per_leg)
 
     def _interpolate(self, interpolator:Interpolator, data:Point3DList, time_cutoff:bool, sample_count:int|None = None) -> tuple[Point3DList, npt.NDArray[np.float64]]:
-        if sample_count is None:
+        if len(data) == 1:  # Handle hold point
+           point:Point3DList = np.array([ data[0] ], dtype=np.float64)
+           time_anchor       = np.array([ 0.0 ], dtype=float)
+           return ( point, time_anchor )  # Early exit: only 1 point
+
+        if sample_count == None:
             sample_count = self.steps_in_gait
-
-        # Handle hold point / static position
-        if len(data) == 1:
-            points = np.tile(data[0], (sample_count, 1))  # (sample_count, 3) | Duplicate point across all sample points
-            # Generate time anchors across parametric_time_horizon (evenly spaced, no distance between points)
-            time_anchors = np.linspace(0.0, self.parametric_time_horizon, sample_count)
-
-            return (points, time_anchors) # Early exit: only 1 point
 
         if time_cutoff:
             return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
