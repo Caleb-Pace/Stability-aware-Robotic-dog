@@ -114,7 +114,7 @@ class LegTrajectories:
         distance_covered_per_leg = [ self._calculate_distance_between_steps(i) for i in range(LEG_COUNT) ]
         self.distance_covered = max(distance_covered_per_leg)
 
-    def _interpolate(self, interpolator:Interpolator, data:Point3DList, sample_count:int|None = None) -> tuple[Point3DList, npt.NDArray[np.float64]]:
+    def _interpolate(self, interpolator:Interpolator, data:Point3DList, time_cutoff:bool, sample_count:int|None = None) -> tuple[Point3DList, npt.NDArray[np.float64]]:
         if sample_count is None:
             sample_count = self.steps_in_gait
 
@@ -126,7 +126,10 @@ class LegTrajectories:
 
             return (points, time_anchors) # Early exit: only 1 point
 
-        return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
+        if time_cutoff:
+            return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
+        else:
+            return interpolator.compute_interpolated_points(data, sample_count)
 
     def _apply_orientation(self, points:Point3DList, orientation:EulerAngles) -> npt.NDArray[np.float64]:
         """
@@ -154,8 +157,8 @@ class LegTrajectories:
         body_relative_positions[:, :, :2] = LEG_OFFSETS_FROM_BODY_ORIGIN[:, np.newaxis, :2]
         body_relative_positions[:, :,  2] = self._body_heights
 
-        interpolated_positions    = [ self._interpolate(interpolator, pos)[0] for pos in body_relative_positions ]
-        interpolated_orientations = self._interpolate(interpolator, self._orientations)[0]
+        interpolated_positions    = [ self._interpolate(interpolator, pos, False)[0] for pos in body_relative_positions ]
+        interpolated_orientations = self._interpolate(interpolator, self._orientations, False)[0]
 
         # TODO: Remove, for debugging
         print(f"intp_pos: [ {interpolated_positions[0].shape}|{interpolated_positions[1].shape}|{interpolated_positions[2].shape}|{interpolated_positions[3].shape} ]")
@@ -198,7 +201,7 @@ class LegTrajectories:
         for leg in range(LEG_COUNT):
             data = self._control_points[leg]
 
-            self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data)
+            self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
 
         # Find travel distance
         self._calculate_distance()
