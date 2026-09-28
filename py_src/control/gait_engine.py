@@ -64,7 +64,7 @@ class GaitEngine:
 
         # Retrieve position
         foot_positions = step(trajectory, self._step_num)
-        target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins[self._step_num])
+        target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins_by_step[self._step_num])
         if None in target_motor_angles:
             return  # Early exit: IK - Failed
 

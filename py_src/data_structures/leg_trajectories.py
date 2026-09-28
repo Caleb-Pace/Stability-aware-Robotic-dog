@@ -17,7 +17,7 @@ class LegTrajectories:
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
     _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
 
-    leg_origins:             list[Point3DList]   # (Leg, Knot/Point, Relative Coordinates)
+    leg_origins_by_step:     list[Point3DList]  # (Knot/Point, Leg, Relative Coordinates)
     foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
     time_anchors:            list   # (Leg, time anchor)
     parametric_time_horizon: float  # The last parametric time entry
@@ -163,7 +163,7 @@ class LegTrajectories:
         # print(f"intp_ori: {interpolated_orientations.shape}")
 
         # Calculate leg origins
-        self.leg_origins = []
+        _leg_origins = []
         for leg in range(LEG_COUNT):
             pos_len = len(interpolated_positions[leg])
             ori_len = len(interpolated_orientations)
@@ -183,9 +183,11 @@ class LegTrajectories:
                 if pos_len == 1 and ori_len == 1:
                     displacements = displacements * self.steps_in_gait  # Duplicate entries across gait steps
                     break  # Early exit: single origin set
-                
-            self.leg_origins.append( np.asarray( displacements ) )
 
+            _leg_origins.append( np.asarray( displacements ) )
+
+        # Transpose list to be by step (N, 4, 3) not leg (4, N, 3)
+        self.leg_origins_by_step = np.asarray( _leg_origins ).transpose(1, 0, 2).tolist()
         # print()  # TODO: Remove, for debugging
 
     # TODO: Rename
