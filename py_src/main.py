@@ -53,6 +53,7 @@ def main():
 
     # State 
     is_sitting:bool = False
+    has_performed_test:bool = False
 
     print("[M ]  Input loop started!")
     while True:
@@ -71,36 +72,31 @@ def main():
         # Sticks
         movement_stick_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y)
         rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
-        has_input = movement_stick_sum > 0
+        has_input = movement_stick_sum > 0.2  # 0
         if has_input:
             # print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
             # engine.input(input_data, 1)
+            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
             dist  = 1.0  # m
             speed = 0.5  # m/s
 
-            
             # TODO: For test
-            try:
+            if not has_performed_test:
                 engine.perform_action(gait.transition_in, 50)
                 print(f"[M ]  t_in done")
-                time.sleep(0.5)
-
                 engine.perform_action(gait.loop, 50)
                 print(f"[M ]  loop done")
-                time.sleep(0.5)
-                
                 engine.perform_action(gait.transition_out, 50)
                 print(f"[M ]  t_out done")
-                time.sleep(0.5)
-            except KeyboardInterrupt:
-                pass
+                
+                has_performed_test = True
 
             # engine.move(dist, speed)
             # try:
             #     time.sleep(dist / speed)
             # except KeyboardInterrupt:
-            #     pass
+            #     break  # Exit loop
 
 
         # Delay

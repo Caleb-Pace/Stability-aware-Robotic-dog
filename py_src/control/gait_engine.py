@@ -92,7 +92,8 @@ class GaitEngine:
                 return  # Work to do
 
             # Performed instruction
-            # print(f"[GE][DEBUG]:96  instruction complete")  # TODO: Remove, for debugging
+            print(f"[GE][DEBUG]:96  instruction complete")  # TODO: Remove, for debugging
+            time.sleep(0.5)  # TODO: Remove, for testing
             self._current_instruction.repeat -= 1
             if self._current_instruction.repeat <= 0:  # Clear finished instruction
                 self._current_instruction = None
