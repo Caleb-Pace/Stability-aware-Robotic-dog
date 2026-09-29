@@ -129,7 +129,7 @@ class GaitEngine:
 
     def _calculate_move_distance_data(self, distance:float, speed:float) -> Tuple[float, int]:
         # 1. Handle gait transitions
-        distance -= (self.gait.transition_in.distance_covered + self.gait.transistion_out.distance_covered)
+        distance -= (self.gait.transition_in.distance_covered + self.gait.transition_out.distance_covered)
 
         # 2. Calculate pushing steps (negative x, with ground contact z = 0)
         cycle_distance = self.gait.loop.distance_covered
@@ -154,7 +154,7 @@ class GaitEngine:
         
         self._instruction_queue.put( Instruction(self.gait.transition_in, step_interval_ms) )
         self._instruction_queue.put( loop_instruction )
-        self._instruction_queue.put( Instruction(self.gait.transistion_out, step_interval_ms) )
+        self._instruction_queue.put( Instruction(self.gait.transition_out, step_interval_ms) )
         print(f"[GE]  move({distance}m, {speed}m/s) requested")  # TODO: Remove, for debugging
 
     def move_direction(self, distance:float, bearing:float, speed:float):

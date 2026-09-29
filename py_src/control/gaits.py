@@ -36,7 +36,7 @@ TROT = Gait(
             np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
         ], dtype=object)
     ),
-    transistion_out = LegTrajectories(
+    transition_out = LegTrajectories(
         sample_count       = 64, 
         heights            = np.array([0.3], dtype=float),
         orientations       = np.array([[0, 0, 0]], dtype=float),

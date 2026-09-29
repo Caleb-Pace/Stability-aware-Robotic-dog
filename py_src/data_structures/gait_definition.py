@@ -7,15 +7,15 @@ from data_structures.leg_trajectories import LegTrajectories
 
 class Gait:
     transition_in:LegTrajectories
-    transistion_out:LegTrajectories
+    transition_out:LegTrajectories
     loop:LegTrajectories
 
 
     def __init__(self,
                  transition_in:LegTrajectories,
-                 transistion_out:LegTrajectories,
+                 transition_out:LegTrajectories,
                  loop:LegTrajectories):
 
         self.transition_in   = transition_in
-        self.transistion_out = transistion_out
+        self.transition_out = transition_out
         self.loop            = loop

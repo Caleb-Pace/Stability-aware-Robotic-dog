@@ -23,13 +23,16 @@ def main():
     # # print(f"{gait.loop.leg_origins}")
     # print(f"shape: {np.asarray(gait.loop.leg_origins).shape}")
     # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
+    print(f"Distance covered by loop: {gait.transition_in.distance_covered}m")
+    print(f"Distance covered by t_in: {gait.loop.distance_covered}m")
+    print(f"Distance covered by t_ou: {gait.transition_out.distance_covered}m")
     
     # # TODO: Remove, for debugging
     # print(f"    steps_count: {SIT.steps_in_gait}")
     # print(f"foot placements: {len(SIT.foot_trajectories[0])}")
     # print(f"       distance: {SIT.distance_covered}")
     # print(f"        origins: {np.asarray(SIT.leg_origins_by_step).shape}\n{np.asarray(SIT.leg_origins_by_step).transpose(1, 0, 2)[0]}")
-    # return
+    return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -59,10 +62,10 @@ def main():
         # Buttons
         if a_btn.is_held(input_data.a_btn_down):
             if is_sitting:
-                engine.perform_action(STAND)
+                engine.perform_action(STAND, 10)
                 print(f"[M ]  Stand action triggered!")
             else:
-                engine.perform_action(SIT)
+                engine.perform_action(SIT, 10)
                 print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
 
@@ -78,8 +81,12 @@ def main():
             speed = 0.5  # m/s
 
             # TODO: For test
+            # engine.perform_action(gait.transition_in)
+            # engine.perform_action(gait.loop)
+            # engine.perform_action(gait.transition_out)
             engine.move(dist, speed)
             time.sleep(dist / speed)
+
 
         # Delay
         try:
