@@ -22,17 +22,16 @@ def main():
     # # TODO: Remove, for debugging
     # # print(f"{gait.loop.leg_origins}")
     # print(f"shape: {np.asarray(gait.loop.leg_origins).shape}")
-    # print(f"Distance covered by loop: {gait.loop.distance_covered}m")
-    print(f"Distance covered by loop: {gait.transition_in.distance_covered}m")
-    print(f"Distance covered by t_in: {gait.loop.distance_covered}m")
-    print(f"Distance covered by t_ou: {gait.transition_out.distance_covered}m")
+    # print(f"Distance covered by loop: {gait.transition_in.distance_covered}m")
+    # print(f"Distance covered by t_in: {gait.loop.distance_covered}m")
+    # print(f"Distance covered by t_ou: {gait.transition_out.distance_covered}m")
     
     # # TODO: Remove, for debugging
     # print(f"    steps_count: {SIT.steps_in_gait}")
     # print(f"foot placements: {len(SIT.foot_trajectories[0])}")
     # print(f"       distance: {SIT.distance_covered}")
     # print(f"        origins: {np.asarray(SIT.leg_origins_by_step).shape}\n{np.asarray(SIT.leg_origins_by_step).transpose(1, 0, 2)[0]}")
-    return
+    # return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -80,12 +79,28 @@ def main():
             dist  = 1.0  # m
             speed = 0.5  # m/s
 
+            
             # TODO: For test
-            # engine.perform_action(gait.transition_in)
-            # engine.perform_action(gait.loop)
-            # engine.perform_action(gait.transition_out)
-            engine.move(dist, speed)
-            time.sleep(dist / speed)
+            try:
+                engine.perform_action(gait.transition_in, 50)
+                print(f"[M ]  t_in done")
+                time.sleep(0.5)
+
+                engine.perform_action(gait.loop, 50)
+                print(f"[M ]  loop done")
+                time.sleep(0.5)
+                
+                engine.perform_action(gait.transition_out, 50)
+                print(f"[M ]  t_out done")
+                time.sleep(0.5)
+            except KeyboardInterrupt:
+                pass
+
+            # engine.move(dist, speed)
+            # try:
+            #     time.sleep(dist / speed)
+            # except KeyboardInterrupt:
+            #     pass
 
 
         # Delay

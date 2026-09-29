@@ -55,6 +55,7 @@ class GaitEngine:
         trajectory = self._current_instruction.trajectory
 
         # Retrieve position
+        # print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
         hip_origins         = trajectory.leg_origins_by_step[self._step_num]
         foot_positions      = step(trajectory, self._step_num)
         # Calculate motor angles
@@ -69,8 +70,10 @@ class GaitEngine:
         self.output.send_position(position)
 
     def _step(self):
-        self._step_num += 1
-
+        # # TODO: Remove, for debugging
+        # if not (self._current_instruction is None and self._instruction_queue.empty()):
+        #     print(f"[GE]  _step() call | got instruction? {self._current_instruction is not None} | {self._instruction_queue.qsize()} instructions queued")
+        
         if self._current_instruction is None:  # Request new instruction
             if self._instruction_queue.empty():
                 return # Early exit: no work to do
@@ -81,10 +84,16 @@ class GaitEngine:
 
         # Work instruction
         self._send_position()
+        self._step_num += 1
 
         # Check if instruction finished
         if self._current_instruction:
-            self._current_instruction.repeat -= 1  # Performed instruction
+            if not ( self._step_num >= self._current_instruction.trajectory.steps_in_gait ):
+                return  # Work to do
+
+            # Performed instruction
+            # print(f"[GE][DEBUG]:96  instruction complete")  # TODO: Remove, for debugging
+            self._current_instruction.repeat -= 1
             if self._current_instruction.repeat <= 0:  # Clear finished instruction
                 self._current_instruction = None
 
