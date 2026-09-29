@@ -3,6 +3,7 @@ import threading
 import numpy as np
 
 from data_structures import Position
+from data_structures.controller_input import ControllerData
 from data_structures.leg_trajectories import LegTrajectories
 from typing import Tuple
 
@@ -68,6 +69,8 @@ class GaitEngine:
         self.output.send_position(position)
 
     def _step(self):
+        self._step_num += 1
+
         if self._current_instruction is None:  # Request new instruction
             if self._instruction_queue.empty():
                 return # Early exit: no work to do
@@ -90,14 +93,15 @@ class GaitEngine:
         # self._dynamic_recovery
         # if {recovery} then ignore other calls
 
-        self._step()  # TODO: Remove, for testing
-        self._step_num += 1
+        self._step()
+
+        # # TODO: Remove, for use with old input system
         # if self._step_num != self._last_step_num:
-        #     self._step()
+        #     self._step_old()
         #     self._last_step_num = self._step_num
+        
         # self._pid
         # combine PID and step results
-        pass
 
     def clock_start(self, interval_ms:float, interrupt:threading.Event) -> None:
         while not interrupt.is_set():
@@ -131,6 +135,7 @@ class GaitEngine:
         cycle_distance = self.gait.loop.distance_covered
 
         # 3. Calculate steps needed to achieve that distance
+        print(f"[GE][DEBUG]:139 cycles = round({distance} / {cycle_distance})")
         cycles = round(distance / cycle_distance)
         steps  = (cycles * self.gait.loop.steps_in_gait)
 
@@ -167,31 +172,31 @@ class GaitEngine:
         # TODO: Call Maanas' implementation
         pass
 
-    def _step_old(self):
-        # trajectory:LegTrajectories|None = self.gait.loop
-        trajectory:LegTrajectories|None = None
+    # def _step_old(self):
+    #     trajectory:LegTrajectories|None = self.gait.loop
+    #     # trajectory:LegTrajectories|None = None
 
-        # Action support
-        if self._current_action is not None:
-            if self._step_num == self._current_action.steps_in_gait: # Action finished
-                self._current_action = None
-                self._step_num       = 0
-            else:
-                trajectory = self._current_action
+    #     # Action support
+    #     if self._current_instruction is not None:
+    #         if self._step_num == self._current_instruction.trajectory.steps_in_gait: # Action finished
+    #             self._current_action = None
+    #             self._step_num       = 0
+    #         else:
+    #             trajectory = self._current_instruction.trajectory
+    #     # print(f"[GE]  has trajectory? {trajectory is not None}")  # TODO: Remove, for debugging
 
-        if trajectory:
-            # Retrieve position
-            foot_positions = step(trajectory, self._step_num)
-            target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins_by_step[self._step_num])
-            if None in target_motor_angles:
-                return  # Early exit: IK - Failed
+    #     if trajectory:
+    #         # Retrieve position
+    #         foot_positions = step(trajectory, self._step_num)
+    #         target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins_by_step[self._step_num])
+    #         if None in target_motor_angles:
+    #             return  # Early exit: IK - Failed
 
-            feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
+    #         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
-            # Send position
-            position = Position(target_motor_angles, feedforward_torques)
-            self.output.send_position(position)
-
+    #         # Send position
+    #         position = Position(target_motor_angles, feedforward_torques)
+    #         self.output.send_position(position)
 
     # # TODO: Implement multiplier
     # def input(self, controller_data:ControllerData, multiplier:float) -> None:

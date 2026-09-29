@@ -9,7 +9,7 @@ from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
 from interpolation import Interpolator, CatmullRomSpline
 
 
-_GROUND_LEVEL = -0.3
+_GROUND_LEVEL = 0.0
 
 class LegTrajectories:
     _body_heights:   npt.NDArray[np.float64]  # z values
