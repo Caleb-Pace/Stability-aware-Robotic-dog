@@ -55,7 +55,7 @@ class GaitEngine:
         trajectory = self._current_instruction.trajectory
 
         # Retrieve position
-        # print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
+        print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
         hip_origins         = trajectory.leg_origins_by_step[self._step_num]
         foot_positions      = step(trajectory, self._step_num)
         # Calculate motor angles
@@ -93,10 +93,12 @@ class GaitEngine:
 
             # Performed instruction
             print(f"[GE][DEBUG]:96  instruction complete")  # TODO: Remove, for debugging
-            time.sleep(0.5)  # TODO: Remove, for testing
+            # time.sleep(0.5)  # TODO: Remove, for testing
             self._current_instruction.repeat -= 1
             if self._current_instruction.repeat <= 0:  # Clear finished instruction
                 self._current_instruction = None
+            else:
+                self._step_num = 0  # Reset step count
 
 
     def _clock_tick(self) -> None:

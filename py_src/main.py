@@ -10,15 +10,14 @@ from hardware_abstraction_layer.simulator import Simulator
 from data_structures.controller_input import Button
 
 from data_structures.gait_definition import Gait
-# from control.gaits import TROT
-from control.gaits import *
-# from control.actions import *
+from control.gaits import TROT
+from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
 def main():
-    # gait:Gait = TROT
+    gait:Gait = TROT
 
     # # TODO: Remove, for debugging
     # # print(f"{gait.loop.leg_origins}")
@@ -40,7 +39,7 @@ def main():
     #     # print(f"{gait.transition_out.foot_trajectories[i][-1]}, ", end="")
     #     print(f"{len(gait.transition_out.foot_trajectories[i])}, ", end="")
     # print()
-    return
+    # return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -90,22 +89,22 @@ def main():
             dist  = 1.0  # m
             speed = 0.5  # m/s
 
-            # TODO: For test
-            if not has_performed_test:
-                # engine.perform_action(gait.transition_in, 50)
-                # print(f"[M ]  t_in done")
-                # engine.perform_action(gait.loop, 50)
-                # print(f"[M ]  loop done")
-                engine.perform_action(gait.transition_out, 50)
-                print(f"[M ]  t_out done")
+            # # TODO: For test
+            # if not has_performed_test:
+            #     # engine.perform_action(gait.transition_in, 50)
+            #     # print(f"[M ]  t_in done")
+            #     # engine.perform_action(gait.loop, 50)
+            #     # print(f"[M ]  loop done")
+            #     engine.perform_action(gait.transition_out, 50)
+            #     print(f"[M ]  t_out done")
 
-                has_performed_test = True
+            #     has_performed_test = True
 
-            # engine.move(dist, speed)
-            # try:
-            #     time.sleep(dist / speed)
-            # except KeyboardInterrupt:
-            #     break  # Exit loop
+            engine.move(dist, speed)
+            try:
+                time.sleep(dist / speed)
+            except KeyboardInterrupt:
+                break  # Exit loop
 
 
         # Delay
