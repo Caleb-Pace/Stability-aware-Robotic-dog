@@ -211,10 +211,10 @@ class IK_Solver:
 
         leg_poses = []
         for i in range(LEG_COUNT):
-            print(f"[IK]  leg{i} << {{ p:{leg_points[i]}, o:{leg_origins[i]} }}")  # TODO: Remove, for debugging
+            # print(f"[IK]  leg{i} << {{ p:{leg_points[i]}, o:{leg_origins[i]} }}")  # TODO: Remove, for debugging
             # print(f"[IK]:3  o:{leg_origins[i]}, p:{leg_points[i]}")  # TODO: Remove, for debugging
             leg_poses.append(self._solve_leg(leg_origins[i], leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
-            print(f"[IK]  leg{i} >> {str(leg_poses[i]).replace('np.float64(', '').replace(')', '')}")  # TODO: Remove, for debugging
+            # print(f"[IK]  leg{i} >> {str(leg_poses[i]).replace('np.float64(', '').replace(')', '')}")  # TODO: Remove, for debugging
 
         # TODO: Check for limb collision
 
