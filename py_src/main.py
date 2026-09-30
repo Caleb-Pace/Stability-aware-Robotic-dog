@@ -10,14 +10,15 @@ from hardware_abstraction_layer.simulator import Simulator
 from data_structures.controller_input import Button
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT
-from control.actions import *
+# from control.gaits import TROT
+from control.gaits import *
+# from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
 def main():
-    gait:Gait = TROT
+    # gait:Gait = TROT
 
     # # TODO: Remove, for debugging
     # # print(f"{gait.loop.leg_origins}")
@@ -31,7 +32,15 @@ def main():
     # print(f"foot placements: {len(SIT.foot_trajectories[0])}")
     # print(f"       distance: {SIT.distance_covered}")
     # print(f"        origins: {np.asarray(SIT.leg_origins_by_step).shape}\n{np.asarray(SIT.leg_origins_by_step).transpose(1, 0, 2)[0]}")
-    # return
+    
+    # # TODO: Remove, for debugging
+    # print(f"foot placements: {gait.transition_out.foot_trajectories[-1]}")
+    # print(f"foot placements: ", end="")
+    # for i in range(4):
+    #     # print(f"{gait.transition_out.foot_trajectories[i][-1]}, ", end="")
+    #     print(f"{len(gait.transition_out.foot_trajectories[i])}, ", end="")
+    # print()
+    return
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -83,13 +92,13 @@ def main():
 
             # TODO: For test
             if not has_performed_test:
-                engine.perform_action(gait.transition_in, 50)
-                print(f"[M ]  t_in done")
-                engine.perform_action(gait.loop, 50)
-                print(f"[M ]  loop done")
+                # engine.perform_action(gait.transition_in, 50)
+                # print(f"[M ]  t_in done")
+                # engine.perform_action(gait.loop, 50)
+                # print(f"[M ]  loop done")
                 engine.perform_action(gait.transition_out, 50)
                 print(f"[M ]  t_out done")
-                
+
                 has_performed_test = True
 
             # engine.move(dist, speed)

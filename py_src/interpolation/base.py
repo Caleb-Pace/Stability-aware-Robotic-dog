@@ -69,6 +69,7 @@ class Interpolator(ABC):
 
         # print(f"(Relative) Last time anchor: {t_anchors[-1]} [{control_points[-1][0]}, {control_points[-1][1]}, {control_points[-1][2]}]")  # TODO: Remove, for testing
         t_samples = np.linspace(0, (maximum_time or t_anchors[-1]), node_count)  # Evenly space samples
+        # print(f"[ip]  mt:{maximum_time} vs ta[-1]:{t_anchors[-1]}")  # TODO: Remove, for debugging
     
         # Remove out of range time samples (samples that are not on the curve)
         if maximum_time:
@@ -91,5 +92,6 @@ class Interpolator(ABC):
         # Calculate interpolated points
         for i, t in enumerate(t_samples):
             interpolated_points[i] = self.interpolate_point(t, t_anchors, control_points)
+        # print(f"[ip]  c:{control_points[-1]} ?= i:{interpolated_points[-1]}")  # TODO: Remove, for debugging
 
         return interpolated_points, t_samples

@@ -16,36 +16,49 @@ trot_ctrl_pts = np.array([
     np.array([                                    [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
 ])
 
-TROT = Gait(
-    transition_in  = LegTrajectories(
-        sample_count       = 64,
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
-            np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
-        ], dtype=object)
-    ),
-    transition_out = LegTrajectories(
-        sample_count       = 64, 
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
-        ], dtype=object)
-    ),
-    loop            = LegTrajectories(
-        sample_count       = 192,
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = trot_ctrl_pts
-    )
+LegTrajectories(
+    sample_count       = 64,
+    heights            = np.array([0.3], dtype=float),
+    orientations       = np.array([[0, 0, 0]], dtype=float),
+    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+    leg_control_points = np.array([
+        np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
+    ], dtype=object)
 )
+
+# TROT = Gait(
+#     transition_in  = LegTrajectories(
+#         sample_count       = 64,
+#         heights            = np.array([0.3], dtype=float),
+#         orientations       = np.array([[0, 0, 0]], dtype=float),
+#         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+#         leg_control_points = np.array([
+#             np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
+#             np.array([[0.0, 0.0, 0.0]]),
+#             np.array([[0.0, 0.0, 0.0]]),
+#             np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
+#         ], dtype=object)
+#     ),
+#     transition_out = LegTrajectories(
+#         sample_count       = 64, 
+#         heights            = np.array([0.3], dtype=float),
+#         orientations       = np.array([[0, 0, 0]], dtype=float),
+#         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+#         leg_control_points = np.array([
+#             np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
+#             np.array([[0.0, 0.0, 0.0]]),
+#             np.array([[0.0, 0.0, 0.0]]),
+#             np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
+#         ], dtype=object)
+#     ),
+#     loop            = LegTrajectories(
+#         sample_count       = 192,
+#         heights            = np.array([0.3], dtype=float),
+#         orientations       = np.array([[0, 0, 0]], dtype=float),
+#         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+#         leg_control_points = trot_ctrl_pts
+#     )
+# )

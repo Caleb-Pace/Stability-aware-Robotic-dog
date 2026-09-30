@@ -123,10 +123,11 @@ class LegTrajectories:
         if sample_count == None:
             sample_count = self.steps_in_gait
 
-        if time_cutoff:
-            return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
-        else:
-            return interpolator.compute_interpolated_points(data, sample_count)
+        # TODO: Fix, time horizon calculated incorrectly.
+        #       (est:0.5392074442746817 vs act:0.666432255845269 for transition_in trajectory)
+        # if time_cutoff:
+        #     return interpolator.compute_interpolated_points(data, sample_count, self.parametric_time_horizon)
+        return interpolator.compute_interpolated_points(data, sample_count)
 
     def _apply_orientation(self, points:Point3DList, orientation:EulerAngles) -> npt.NDArray[np.float64]:
         """
