@@ -11,8 +11,9 @@ class JoyStickData(NamedTuple):
 class Button():
     _was_down:bool = False
 
-    def is_held(self, is_down:bool) -> bool:
+    def is_just_pressed(self, is_down:bool) -> bool:
         if is_down and ( not self._was_down ):
+            self._was_down = True
             return True
         elif ( not is_down ) and self._was_down:
             self._was_down = False

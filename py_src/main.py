@@ -46,11 +46,12 @@ def main():
     interrupt_flag = threading.Event()
 
     read_delay_ms = 10
+    read_delay_ms = 100  # TODO: Remove, for debugging
     in_layer:InputLayer = GamepadController()
     a_btn = Button()
 
-    # out_layer:OutputLayer = DummyOutput()
-    out_layer:OutputLayer = Simulator(pid_controllers)
+    out_layer:OutputLayer = DummyOutput()
+    # out_layer:OutputLayer = Simulator(pid_controllers)
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
@@ -68,13 +69,16 @@ def main():
         input_data = in_layer.poll()
 
         # Buttons
-        if a_btn.is_held(input_data.a_btn_down):
-            if is_sitting:
-                engine.perform_action(STAND, 10)
-                print(f"[M ]  Stand action triggered!")
-            else:
-                engine.perform_action(SIT, 10)
-                print(f"[M ]  Sit action triggered!")
+        a_btn_is_pressed = a_btn.is_just_pressed(input_data.a_btn_down)  # TODO: Remove, for debugging
+        print(f"[In]  is_sitting: {is_sitting} | {input_data.a_btn_down} ... {a_btn_is_pressed}")  # TODO: Remove, for debugging
+        # if a_btn.is_held(input_data.a_btn_down):
+        if a_btn_is_pressed:
+            # if is_sitting:
+            #     # engine.perform_action(STAND, 10)
+            #     # print(f"[M ]  Stand action triggered!")
+            # else:
+            #     # engine.perform_action(SIT, 10)
+            #     # print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
 
         # Sticks
