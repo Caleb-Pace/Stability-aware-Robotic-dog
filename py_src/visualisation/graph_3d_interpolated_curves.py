@@ -1,8 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
+from data_structures import Point3DList
+
 import interpolation
 from interpolation import Interpolator
-from data_structures import Point3DList
+
 
 # Show plot
 def show_interpolated_curves(interpolator:Interpolator, alt_interpolator:Interpolator|None = None):

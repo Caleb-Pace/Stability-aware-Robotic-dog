@@ -3,7 +3,9 @@ import numpy as np
 import numpy.typing as npt
 from data_structures.points import Point3D, Point3DList
 from typing import override
+
 from . import Interpolator
+
 
 # TODO: May need to implement in C++ to optimise
 # Phantom points determine the overall tangent of the curve (and thus the tangent of each segment).

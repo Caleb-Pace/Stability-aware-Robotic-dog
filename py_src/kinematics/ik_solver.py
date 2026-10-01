@@ -1,8 +1,11 @@
 import numpy as np
-from data_structures import Point3D, Vector, Point3DList
-from data_structures import AngleLimits, LegPoseList
-from kinematic_controller.gait_definition import LEG_COUNT
+
 from typing import Tuple
+from data_structures import Point3D, Vector, Point3DList
+from data_structures import AngleLimits, TorqueLimits, LegPose, LegPoseList
+
+from data_structures.gait_definition import LEG_COUNT
+
 
 
 # Zero offsets for angles #
@@ -15,26 +18,31 @@ _ANGLE_ZERO_OFFSETS = np.array([
 
 # Leg offsets from body origin #
 #     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
-_LEG_OFFSETS_FROM_BODY_ORIGIN = np.array([
-    [ 0.1934,  0.0465, 0.0],  # FL
+LEG_OFFSETS_FROM_BODY_ORIGIN = np.array([
     [ 0.1934, -0.0465, 0.0],  # FR
-    [-0.1934,  0.0465, 0.0],  # BL
-    [-0.1934, -0.0465, 0.0]   # BR
+    [ 0.1934,  0.0465, 0.0],  # FL
+    [-0.1934, -0.0465, 0.0],  # RR
+    [-0.1934,  0.0465, 0.0]   # RL
 ], dtype=float)
 
 # Link Lengths in meters #
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
 _HIP_OFFSET   = 0.01  # TODO: Placeholder, find real value  # CANNOT BE ZERO
 _THIGH_LENGTH = 0.213
 _CALF_LENGTH  = 0.213
 
 # Rotation limits (min, max) in Radians #
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
 _HIP_ABDUCTOR_ROT_RANGE = AngleLimits(-1.0472,  1.0472)   # approx. -60  to  60  deg
 _FRONT_HIP_ROT_RANGE    = AngleLimits(-1.5708,  3.4907)   # approx. -90  to  200 deg
 _BACK_HIP_ROT_RANGE     = AngleLimits(-0.5236,  4.5379)   # approx. -30  to  260 deg
 _KNEE_ROT_RANGE         = AngleLimits(-2.7227, -0.83776)  # approx. -155 to -48  deg
 
 # Output torque limits in Newton-meters #
-_KNEE_TORQUE_LIMIT = (-45.43, 45.43)
+#     Extracted from https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml
+_HIP_ABDUCTOR_TORQUE_LIMIT = TorqueLimits(-23.7, 23.7)  # Nm
+_HIP_TORQUE_LIMIT          = _HIP_ABDUCTOR_TORQUE_LIMIT  # Nm
+_KNEE_TORQUE_LIMIT         = TorqueLimits(-45.43, 45.43)  # Nm
 
 # Accuracy #
 #     based on input point accuracy
@@ -44,9 +52,6 @@ _ANGLE_ACCURACY = 5  # d.p. of radian
 # Reachability limits #
 _MAX_RANGE_LENGTH = np.sqrt(np.square(_THIGH_LENGTH) + np.square(_CALF_LENGTH) - (2 * _THIGH_LENGTH * _CALF_LENGTH * np.cos(np.pi - _KNEE_ROT_RANGE[1])))
 _MAX_RANGE_LENGTH = np.round(_MAX_RANGE_LENGTH, _INPUT_ACCURACY)
-
-
-type LegPose = Tuple[float, float, float]  # Angles (abd, hip, knee)
 
 
 def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
@@ -80,6 +85,7 @@ class IK_Solver:
         pass
 
     def _solve_internal(self, leg_origin:Point3D, point:Point3D) -> None|LegPose:
+        # print(f"[IK]:1  o:{leg_origin}, p:{point}")  # TODO: Remove, for debugging
         delta_point = point - leg_origin
 
         # Breadth plane
@@ -155,6 +161,7 @@ class IK_Solver:
 
     def _solve_leg(self, leg_origin:Point3D, point:Point3D, is_front_leg:bool) -> None|LegPose:
         # Solve angles
+        # print(f"[IK]:2  o:{leg_origin}, p:{point}")  # TODO: Remove, for debugging
         result = self._solve_internal(leg_origin, point)
         if result is None:
             return None
@@ -191,19 +198,23 @@ class IK_Solver:
 
         return result
 
-    def solve(self, leg_points:Point3DList) -> LegPoseList:
+    # TODO: Handle different point counts per leg
+    def solve(self, leg_points:Point3DList, leg_origins:Point3DList) -> LegPoseList:
         if len(leg_points) > LEG_COUNT:
             raise IndexError(f"Too many leg points! ({len(leg_points)} == {LEG_COUNT})")
         if len(leg_points) < LEG_COUNT:
             raise IndexError(f"Not enough leg points! ({len(leg_points)} == {LEG_COUNT})")
+        if len(leg_origins) > LEG_COUNT:
+            raise IndexError(f"Too many leg origins! ({len(leg_origins)} == {LEG_COUNT})")
+        if len(leg_origins) < LEG_COUNT:
+            raise IndexError(f"Not enough leg origins! ({len(leg_origins)} == {LEG_COUNT})")
 
-        common_origin:Point3D = np.array([0, 0, 0], dtype=np.float64)
-
-        pose_accumulator = []
+        leg_poses = []
         for i in range(LEG_COUNT):
-            pose_accumulator.append(self._solve_leg(common_origin, leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
-
-        leg_poses: LegPoseList = np.array(pose_accumulator, dtype=np.float64)
+            # print(f"[IK]  leg{i} << {{ p:{leg_points[i]}, o:{leg_origins[i]} }}")  # TODO: Remove, for debugging
+            # print(f"[IK]:3  o:{leg_origins[i]}, p:{leg_points[i]}")  # TODO: Remove, for debugging
+            leg_poses.append(self._solve_leg(leg_origins[i], leg_points[i], (i < (LEG_COUNT // 2))))  # First half are front legs
+            # print(f"[IK]  leg{i} >> {str(leg_poses[i]).replace('np.float64(', '').replace(')', '')}")  # TODO: Remove, for debugging
 
         # TODO: Check for limb collision
 

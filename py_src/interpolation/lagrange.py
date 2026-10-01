@@ -2,6 +2,7 @@ import numpy as np
 import numpy.typing as npt
 from data_structures.points import Point3D, Point3DList
 from typing import override
+
 from . import Interpolator
 
 class Lagrange(Interpolator):
