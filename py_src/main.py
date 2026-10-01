@@ -46,12 +46,13 @@ def main():
     interrupt_flag = threading.Event()
 
     read_delay_ms = 10
-    read_delay_ms = 100  # TODO: Remove, for debugging
     in_layer:InputLayer = GamepadController()
     a_btn = Button()
+    y_btn = Button()
+    b_btn = Button()
 
-    out_layer:OutputLayer = DummyOutput()
-    # out_layer:OutputLayer = Simulator(pid_controllers)
+    # out_layer:OutputLayer = DummyOutput()
+    out_layer:OutputLayer = Simulator(pid_controllers)
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
@@ -62,6 +63,7 @@ def main():
 
     # State 
     is_sitting:bool = False
+    bearing:float   = 0.0
     has_performed_test:bool = False
 
     print("[M ]  Input loop started!")
@@ -69,23 +71,27 @@ def main():
         input_data = in_layer.poll()
 
         # Buttons
-        a_btn_is_pressed = a_btn.is_just_pressed(input_data.a_btn_down)  # TODO: Remove, for debugging
-        print(f"[In]  is_sitting: {is_sitting} | {input_data.a_btn_down} ... {a_btn_is_pressed}")  # TODO: Remove, for debugging
-        # if a_btn.is_held(input_data.a_btn_down):
-        if a_btn_is_pressed:
-            # if is_sitting:
-            #     # engine.perform_action(STAND, 10)
-            #     # print(f"[M ]  Stand action triggered!")
-            # else:
-            #     # engine.perform_action(SIT, 10)
-            #     # print(f"[M ]  Sit action triggered!")
+        if a_btn.is_just_pressed(input_data.a_btn_down):
+            if is_sitting:
+                engine.perform_action(STAND, 10)
+                print(f"[M ]  Stand action triggered!")
+            else:
+                engine.perform_action(SIT, 10)
+                print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
+
+        if b_btn.is_just_pressed(input_data.b_btn_down):
+            engine.perform_action(TURN_RIGHT, 10)
+
+        if y_btn.is_just_pressed(input_data.y_btn_down):
+            engine.perform_action(TWISTING_TEST, 25)
+            print(f"[M ]  Twisting test triggered!")
 
         # Sticks
         movement_stick_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y)
         rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = movement_stick_sum > 0.2  # 0
-        if has_input:
+        if movement_stick_sum > 0.2:
             # print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
             # engine.input(input_data, 1)
             print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
@@ -109,6 +115,26 @@ def main():
                 time.sleep(dist / speed)
             except KeyboardInterrupt:
                 break  # Exit loop
+
+        if rotation_stick_sum > 0.2:  # 0
+            sensitivity = 5 # TODO: Move
+            # print(f"[M ]      R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
+            
+            delta_x  = input_data.right_stick.delta_x
+            yaw      = delta_x * sensitivity
+            
+            bearing += yaw
+            if bearing >= 360 or bearing < 0:
+                bearing = bearing % 360
+            print(f"Bearing: {round(bearing, 2)}")
+
+            # # Currently unused
+            # delta_y = input_data.right_stick.delta_y
+            # pitch   = delta_y * sensitivity
+
+            # if not has_performed_test:
+            #     has_performed_test = True
+            #     engine.rotate(bearing)
 
 
         # Delay

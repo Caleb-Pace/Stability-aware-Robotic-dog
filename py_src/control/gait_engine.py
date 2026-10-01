@@ -1,5 +1,6 @@
 import time
 import threading
+import math
 import numpy as np
 
 from data_structures import Position
@@ -34,8 +35,10 @@ class GaitEngine:
     _instruction_queue = Queue()
     _current_instruction:Instruction|None = None
     # _current_pose =  # Stores current position of all end-effectors
-    
+    _clock_interval_ms:float = 5
+
     gait:Gait
+    _current_bearing:float = 0.0
 
 
     def __init__(self, gait:Gait, output:OutputLayer):
@@ -55,7 +58,7 @@ class GaitEngine:
         trajectory = self._current_instruction.trajectory
 
         # Retrieve position
-        print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
+        # print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
         hip_origins         = trajectory.leg_origins_by_step[self._step_num]
         foot_positions      = step(trajectory, self._step_num)
         # Calculate motor angles
@@ -81,6 +84,9 @@ class GaitEngine:
             # New instruction
             self._current_instruction = self._instruction_queue.get()
             self._step_num            = 0
+            #     Adjust clock time interval (for speed)
+            if self._current_instruction:
+                self._clock_interval_ms = self._current_instruction.step_interval_ms
 
         # Work instruction
         self._send_position()
@@ -116,11 +122,13 @@ class GaitEngine:
         # combine PID and step results
 
     def clock_start(self, interval_ms:float, interrupt:threading.Event) -> None:
+        self._clock_interval_ms = interval_ms
+
         while not interrupt.is_set():
             self._clock_tick()
 
             try:
-                time.sleep(interval_ms / 1000)
+                time.sleep(self._clock_interval_ms / 1000)
             except KeyboardInterrupt:
                 pass
 
@@ -159,6 +167,27 @@ class GaitEngine:
 
         print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval_ms}ms)")  # TODO: Remove, for debugging
         return (step_interval_ms, cycles)
+    
+    def rotate(self, bearing:float):  # TODO: Note, potentially could add speed parameter.
+        yaw_change = bearing - self._current_bearing
+
+        sample_count:int = math.ceil(  abs(yaw_change) * 5 )  # Scale step count
+        rotation = LegTrajectories(
+            sample_count       = sample_count,
+            heights            = np.array([0.3], dtype=float),
+            orientations       = np.array([  # orientation: [roll, pitch, yaw] in radians
+                [0, 0, 0]#, [0, 0, yaw_change]
+            ], dtype=float),
+            leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+            leg_control_points = np.array([
+                np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+                np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+                np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+                np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+            ], dtype=object)
+        )
+
+        self._instruction_queue.put( Instruction(rotation) )
 
     def move(self, distance:float, speed:float):
         step_interval_ms, repeat_loop = self._calculate_move_distance_data(distance, speed)
@@ -174,8 +203,7 @@ class GaitEngine:
         pass
     def move2(self, distance_x:float, distance_y:float, speed:float):
         pass
-    def rotate(self, bearing:float):  # TODO: Note, potentially could add speed parameter.
-        pass
+
 
 
 
