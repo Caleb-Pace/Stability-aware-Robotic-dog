@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import queue
+from pathlib import Path
 import numpy as np
 
 import mujoco
@@ -16,7 +17,10 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 from control.pid import PIDController
 
 
-SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
+SCENE_PATH = Path(os.environ.get(
+    "UNITREE_MUJOCO_SCENE",
+    "~/unitree_mujoco/unitree_robots/go2/scene.xml",
+)).expanduser()
 
 # MuJoCo Indexes
 #     from: https://github.com/maanas444/go2-simulation/blob/main/unitreego2/main.py#L18
@@ -29,6 +33,18 @@ QVEL_INDEXES = np.array([[9, 10, 11], [6, 7, 8], [15, 16, 17], [12, 13, 14]]).fl
 # CTRL_IDX = slice(0, 12)    # 0 to 11
 # QPOS_IDX = slice(7, 19)    # 7 to 18
 # QVEL_IDX = slice(6, 18)    # 6 to 17
+
+
+class _SimulatorIMU:
+    def __init__(self, accelerometer, gyroscope):
+        self.accelerometer = np.asarray(accelerometer, dtype=np.float64)
+        self.gyroscope = np.asarray(gyroscope, dtype=np.float64)
+
+
+class _SimulatorLowState:
+    def __init__(self, accelerometer, gyroscope, foot_force):
+        self.imu_state = _SimulatorIMU(accelerometer, gyroscope)
+        self.foot_force = np.asarray(foot_force, dtype=np.float64)
 
 class Simulator(OutputLayer):
     _REAL_LAY_DOWN = {
@@ -43,11 +59,35 @@ class Simulator(OutputLayer):
         "RR": ( 0.085,  0.660, -1.353),
         "RL": (-0.082,  0.658, -1.351),
     } # from: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_IK.py#L244
+    _FOOT_NAMES = ("FL", "FR", "RL", "RR")
 
     def __init__(self, pids:list[PIDController]):
         self._position_queue:queue.Queue[Position] = queue.Queue()
+        self._state_lock = threading.Lock()
+        self._low_state = _SimulatorLowState(
+            accelerometer=(0.0, 0.0, 9.81),
+            gyroscope=(0.0, 0.0, 0.0),
+            foot_force=(0.0, 0.0, 0.0, 0.0),
+        )
 
         self.pids = pids
+
+    def _update_low_state(self, data, foot_geom_ids:dict[str, int]):
+        contacts = np.zeros(4, dtype=np.float64)
+        for contact_index in range(data.ncon):
+            contact = data.contact[contact_index]
+            for foot_index, foot_name in enumerate(self._FOOT_NAMES):
+                foot_geom_id = foot_geom_ids[foot_name]
+                if foot_geom_id in (contact.geom1, contact.geom2):
+                    contacts[foot_index] = 100.0
+
+        low_state = _SimulatorLowState(
+            accelerometer=data.sensor("imu_acc").data.copy(),
+            gyroscope=data.sensor("imu_gyro").data.copy(),
+            foot_force=contacts,
+        )
+        with self._state_lock:
+            self._low_state = low_state
 
     def _set_pose(self, data, pose, z_height:float):
         data.qpos[:] = 0.0  # Reset positions
@@ -63,7 +103,14 @@ class Simulator(OutputLayer):
 
     # TODO: Fix dog not responding
     def _run(self, interrupt:threading.Event):
-        model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
+        if not SCENE_PATH.is_file():
+            raise FileNotFoundError(
+                f"MuJoCo scene not found: {SCENE_PATH}\n"
+                "Clone unitree_mujoco or set UNITREE_MUJOCO_SCENE to the Go2 "
+                "scene.xml path."
+            )
+
+        model = mujoco.MjModel.from_xml_path(str(SCENE_PATH))                      # pyright: ignore[reportAttributeAccessIssue]
         data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
 
         # Timestep
@@ -74,6 +121,11 @@ class Simulator(OutputLayer):
         initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
         self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
+        foot_geom_ids = {
+            foot_name: mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, foot_name)
+            for foot_name in self._FOOT_NAMES
+        }
+        self._update_low_state(data, foot_geom_ids)
 
         # Persist angle targets
         target_angles = initial_pose
@@ -148,6 +200,7 @@ class Simulator(OutputLayer):
                     #     print(f"[S2]    t_ag: {target_angles}")
 
                     mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
+                    self._update_low_state(data, foot_geom_ids)
                     sim_time += DT
 
                 viewer.sync()  # Render
@@ -160,7 +213,12 @@ class Simulator(OutputLayer):
         self._position_queue.put(position)
 
     def get_low_state(self):
-        pass
+        with self._state_lock:
+            return _SimulatorLowState(
+                accelerometer=self._low_state.imu_state.accelerometer.copy(),
+                gyroscope=self._low_state.imu_state.gyroscope.copy(),
+                foot_force=self._low_state.foot_force.copy(),
+            )
 
 
     # TODO: Later, dynamics model
