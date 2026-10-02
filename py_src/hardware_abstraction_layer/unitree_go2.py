@@ -1,10 +1,9 @@
 import threading
 
-# from data_structures import Position, LegPoseList
+from data_structures import Position
 from hardware_abstraction_layer import OutputLayer
 
 try:
-
     from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
     from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowCmd_, LowState_
     from unitree_sdk2py.utils.crc import CRC
@@ -12,6 +11,7 @@ try:
     UNITREE_SDK_AVAILABLE = True
 
 
+    # TODO: Identify how PID is meant to be used here
     class UnitreeGo2(OutputLayer):
         def __init__(self, network_interface:str = "lo"):  # Default to loopback interface (run locally)
             self.interface = network_interface
