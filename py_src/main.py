@@ -4,10 +4,10 @@ import threading
 import numpy as np
 from datetime import datetime
 
+from data_structures.controller_input import Button
 from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
-from data_structures.controller_input import Button
 
 from data_structures.gait_definition import Gait
 from control.gaits import TROT
@@ -31,8 +31,15 @@ def main():
     b_btn = Button()
 
     # Output Interface
-    # out_layer:OutputLayer = DummyOutput()
-    out_layer:OutputLayer = Simulator(pid_controllers)
+    #     Select output layer (Default to Robot)
+    from hardware_abstraction_layer.unitree_go2 import UNITREE_SDK_AVAILABLE
+    if UNITREE_SDK_AVAILABLE:
+        from hardware_abstraction_layer.unitree_go2 import UnitreeGo2
+        out_layer:OutputLayer = UnitreeGo2()
+    else:
+        # out_layer:OutputLayer = DummyOutput()
+        out_layer:OutputLayer = Simulator(pid_controllers)
+    #     Start output layer on separate thread
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
