@@ -1,3 +1,6 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # Silence hello from pygame
+
 from typing import NamedTuple
 from pygame.joystick import JoystickType
 
