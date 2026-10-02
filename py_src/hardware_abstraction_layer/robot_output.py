@@ -50,7 +50,8 @@ class UnitreeGo2Output(OutputLayer):
         self._lock = threading.Lock()
 
     def _state_callback(self, msg: Any):
-        self.low_state = msg
+        with self._lock:
+            self.low_state = msg
 
     def _publish_action(self, action: Action):
         if not self._connected or self.cmd_pub is None or self.low_cmd is None:
@@ -109,4 +110,5 @@ class UnitreeGo2Output(OutputLayer):
         self._publish_action(action)
 
     def get_low_state(self):
-        return self.low_state
+        with self._lock:
+            return self.low_state

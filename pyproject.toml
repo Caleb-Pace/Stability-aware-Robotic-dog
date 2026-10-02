@@ -17,6 +17,7 @@ dependencies = [
 packages = [
     "py_src/control",
     "py_src/data_structures",
+    "py_src/EKF",
     "py_src/hardware_abstraction_layer",
     "py_src/interpolation",
     "py_src/kinematics"
@@ -26,3 +27,4 @@ packages = [
 run-dog   = "main:main"
 visualise = "visualisation.main:main"
 test-ik   = "visualisation.graph_angle:main"
+run-recovery = "EKF.go2_highcmd_recovery_node:main"

@@ -3,7 +3,11 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from py_src.state_estimator import StabilityEKF, StabilitySensorSample
+from py_src.EKF.stability_ekf import (
+    StabilitySensorSample,
+    StabilityState,
+    UnitreeGo2StabilityEKF,
+)
 
 
 class StabilityEKFTests(unittest.TestCase):
@@ -15,29 +19,30 @@ class StabilityEKFTests(unittest.TestCase):
         )
 
     def test_stationary_robot_is_stable(self):
-        estimator = StabilityEKF(dt=0.005)
+        estimator = UnitreeGo2StabilityEKF(dt=0.005)
 
         estimate = None
         for _ in range(100):
             estimate = estimator.step(self.stationary_sample())
 
         self.assertIsNotNone(estimate)
-        self.assertTrue(estimate.stable)
+        self.assertEqual(estimate.status, StabilityState.STABLE)
         self.assertAlmostEqual(estimate.roll, 0.0, places=5)
         self.assertAlmostEqual(estimate.pitch, 0.0, places=5)
-        np.testing.assert_allclose(estimate.horizontal_velocity, np.zeros(2), atol=1e-5)
+        np.testing.assert_allclose(estimate.velocity, np.zeros(3), atol=1e-5)
 
     def test_contact_update_removes_velocity_drift(self):
-        estimator = StabilityEKF(dt=0.01)
+        estimator = UnitreeGo2StabilityEKF(dt=0.01)
         estimator.x[2:5] = [1.0, -0.5, 0.25]
 
         estimate = estimator.step(self.stationary_sample())
 
-        self.assertLess(np.linalg.norm(estimate.horizontal_velocity), 0.1)
+        initial_velocity_norm = np.linalg.norm([1.0, -0.5, 0.25])
+        self.assertLess(np.linalg.norm(estimate.velocity), initial_velocity_norm)
         self.assertEqual(estimate.contact_count, 4)
 
     def test_tilted_gravity_is_observed(self):
-        estimator = StabilityEKF(dt=0.01)
+        estimator = UnitreeGo2StabilityEKF(dt=0.01)
         roll = np.deg2rad(10.0)
         accelerometer = estimator._rotation_world_from_body(roll, 0.0).T @ np.array([0.0, 0.0, 9.81])
         sample = StabilitySensorSample(accelerometer, np.zeros(3), np.ones(4, dtype=bool))
@@ -48,7 +53,7 @@ class StabilityEKFTests(unittest.TestCase):
         self.assertAlmostEqual(estimate.roll, roll, delta=np.deg2rad(1.0))
 
     def test_low_state_adapter_reads_imu_and_contacts(self):
-        estimator = StabilityEKF(dt=0.01)
+        estimator = UnitreeGo2StabilityEKF(dt=0.01)
         low_state = SimpleNamespace(
             imu_state=SimpleNamespace(
                 accelerometer=np.array([0.0, 0.0, 9.81]),
@@ -60,7 +65,7 @@ class StabilityEKFTests(unittest.TestCase):
         estimate = estimator.step_low_state(low_state)
 
         self.assertEqual(estimate.contact_count, 2)
-        self.assertTrue(estimate.stable)
+        self.assertEqual(estimate.status, StabilityState.STABLE)
 
 
 if __name__ == "__main__":

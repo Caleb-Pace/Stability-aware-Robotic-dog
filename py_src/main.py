@@ -14,6 +14,7 @@ from data_structures.gait_definition import Gait
 from control.gaits import TROT
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
+from EKF.stability_ekf import UnitreeGo2StabilityEKF
 
 
 def _parse_args():
@@ -29,6 +30,11 @@ def _parse_args():
         default=os.getenv("DOG_NETWORK_INTERFACE", "eth0"),
         help="Network interface used by the robot backend",
     )
+    parser.add_argument(
+        "--estimate-state",
+        action="store_true",
+        help="Run the IMU/contact EKF and print the walking state estimate",
+    )
     return parser.parse_args()
 
 
@@ -43,6 +49,7 @@ def main():
 
     in_layer:InputLayer = GamepadController()
     read_delay_ms = 100
+    state_estimator = UnitreeGo2StabilityEKF(dt=read_delay_ms / 1000) if args.estimate_state else None
 
     if args.backend == "dummy":
         out_layer:OutputLayer = DummyOutput()
@@ -60,6 +67,8 @@ def main():
     clock_thread.start()
 
     a_btn_down_prev:bool = False
+    last_estimator_time = time.monotonic()
+    last_estimate_print = last_estimator_time
 
     print("[M ]  Input loop started!")
     while True:
@@ -75,6 +84,22 @@ def main():
             print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
             # engine.input(input_data, 1)
+
+        if state_estimator is not None:
+            now = time.monotonic()
+            state_estimator.dt = min(max(now - last_estimator_time, 1e-4), 0.25)
+            last_estimator_time = now
+            estimate = state_estimator.step_low_state(out_layer.get_low_state())
+            if now - last_estimate_print >= 0.5:
+                print(
+                    f"[EKF] roll={np.degrees(estimate.roll):6.2f} deg  "
+                    f"pitch={np.degrees(estimate.pitch):6.2f} deg  "
+                    f"velocity=({estimate.velocity[0]:5.2f}, "
+                    f"{estimate.velocity[1]:5.2f}, "
+                    f"{estimate.velocity[2]:5.2f}) m/s  "
+                    f"contacts={estimate.contact_count} status={estimate.status.name}"
+                )
+                last_estimate_print = now
 
         try:
             time.sleep(read_delay_ms / 1000)
