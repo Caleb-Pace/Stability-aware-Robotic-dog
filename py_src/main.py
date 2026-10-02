@@ -5,7 +5,9 @@ import numpy as np
 from datetime import datetime
 
 from data_structures.controller_input import Button
-from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
+from hardware_abstraction_layer import InputLayer, OutputLayer
+from hardware_abstraction_layer.gamepad_controller import GamepadController
+from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
@@ -23,18 +25,23 @@ def main():
 
     interrupt_flag = threading.Event()
 
-    # Controller
+    # Controller - Input Interface
     read_delay_ms = 10
-    in_layer:InputLayer = GamepadController()
+    #     Select output layer (Default to Robot controller)
+    if UNITREE_SDK_AVAILABLE:
+        from hardware_abstraction_layer.unitree_controller import UnitreeController
+        in_layer:InputLayer = UnitreeController()
+    else:
+        in_layer:InputLayer = GamepadController()
+    #     Setup button state holders
     a_btn = Button()
     y_btn = Button()
     b_btn = Button()
 
     # Output Interface
     #     Select output layer (Default to Robot)
-    from hardware_abstraction_layer.unitree_go2 import UNITREE_SDK_AVAILABLE
     if UNITREE_SDK_AVAILABLE:
-        from hardware_abstraction_layer.unitree_go2 import UnitreeGo2
+        from hardware_abstraction_layer.unitree_go2_out import UnitreeGo2
         out_layer:OutputLayer = UnitreeGo2()
     else:
         # out_layer:OutputLayer = DummyOutput()
