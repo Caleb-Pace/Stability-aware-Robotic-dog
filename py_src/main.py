@@ -4,10 +4,12 @@ import threading
 import numpy as np
 from datetime import datetime
 
-from hardware_abstraction_layer import InputLayer, GamepadController, OutputLayer
+from data_structures.controller_input import Button
+from hardware_abstraction_layer import InputLayer, OutputLayer
+from hardware_abstraction_layer.gamepad_controller import GamepadController
+from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
-from data_structures.controller_input import Button
 
 from data_structures.gait_definition import Gait
 from control.gaits import TROT
@@ -19,49 +21,42 @@ from control.pid import PIDController, get_pid_controllers
 def main():
     gait:Gait = TROT
 
-    # # TODO: Remove, for debugging
-    # # print(f"{gait.loop.leg_origins}")
-    # print(f"shape: {np.asarray(gait.loop.leg_origins).shape}")
-    # print(f"Distance covered by loop: {gait.transition_in.distance_covered}m")
-    # print(f"Distance covered by t_in: {gait.loop.distance_covered}m")
-    # print(f"Distance covered by t_ou: {gait.transition_out.distance_covered}m")
-    
-    # # TODO: Remove, for debugging
-    # print(f"    steps_count: {SIT.steps_in_gait}")
-    # print(f"foot placements: {len(SIT.foot_trajectories[0])}")
-    # print(f"       distance: {SIT.distance_covered}")
-    # print(f"        origins: {np.asarray(SIT.leg_origins_by_step).shape}\n{np.asarray(SIT.leg_origins_by_step).transpose(1, 0, 2)[0]}")
-    
-    # # TODO: Remove, for debugging
-    # print(f"foot placements: {gait.transition_out.foot_trajectories[-1]}")
-    # print(f"foot placements: ", end="")
-    # for i in range(4):
-    #     # print(f"{gait.transition_out.foot_trajectories[i][-1]}, ", end="")
-    #     print(f"{len(gait.transition_out.foot_trajectories[i])}, ", end="")
-    # print()
-    # return
-
     pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
 
+    # Controller - Input Interface
     read_delay_ms = 10
-    in_layer:InputLayer = GamepadController()
+    #     Select output layer (Default to Robot controller)
+    if UNITREE_SDK_AVAILABLE:
+        from hardware_abstraction_layer.unitree_controller import UnitreeController
+        in_layer:InputLayer = UnitreeController()
+    else:
+        in_layer:InputLayer = GamepadController()
+    #     Setup button state holders
     a_btn = Button()
     y_btn = Button()
     b_btn = Button()
 
-    # out_layer:OutputLayer = DummyOutput()
-    out_layer:OutputLayer = Simulator(pid_controllers)
+    # Output Interface
+    #     Select output layer (Default to Robot)
+    if UNITREE_SDK_AVAILABLE:
+        from hardware_abstraction_layer.unitree_go2_out import UnitreeGo2
+        out_layer:OutputLayer = UnitreeGo2()
+    else:
+        # out_layer:OutputLayer = DummyOutput()
+        out_layer:OutputLayer = Simulator(pid_controllers)
+    #     Start output layer on separate thread
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
+    # Gait Engine & Clock
     engine = GaitEngine(gait, out_layer)
     clock_interval_ms = read_delay_ms
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
-    # State 
+    # State
     is_sitting:bool = False
     bearing:float   = 0.0
     has_performed_test:bool = False
@@ -82,6 +77,7 @@ def main():
 
         if b_btn.is_just_pressed(input_data.b_btn_down):
             engine.perform_action(TURN_RIGHT, 10)
+            print(f"[M ]  Turning test triggered!")
 
         if y_btn.is_just_pressed(input_data.y_btn_down):
             engine.perform_action(TWISTING_TEST, 25)
@@ -142,8 +138,8 @@ def main():
             time.sleep(read_delay_ms / 1000)
         except KeyboardInterrupt:
             break  # Exit loop
-    print("[M ]  Input loop finished!")
 
+    print("[M ]  Input loop finished!")
     interrupt_flag.set()  # Stop the clock thread
 
 
