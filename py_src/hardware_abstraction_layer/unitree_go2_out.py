@@ -6,6 +6,7 @@ from hardware_abstraction_layer import OutputLayer
 try:
     from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
     from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowCmd_, LowState_
+    from unitree_sdk2py.idl.default import unitree_go_msg_dds__LowCmd_
     from unitree_sdk2py.utils.crc import CRC
 
     UNITREE_SDK_AVAILABLE = True
@@ -15,7 +16,7 @@ try:
     class UnitreeGo2(OutputLayer):
         def __init__(self, network_interface:str = "lo"):  # Default to loopback interface (run locally)
             self.interface = network_interface
-            self.low_cmd = LowCmd_()
+            self.low_cmd = unitree_go_msg_dds__LowCmd_()
             self.low_state = LowState_()
             self.cmd_pub = None
             self.state_sub = None
