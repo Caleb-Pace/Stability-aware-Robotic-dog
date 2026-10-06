@@ -2,7 +2,7 @@ from data_structures.controller_input import ControllerData, JoyStickData, apply
 from hardware_abstraction_layer.input_layer import InputLayer
 
 try:
-    from unitree_sdk2py.core.channel import ChannelSubscriber
+    from unitree_sdk2py.core.channel import ChannelFactoryInitialize, ChannelSubscriber
     from unitree_sdk2py.idl.unitree_go.msg.dds_ import WirelessController_
 
 
@@ -37,6 +37,8 @@ try:
             Initializes subscriber for Unitree remote controller topics.
             """
             self.latest_msg = None
+
+            ChannelFactoryInitialize(0, network_interface)
 
             # Subscribe to lowstate / wireless remote DDS topic
             self.subscriber = ChannelSubscriber(topic_name, WirelessController_)
