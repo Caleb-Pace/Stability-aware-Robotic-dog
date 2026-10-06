@@ -1,9 +1,11 @@
+import struct
+
 from data_structures.controller_input import ControllerData, JoyStickData, apply_deadzone
 from hardware_abstraction_layer.input_layer import InputLayer
 
 try:
     from unitree_sdk2py.core.channel import ChannelFactoryInitialize, ChannelSubscriber
-    from unitree_sdk2py.idl.unitree_go.msg.dds_ import WirelessController_
+    from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_
 
 
     class UnitreeController(InputLayer):
@@ -32,62 +34,45 @@ try:
             'dpad_left':  1 << 15,
         }
 
-        def __init__(self, network_interface: str = "eth0", topic_name: str = "rt/wirelessremote"):
+        def __init__(self, network_interface: str = "eth0", topic_name: str = "rt/lowstate"):
             """
             Initializes subscriber for Unitree remote controller topics.
             """
-            self.latest_msg = None
+            self.latest = None  # (lx, ly, rx, ry, keys)
 
             ChannelFactoryInitialize(0, network_interface)
 
             # Subscribe to lowstate / wireless remote DDS topic
-            self.subscriber = ChannelSubscriber(topic_name, WirelessController_)
+            self.subscriber = ChannelSubscriber(topic_name, LowState_)
             self.subscriber.Init(self._message_handler, 10)
 
             print(f"Using Unitree controller on '{network_interface}'")
 
 
-        def _message_handler(self, msg: WirelessController_):
-            print("got:", msg.lx, msg.ly, msg.rx, msg.ry, msg.keys)
-            self.latest_msg = msg
+        def _message_handler(self, msg: LowState_):
+            data = bytes(msg.wireless_remote)
+            keys = struct.unpack_from("<H", data, 2)[0]
+            lx, rx, ry = struct.unpack_from("<fff", data, 4)
+            ly = struct.unpack_from("<f", data, 20)[0]
+            self.latest = (lx, ly, rx, ry, keys)
 
         def poll(self) -> ControllerData:
             """
             Polls latest remote status and returns normalized ControllerData.
             """
-            if self.latest_msg is None:
-                return ControllerData(
-                    left_stick=JoyStickData(delta_x=0.0, delta_y=0.0),
-                    right_stick=JoyStickData(delta_x=0.0, delta_y=0.0),
-                    a_btn_down=False,
-                    b_btn_down=False,
-                    x_btn_down=False,
-                    y_btn_down=False,
-                )
-
-            lx = apply_deadzone(float(getattr(self.latest_msg, 'lx', 0.0)))
-            ly = apply_deadzone(float(getattr(self.latest_msg, 'ly', 0.0)))
-            rx = apply_deadzone(float(getattr(self.latest_msg, 'rx', 0.0)))
-            ry = apply_deadzone(float(getattr(self.latest_msg, 'ry', 0.0)))
-            keys = int(getattr(self.latest_msg, 'keys', 0))
-
-            # Map joystick axes into JoyStickData structures
-            left_stick = JoyStickData(delta_x=lx, delta_y=ly)
-            right_stick = JoyStickData(delta_x=rx, delta_y=ry)
-
-            # Extract button states using bitmasks
-            a_btn_down = bool(keys & self.BUTTON_MASKS['A'])
-            b_btn_down = bool(keys & self.BUTTON_MASKS['B'])
-            x_btn_down = bool(keys & self.BUTTON_MASKS['X'])
-            y_btn_down = bool(keys & self.BUTTON_MASKS['Y'])
+            if self.latest is None:
+                lx = ly = rx = ry = 0.0
+                keys = 0
+            else:
+                lx, ly, rx, ry, keys = self.latest
 
             return ControllerData(
-                left_stick=left_stick,
-                right_stick=right_stick,
-                a_btn_down=a_btn_down,
-                b_btn_down=b_btn_down,
-                x_btn_down=x_btn_down,
-                y_btn_down=y_btn_down,
+                left_stick=JoyStickData(delta_x=apply_deadzone(lx), delta_y=apply_deadzone(ly)),
+                right_stick=JoyStickData(delta_x=apply_deadzone(rx), delta_y=apply_deadzone(ry)),
+                a_btn_down=bool(keys & self.BUTTON_MASKS['A']),
+                b_btn_down=bool(keys & self.BUTTON_MASKS['B']),
+                x_btn_down=bool(keys & self.BUTTON_MASKS['X']),
+                y_btn_down=bool(keys & self.BUTTON_MASKS['Y']),
             )
 
 except ImportError:
