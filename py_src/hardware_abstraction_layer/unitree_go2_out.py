@@ -53,14 +53,22 @@ try:
             return self.low_state
 
         def send_position(self, position:Position):
+            # Set protocol framing and control level flags
+            self.low_cmd.head[0] = 0xFE
+            self.low_cmd.head[1] = 0xEF
+            self.low_cmd.level_flag = 0xFF
+            self.low_cmd.gpio = 0
+
             for i in range(12):
                 m = self.low_cmd.motor_cmd[i]
+                m.mode = 0x01  # Enable motor control mode (0x01 = Servo mode)
                 m.q = position.target_angles[i]
                 m.dq = 0.0
                 m.kp = 60.0 # Standard Go2 Stance Gain
                 m.kd = 3.5
                 m.tau = position.feedforward_torques[i]
 
+            # Calculate CRC on the populated command structure
             self.low_cmd.crc = CRC().Crc(self.low_cmd)
             self.cmd_pub.Write(self.low_cmd)
 
