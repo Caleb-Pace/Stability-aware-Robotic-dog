@@ -14,7 +14,7 @@ try:
 
     # TODO: Identify how PID is meant to be used here
     class UnitreeGo2(OutputLayer):
-        def __init__(self, network_interface:str = "lo"):  # Default to loopback interface (run locally)
+        def __init__(self, network_interface:str = "eth0"):  # Default to loopback interface (run locally)
             self.interface = network_interface
             self.low_cmd = unitree_go_msg_dds__LowCmd_()
             self.low_state = LowState_()
