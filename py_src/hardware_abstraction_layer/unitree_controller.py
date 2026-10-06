@@ -32,7 +32,7 @@ try:
             'dpad_left':  1 << 15,
         }
 
-        def __init__(self, network_interface: str = "lo", topic_name: str = "rt/wirelessremote"):
+        def __init__(self, network_interface: str = "eth0", topic_name: str = "rt/wirelessremote"):
             """
             Initializes subscriber for Unitree remote controller topics.
             """
