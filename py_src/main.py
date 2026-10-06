@@ -57,7 +57,7 @@ def main():
     clock_thread.start()
 
     # State
-    is_sitting:bool = False
+    is_sitting:bool = True
     bearing:float   = 0.0
     has_performed_test:bool = False
 
