@@ -44,7 +44,11 @@ try:
             self.subscriber = ChannelSubscriber(topic_name, WirelessController_)
             self.subscriber.Init(self._message_handler, 10)
 
+            print(f"Using Unitree controller on '{network_interface}'")
+
+
         def _message_handler(self, msg: WirelessController_):
+            print("got:", msg.lx, msg.ly, msg.rx, msg.ry, msg.keys)
             self.latest_msg = msg
 
         def poll(self) -> ControllerData:
