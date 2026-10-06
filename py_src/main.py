@@ -68,10 +68,10 @@ def main():
         # Buttons
         if a_btn.is_just_pressed(input_data.a_btn_down):
             if is_sitting:
-                # engine.perform_action(STAND, 10)
+                engine.perform_action(STAND, 10)
                 print(f"[M ]  Stand action triggered!")
             else:
-                # engine.perform_action(SIT, 10)
+                engine.perform_action(SIT, 10)
                 print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
 
