@@ -4,8 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "whole_body_controller"
-version = "0.2.0"
+version = "0.9.0"
 description = "Stability-aware controller for Unitree Go2"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "numpy",
     "matplotlib",

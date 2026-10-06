@@ -68,10 +68,10 @@ def main():
         # Buttons
         if a_btn.is_just_pressed(input_data.a_btn_down):
             if is_sitting:
-                engine.perform_action(STAND, 10)
+                # engine.perform_action(STAND, 10)
                 print(f"[M ]  Stand action triggered!")
             else:
-                engine.perform_action(SIT, 10)
+                # engine.perform_action(SIT, 10)
                 print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
 
@@ -79,6 +79,9 @@ def main():
             engine.perform_action(TURN_RIGHT, 10)
             print(f"[M ]  Turning test triggered!")
 
+        # if y_btn.is_just_pressed(input_data.y_btn_down):
+        #     engine.perform_action(TWISTING_TEST, 25)
+        #     print(f"[M ]  Twisting test triggered!")
         # if y_btn.is_just_pressed(input_data.y_btn_down):
         #     engine.perform_action(TWISTING_TEST, 25)
         #     print(f"[M ]  Twisting test triggered!")
