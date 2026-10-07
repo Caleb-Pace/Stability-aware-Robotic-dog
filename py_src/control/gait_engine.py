@@ -37,6 +37,8 @@ class GaitEngine:
     # _current_pose =  # Stores current position of all end-effectors
     _clock_interval_ms:float = 5
 
+    _last_position:Position|None = None
+
     gait:Gait
     _current_bearing:float = 0.0
 
@@ -71,6 +73,7 @@ class GaitEngine:
         # Send position
         position = Position(target_motor_angles, feedforward_torques)
         self.output.send_position(position)
+        self._last_position = position
 
     def _step(self):
         # # TODO: Remove, for debugging
@@ -79,6 +82,11 @@ class GaitEngine:
         
         if self._current_instruction is None:  # Request new instruction
             if self._instruction_queue.empty():
+
+                # Maintain last position
+                if self._last_position:
+                    self.output.send_position(self._last_position)
+
                 return # Early exit: no work to do
 
             # New instruction
