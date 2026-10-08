@@ -111,7 +111,9 @@ def main():
 
             engine.move(dist, speed)
             try:
+                print(f"[M ]  sleeping for {dist / speed}s")  # TODO: Remove, for debugging
                 time.sleep(dist / speed)
+                print(f"[M ]  done sleeping")  # TODO: Remove, for debugging
             except KeyboardInterrupt:
                 break  # Exit loop
 
