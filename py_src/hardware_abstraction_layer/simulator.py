@@ -71,7 +71,7 @@ class Simulator(OutputLayer):
         model.opt.timestep = DT
 
         # Initialise position
-        initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
+        initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
         self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
 
