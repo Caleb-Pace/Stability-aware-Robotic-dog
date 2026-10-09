@@ -70,6 +70,9 @@ class GaitEngine:
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
 
+        # for leg in range(4):
+        #     print(f"{leg}, {target_motor_angles[leg][0]}, {target_motor_angles[leg][1]}, {target_motor_angles[leg][2]}")  # TODO: Remove, for debugging
+
         # Send position
         position = Position(target_motor_angles, feedforward_torques)
         self.output.send_position(position)
