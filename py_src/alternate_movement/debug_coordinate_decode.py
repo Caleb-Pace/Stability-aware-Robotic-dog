@@ -34,8 +34,8 @@ def calculate_positions(leg_angles, is_left:bool):
 
     return abductor_pos_rel_foot, hip_pos_rel_foot, knee_pos_rel_foot, foot_pos_rel_foot
 
-# action = _REAL_STAND
-action = _REAL_LAY_DOWN
+action = _REAL_STAND
+# action = _REAL_LAY_DOWN
 
 print(f"Origin")
 abductor_pos, _, _, foot_pos = calculate_positions(action["FR"], False)
