@@ -170,11 +170,11 @@ class GaitEngine:
         # 4. Calculate how long movement should be (distance / speed)
         movement_time = distance / speed  # seconds
 
-        # 5. Calculate time per step to fit that timeframe (step_interval_ms)
-        step_interval_ms = movement_time / steps
+        # 5. Calculate time per step to fit that timeframe (step_interval)
+        step_interval = movement_time / steps
 
-        print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval_ms}ms)")  # TODO: Remove, for debugging
-        return (step_interval_ms, cycles)
+        print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval * 1_000}ms)")  # TODO: Remove, for debugging
+        return (step_interval, cycles)
     
     def rotate(self, bearing:float):  # TODO: Note, potentially could add speed parameter.
         yaw_change = bearing - self._current_bearing
