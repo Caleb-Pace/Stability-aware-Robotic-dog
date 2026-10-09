@@ -94,6 +94,7 @@ class GaitEngine:
             self._step_num            = 0
             #     Adjust clock time interval (for speed)
             if self._current_instruction:
+                print(f"[GE]  new step interval {self._current_instruction.step_interval_ms}ms")  # TODO: Remove, for debugging
                 self._clock_interval_ms = self._current_instruction.step_interval_ms
 
         # Work instruction
@@ -171,10 +172,11 @@ class GaitEngine:
         movement_time = distance / speed  # seconds
 
         # 5. Calculate time per step to fit that timeframe (step_interval)
-        step_interval = movement_time / steps
+        step_interval    = movement_time / steps  # seconds / steps
+        step_interval_ms = step_interval * 1_000 
 
-        print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval * 1_000}ms)")  # TODO: Remove, for debugging
-        return (step_interval, cycles)
+        print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval_ms}ms)")  # TODO: Remove, for debugging
+        return (step_interval_ms, cycles)
     
     def rotate(self, bearing:float):  # TODO: Note, potentially could add speed parameter.
         yaw_change = bearing - self._current_bearing
