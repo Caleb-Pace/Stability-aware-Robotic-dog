@@ -19,6 +19,12 @@ from control.pid import PIDController, get_pid_controllers
 
 
 def main():
+
+    # Debug Gait Tranisitions
+    # Investigate how Maanas' code does transitions
+    # Compute tranisitions as part of gait.
+
+    return
     gait:Gait = TROT
 
     pid_controllers:list[PIDController] = get_pid_controllers()
