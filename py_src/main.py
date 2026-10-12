@@ -19,19 +19,29 @@ from control.pid import PIDController, get_pid_controllers
 
 
 # TODO: Remove, for debugging
-def _print_indexes(traj:LegTrajectories):
+def _print_indexes(traj:LegTrajectories, loop_ref:LegTrajectories|None = None):
     for step_num in range(traj.steps_in_gait):
         debug_str = f"{{{step_num:>2}}}  |"
 
-        for leg in range(4):
-            offset = traj.phase_offsets_as_steps[leg]
+        if loop_ref is None:
+            for leg in range(4):
+                offset = traj.phase_offsets_as_steps[leg]
 
-            # Calculate new point/step index
-            index = offset + step_num
-            if index >= traj.steps_in_gait:  # Wrap index if necessary
-                index %= traj.steps_in_gait
+                # Calculate new point/step index
+                index = offset + step_num
+                if index >= traj.steps_in_gait:  # Wrap index if necessary
+                    index %= traj.steps_in_gait
 
-            debug_str += f" {str( index ):<2} |"
+                debug_str += f" {str( index ):<2} |"
+        else:
+            for leg in range(4):
+                target_point = traj.foot_trajectories[leg][step_num]
+                leg_points   = loop_ref.foot_trajectories[leg]
+
+                match_mask = (leg_points == target_point).all(axis=1)
+                index      = np.where(match_mask)[0][0]
+
+                debug_str += f" {str( index ):<2} |"
         
         print(debug_str)
 
@@ -66,14 +76,14 @@ def main():
     
     if gait.transition_in:
         print("< T_in  >")
-        _print_indexes(gait.transition_in)
+        _print_indexes(gait.transition_in, gait.loop)
 
     print("< Loop  >")
     _print_indexes(gait.loop)
 
     if gait.transition_out:
         print("< T_out >")
-        _print_indexes(gait.transition_out)
+        _print_indexes(gait.transition_out, gait.loop)
 
     # Values
     print()
