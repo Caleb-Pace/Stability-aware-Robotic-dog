@@ -15,7 +15,7 @@ class LegTrajectories:
     _body_heights:   npt.NDArray[np.float64]  # z values
     _orientations:   npt.NDArray[np.float64]  # (Control Points, Euler angles)
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
-    _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
+    phase_offsets:   npt.NDArray[np.float64]  # Movement delay (Period in radians)
 
     leg_origins_by_step:     list[Point3DList]  # (Knot/Point, Leg, Relative Coordinates)
     foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
@@ -53,7 +53,7 @@ class LegTrajectories:
 
         self._body_heights         = heights
         self._orientations         = orientations
-        self._phase_offset         = leg_phase_offset
+        self.phase_offsets         = leg_phase_offset
         self._control_points       = leg_control_points
     
         self.calculate_foot_trajectories(sample_count)
@@ -88,7 +88,7 @@ class LegTrajectories:
         ])
         max_movement_horizon     = max(movement_horizons)
 
-        normalized_phase_offsets = self._phase_offset % 1.0
+        normalized_phase_offsets = self.phase_offsets % (2 * np.pi)
         movement_delays          = normalized_phase_offsets * max_movement_horizon   # Parametric duration
 
         leg_durations = movement_delays + movement_horizons  # Parametric duration
