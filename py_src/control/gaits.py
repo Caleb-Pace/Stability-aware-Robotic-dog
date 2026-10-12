@@ -58,7 +58,8 @@ TROT = Gait(
         heights            = np.array([0.3], dtype=float),
         orientations       = np.array([[0, 0, 0]], dtype=float),
         # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
+        # leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
+        leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
         leg_control_points = trot_ctrl_pts
     )
 )
