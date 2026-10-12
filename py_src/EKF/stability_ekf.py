@@ -12,6 +12,7 @@ class StabilityState(Enum):
     TIPPING_ROLL = auto()
     TIPPING_PITCH = auto()
     FREE_FALL = auto()
+    UPSIDE_DOWN = auto()
     UNRECOVERABLE = auto()
 
 
@@ -111,6 +112,7 @@ class UnitreeGo2StabilityEKF:
         self.max_stable_roll = np.radians(15.0)
         self.max_stable_pitch = np.radians(15.0)
         self.max_angular_vel = np.radians(120.0)
+        self.upside_down_tilt = np.radians(90.0)
         self.unrecoverable_tilt = np.radians(45.0)
 
     @staticmethod
@@ -228,6 +230,13 @@ class UnitreeGo2StabilityEKF:
         acc_norm = np.linalg.norm(sample.accelerometer)
         n_contacts = np.count_nonzero(sample.foot_contacts)
 
+        # Gravity points along negative body-Z when the robot is inverted.
+        if acc_norm > 2.5 and sample.accelerometer[2] < 0.0:
+            return StabilityState.UPSIDE_DOWN
+
+        if tilt >= self.upside_down_tilt:
+            return StabilityState.UPSIDE_DOWN
+
         if tilt > self.unrecoverable_tilt:
             return StabilityState.UNRECOVERABLE
 
@@ -308,6 +317,7 @@ def main() -> None:
         ("level / stable", 0.0, 0.0, [True, True, True, True]),
         ("roll / tipping", 20.0, 0.0, [True, True, False, False]),
         ("pitch / tipping", 0.0, 20.0, [True, False, True, False]),
+        ("upside down", 180.0, 0.0, [False, False, False, False]),
         ("tilt / unrecoverable", 0.0, 50.0, [False, False, False, False]),
     )
 
