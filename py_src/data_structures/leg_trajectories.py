@@ -58,6 +58,10 @@ class LegTrajectories:
         self._orientations         = orientations
         self._phase_offsets        = leg_phase_offset
         self._control_points       = leg_control_points
+
+        if not should_interpolate:
+            self.foot_trajectories = leg_control_points.tolist()
+            self.time_anchors      = []
     
         self.calculate_foot_trajectories(sample_count, should_interpolate)
 

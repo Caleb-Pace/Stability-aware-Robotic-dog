@@ -6,7 +6,7 @@ from data_structures.leg_trajectories import LegTrajectories
 
 
 class Gait:
-    transition_in:LegTrajectories|None
+    transition_in: LegTrajectories|None
     transition_out:LegTrajectories|None
     loop:LegTrajectories
 
@@ -48,24 +48,22 @@ class Gait:
             heights            = np.array([0.3], dtype=float),        # TODO: Implement (Extract current)
             orientations       = np.array([[0, 0, 0]], dtype=float),  # TODO: Implement (Extract with control points)
             leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-            leg_control_points = np.asarray( points_per_leg ),
+            leg_control_points = np.asarray( points_per_leg, dtype=object ),
             should_interpolate = False
         )
-        self.transition_in.time_anchors = []
 
+        # Note: Reverse Transition in to get Transition out
         for i in range(LEG_COUNT):
             points_per_leg[i] = points_per_leg[i][::-1, :]  # Reverse
 
-        # Note: Reverse Transition in to get Transition out
         self.transition_out = LegTrajectories(
             sample_count       = len(points_per_leg),
             heights            = np.array([0.3], dtype=float),        # TODO: Implement (Extract current)
             orientations       = np.array([[0, 0, 0]], dtype=float),  # TODO: Implement (Extract with control points)
             leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-            leg_control_points = np.asarray( points_per_leg ),
+            leg_control_points = np.asarray( points_per_leg, dtype=object ),
             should_interpolate = False
         )
-        self.transition_out.time_anchors = []
 
     def __init__(self, loop:LegTrajectories):
         self.loop = loop
