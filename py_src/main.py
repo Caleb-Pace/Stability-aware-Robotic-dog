@@ -18,14 +18,69 @@ from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
+# TODO: Remove, for debugging
+def _print_indexes(traj:LegTrajectories):
+    for step_num in range(traj.steps_in_gait):
+        debug_str = f"{{{step_num:>2}}}  |"
+
+        for leg in range(4):
+            offset = traj.phase_offsets_as_steps[leg]
+
+            # Calculate new point/step index
+            index = offset + step_num
+            if index >= traj.steps_in_gait:  # Wrap index if necessary
+                index %= traj.steps_in_gait
+
+            debug_str += f" {str( index ):<2} |"
+        
+        print(debug_str)
+
+def _print_values(traj:LegTrajectories):
+    import control.stepper as stepper
+
+    for step_num in range(traj.steps_in_gait):
+        foot_points = stepper.step(traj, step_num)
+
+        debug_str = f"{{{step_num:>2}}}  |"
+        for leg in range(4):
+            debug_str += f" {str( np.round(foot_points[leg], 6) ):<31} |"
+        print(debug_str)
+
+
 def main():
+    gait:Gait = TROT
+
+
+    # TODO: vvv  Remove, for debugging
 
     # Debug Gait Tranisitions
     # Investigate how Maanas' code does transitions
     # Compute tranisitions as part of gait.
 
+
+    print(f"Phase offsets:    {gait.loop._phase_offsets}")
+    print(f"Offsets as steps: {gait.loop.phase_offsets_as_steps}")
+
+    # Indexes
+    print()
+    print("< T_in  >")
+    _print_indexes(gait.transition_in)
+    print("< Loop  >")
+    _print_indexes(gait.loop)
+    print("< T_out >")
+    _print_indexes(gait.transition_out)
+
+    # Values
+    print()
+    print("< T_in  >")
+    _print_values(gait.transition_in)
+    print("< Loop  >")
+    _print_values(gait.loop)
+    print("< T_out >")
+    _print_values(gait.transition_out)
+
     return
-    gait:Gait = TROT
+    # TODO: ^^^  Remove, for debugging
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
