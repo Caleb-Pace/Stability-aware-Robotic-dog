@@ -15,7 +15,7 @@ def step(trajectory:LegTrajectories, step_num:int) -> Point3DList:
 
         # Calculate new point/step index
         index = offset + step_num
-        if index > trajectory.steps_in_gait:  # Wrap index if necessary
+        if index >= trajectory.steps_in_gait:  # Wrap index if necessary
             index %= trajectory.steps_in_gait
 
         foot_positions[leg] = trajectory.foot_trajectories[leg][index]
