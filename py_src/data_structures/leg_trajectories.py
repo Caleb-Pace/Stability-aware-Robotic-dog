@@ -203,13 +203,13 @@ class LegTrajectories:
         return int( (normalized / (2 * np.pi)) * step_count ) % step_count
 
     def _calculate_phase_offsets_as_steps(self):
-        phase_offsets_as_steps = []
+        self.phase_offsets_as_steps = []
 
         for leg in range(LEG_COUNT):
             phase_offset    = self._phase_offsets[leg]
             offset_as_steps = self._convert_phase_offset_to_step_number(phase_offset, self.steps_in_gait)
             
-            phase_offsets_as_steps.append(offset_as_steps)
+            self.phase_offsets_as_steps.append(offset_as_steps)
 
 
     # TODO: Rename
