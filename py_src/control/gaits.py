@@ -14,9 +14,11 @@ from data_structures.leg_trajectories import LegTrajectories
 COMP_PITCH = np.pi/18 # 10% 
 # COMP_PITCH = 0 # 10% 
 
-# Scale steps
+# # Scale steps
 # STEP_SCALE = 2
-STEP_SCALE = 1
+# STEP_SCALE = 0.5
+TRANSITION_STEP_COUNT = 4
+LOOP_STEP_COUNT = 12
 
 
 trot_ctrl_pts = np.array([
@@ -27,34 +29,8 @@ trot_ctrl_pts = np.array([
 ])
 
 TROT = Gait(
-    transition_in  = LegTrajectories(
-        sample_count       = 64 * STEP_SCALE,
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        # orientations       = np.array([[0, 0, 0], [0, COMP_PITCH, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0]]),
-        ], dtype=object)
-    ),
-    transition_out = LegTrajectories(
-        sample_count       = 64 * STEP_SCALE, 
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        # orientations       = np.array([[0, COMP_PITCH, 0], [0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
-            np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0]]),
-        ], dtype=object)
-    ),
     loop            = LegTrajectories(
-        sample_count       = 192 * STEP_SCALE,
+        sample_count       = LOOP_STEP_COUNT,
         heights            = np.array([0.3], dtype=float),
         orientations       = np.array([[0, 0, 0]], dtype=float),
         # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
