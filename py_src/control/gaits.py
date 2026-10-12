@@ -34,10 +34,10 @@ TROT = Gait(
         # orientations       = np.array([[0, 0, 0], [0, COMP_PITCH, 0]], dtype=float),
         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
         leg_control_points = np.array([
-            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
             np.array([[0.0, 0.0, 0.0]]),
+            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0]]),
+            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0]]),
             np.array([[0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1]]),
         ], dtype=object)
     ),
     transition_out = LegTrajectories(
@@ -47,10 +47,10 @@ TROT = Gait(
         # orientations       = np.array([[0, COMP_PITCH, 0], [0, 0, 0]], dtype=float),
         leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
         leg_control_points = np.array([
-            np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0]]),
             np.array([[0.0, 0.0, 0.0]]),
             np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
+            np.array([[0.1, 0.0, 0.1], [0.05, 0.0, 0.08], [0.0, 0.0, 0.0]]),
+            np.array([[0.0, 0.0, 0.0]]),
         ], dtype=object)
     ),
     loop            = LegTrajectories(
