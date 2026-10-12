@@ -32,10 +32,27 @@ def main():
             debug_str += f" {str( np.round(foot_points[leg], 6) ):<31} |"
         print(debug_str)
 
-    # ...Rewrite stepper to loop over period
+    print()
+
+    for step_num in range(traj.steps_in_gait):
+        debug_str = f"{{{step_num:>2}}}  |"
+
+        for leg in range(4):
+            offset = traj.phase_offsets_as_steps[leg]
+
+            # Calculate new point/step index
+            index = offset + step_num
+            if index >= traj.steps_in_gait:  # Wrap index if necessary
+                index %= traj.steps_in_gait
+
+            debug_str += f" {str( index ):<2} |"
+        
+        print(debug_str)
 
     # Will need to calculate index based on offset
-
+    print()
+    print(f"Phase offsets:    {traj._phase_offsets}")
+    print(f"Offsets as steps: {traj.phase_offsets_as_steps}")
 
 
     return
