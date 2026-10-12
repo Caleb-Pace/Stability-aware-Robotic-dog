@@ -11,13 +11,16 @@ def step(trajectory:LegTrajectories, step_num:int) -> Point3DList:
     foot_positions = np.zeros((LEG_COUNT, 3), dtype=float)
 
     for leg in range(LEG_COUNT):
+        available_steps = len(trajectory.foot_trajectories[leg])
+
         offset = trajectory.phase_offsets_as_steps[leg]
 
         # Calculate new point/step index
         index = offset + step_num
-        if index >= trajectory.steps_in_gait:  # Wrap index if necessary
-            index %= trajectory.steps_in_gait
+        if index >= available_steps:  # Wrap index if necessary
+            index %= available_steps
 
+        print(f"Index: {index} ( ({offset} + {step_num}) % aS#{available_steps}); gS#{trajectory.steps_in_gait}; {len(trajectory.foot_trajectories[leg])}")
         foot_positions[leg] = trajectory.foot_trajectories[leg][index]
     
     return foot_positions
