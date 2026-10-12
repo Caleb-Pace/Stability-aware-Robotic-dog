@@ -96,7 +96,8 @@ def main():
             print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
             dist  = 1.0  # m
-            speed = 0.5  # m/s
+            # speed = 0.5  # m/s
+            speed = 0.25  # m/s
 
             # # TODO: For test
             # if not has_performed_test:

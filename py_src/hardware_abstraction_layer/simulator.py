@@ -56,7 +56,7 @@ class Simulator(OutputLayer):
         # Set position and orientation
         data.qpos[2] = z_height
         data.qpos[3] = 1.0  # Set orientation; (w: real part of quaternion)
-        # data.qpos[4] = np.pi  # Start upside-down; roll 180
+        data.qpos[4] = np.pi  # Start upside-down; roll 180
 
         # Apply pose
         data.qpos[QPOS_INDEXES] = pose[:12]
@@ -71,7 +71,8 @@ class Simulator(OutputLayer):
         model.opt.timestep = DT
 
         # Initialise position
-        initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
+        initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
+        # initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
         self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
 
