@@ -15,7 +15,9 @@ class LegTrajectories:
     _body_heights:   npt.NDArray[np.float64]  # z values
     _orientations:   npt.NDArray[np.float64]  # (Control Points, Euler angles)
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
-    phase_offsets:   npt.NDArray[np.float64]  # Movement delay (Period in radians)
+
+    _phase_offsets:         npt.NDArray[np.float64]  # Period in radians
+    phase_offsets_as_steps: list[int]
 
     leg_origins_by_step:     list[Point3DList]  # (Knot/Point, Leg, Relative Coordinates)
     foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
@@ -53,7 +55,7 @@ class LegTrajectories:
 
         self._body_heights         = heights
         self._orientations         = orientations
-        self.phase_offsets         = leg_phase_offset
+        self._phase_offsets        = leg_phase_offset
         self._control_points       = leg_control_points
     
         self.calculate_foot_trajectories(sample_count)
@@ -88,7 +90,7 @@ class LegTrajectories:
         ])
         max_movement_horizon     = max(movement_horizons)
 
-        normalized_phase_offsets = self.phase_offsets % (2 * np.pi)
+        normalized_phase_offsets = self._phase_offsets % (2 * np.pi)
         movement_delays          = normalized_phase_offsets * max_movement_horizon   # Parametric duration
 
         leg_durations = movement_delays + movement_horizons  # Parametric duration
@@ -191,6 +193,25 @@ class LegTrajectories:
         self.leg_origins_by_step = np.asarray( _leg_origins ).transpose(1, 0, 2).tolist()
         # print()  # TODO: Remove, for debugging
 
+    def _convert_phase_offset_to_step_number(self, radians: float, step_count: int) -> int:
+        """Maps a radian phase to a cyclic index [0, step_count - 1]."""
+        # Normalize to [0, 2*pi)
+        normalized = radians % (2 * np.pi)
+
+        # Map to step count (round up)
+        #     Note: 2pi wraps to 0
+        return int( (normalized / (2 * np.pi)) * step_count ) % step_count
+
+    def _calculate_phase_offsets_as_steps(self):
+        phase_offsets_as_steps = []
+
+        for leg in range(LEG_COUNT):
+            phase_offset    = self._phase_offsets[leg]
+            offset_as_steps = self._convert_phase_offset_to_step_number(phase_offset, self.steps_in_gait)
+            
+            phase_offsets_as_steps.append(offset_as_steps)
+
+
     # TODO: Rename
     def calculate_foot_trajectories(self, sample_count:int) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
@@ -209,6 +230,9 @@ class LegTrajectories:
             data = self._control_points[leg]
 
             self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
+
+        # Store phase offsets in terms of steps
+        self._calculate_phase_offsets_as_steps()
 
         # Find travel distance
         self._calculate_distance()
