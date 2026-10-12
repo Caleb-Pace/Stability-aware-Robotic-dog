@@ -19,6 +19,9 @@ class Gait:
             self.transition_out = None
             return  # Early exit: no transition needed.
 
+        max_offset = max(self.loop.phase_offsets_as_steps)
+        print(f"max:{max_offset} | {self.loop.phase_offsets_as_steps}")
+
         # Note: Extract Transition in
         points_per_leg = []
         for leg in range(LEG_COUNT):
@@ -28,23 +31,29 @@ class Gait:
 
             # TODO: Raise exception when offset is past available_steps
             
-            start = offset
-            end   = start + (offset - 1)
+            if offset == 0:
+                n = max_offset
+                points_per_leg.append( np.array([leg_steps[0]] * n) )
+                continue
+
+            end = offset #+ 1
 
             # Extract points
             leg_points = []
             if end < available_steps:
-                leg_points = leg_steps[start:end]
+                leg_points = []
+                leg_points.extend( [leg_steps[0]] * (max_offset - offset) )
+                leg_points.extend( leg_steps[0:end] )
             else:
-                leg_points = leg_steps[start:available_steps]
-
-                remaining   = end - available_steps
-                leg_points += leg_steps[0:remaining]
+                # TODO: Implement
+                print("Not implemented yet... womp womp")
+                import sys
+                sys.exit(1)
 
             points_per_leg.append( np.asarray(leg_points) )
 
         self.transition_in = LegTrajectories(
-            sample_count       = len(points_per_leg),
+            sample_count       = max_offset,
             heights            = np.array([0.3], dtype=float),        # TODO: Implement (Extract current)
             orientations       = np.array([[0, 0, 0]], dtype=float),  # TODO: Implement (Extract with control points)
             leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
@@ -52,12 +61,13 @@ class Gait:
             should_interpolate = False
         )
 
+
         # Note: Reverse Transition in to get Transition out
         for i in range(LEG_COUNT):
-            points_per_leg[i] = points_per_leg[i][::-1, :]  # Reverse
+            points_per_leg[i] = points_per_leg[i][::-1, :][1:]  # Reverse and skip first
 
         self.transition_out = LegTrajectories(
-            sample_count       = len(points_per_leg),
+            sample_count       = (max_offset - 1),
             heights            = np.array([0.3], dtype=float),        # TODO: Implement (Extract current)
             orientations       = np.array([[0, 0, 0]], dtype=float),  # TODO: Implement (Extract with control points)
             leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
