@@ -32,7 +32,8 @@ class LegTrajectories:
                        heights:npt.NDArray[np.float64],
                        orientations:npt.NDArray[np.float64],
                        leg_phase_offset:npt.NDArray[np.float64],
-                       leg_control_points:npt.NDArray[np.object_]):
+                       leg_control_points:npt.NDArray[np.object_],
+                       should_interpolate:bool = True):  # Note: only set to false if defining all points manually.
         # Shape checks
         #     (Leg)
         required_shape = (LEG_COUNT,)
@@ -58,7 +59,7 @@ class LegTrajectories:
         self._phase_offsets        = leg_phase_offset
         self._control_points       = leg_control_points
     
-        self.calculate_foot_trajectories(sample_count)
+        self.calculate_foot_trajectories(sample_count, should_interpolate)
 
     def _calculate_last_time_anchor(self, leg:int, alpha:float = 0.5) -> float:
         """
@@ -213,23 +214,25 @@ class LegTrajectories:
 
 
     # TODO: Rename
-    def calculate_foot_trajectories(self, sample_count:int) -> None:
+    def calculate_foot_trajectories(self, sample_count:int, should_interpolate:bool = True) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
-        self._calculate_time_horizon(ALPHA)
-        interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
-        # Find leg origins for each time anchor
-        self._calculate_origins_over_time(interpolator)
+        if should_interpolate:
+            self._calculate_time_horizon(ALPHA)
+            interpolator:Interpolator = CatmullRomSpline(ALPHA)
 
-        # Interpolate foot trajectiories with constant time
-        self.foot_trajectories = [None] * LEG_COUNT
-        self.time_anchors      = [None] * LEG_COUNT
+            # Find leg origins for each time anchor
+            self._calculate_origins_over_time(interpolator)
 
-        for leg in range(LEG_COUNT):
-            data = self._control_points[leg]
+            # Interpolate foot trajectiories with constant time
+            self.foot_trajectories = [None] * LEG_COUNT
+            self.time_anchors      = [None] * LEG_COUNT
 
-            self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
+            for leg in range(LEG_COUNT):
+                data = self._control_points[leg]
+
+                self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
 
         # Store phase offsets in terms of steps
         self._calculate_phase_offsets_as_steps()
