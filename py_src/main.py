@@ -63,21 +63,31 @@ def main():
 
     # Indexes
     print()
-    print("< T_in  >")
-    _print_indexes(gait.transition_in)
+    
+    if gait.transition_in:
+        print("< T_in  >")
+        _print_indexes(gait.transition_in)
+
     print("< Loop  >")
     _print_indexes(gait.loop)
-    print("< T_out >")
-    _print_indexes(gait.transition_out)
+
+    if gait.transition_out:
+        print("< T_out >")
+        _print_indexes(gait.transition_out)
 
     # Values
     print()
-    print("< T_in  >")
-    _print_values(gait.transition_in)
+
+    if gait.transition_in:
+        print("< T_in  >")
+        _print_values(gait.transition_in)
+
     print("< Loop  >")
     _print_values(gait.loop)
-    print("< T_out >")
-    _print_values(gait.transition_out)
+
+    if gait.transition_out:
+        print("< T_out >")
+        _print_values(gait.transition_out)
 
     return
     # TODO: ^^^  Remove, for debugging
