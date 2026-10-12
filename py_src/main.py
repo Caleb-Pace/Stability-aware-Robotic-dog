@@ -12,13 +12,33 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT
+from control.gaits import TROT, TEST_LOOP
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
 def main():
+    # Import loop traj
+    traj = TEST_LOOP
+
+    # Test with stepper
+    import control.stepper as stepper
+    for step_num in range(traj.steps_in_gait):
+        foot_points = stepper.step(traj, step_num)
+
+        debug_str = f"{{{step_num:>2}}}  |"
+        for leg in range(4):
+            debug_str += f" {str( np.round(foot_points[leg], 6) ):<31} |"
+        print(debug_str)
+
+    # ...Rewrite stepper to loop over period
+
+    # Will need to calculate index based on offset
+
+
+
+    return
     gait:Gait = TROT
 
     pid_controllers:list[PIDController] = get_pid_controllers()
