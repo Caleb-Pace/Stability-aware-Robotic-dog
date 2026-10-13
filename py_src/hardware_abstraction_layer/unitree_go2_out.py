@@ -3,6 +3,7 @@ import threading
 
 from data_structures import Position
 from hardware_abstraction_layer import OutputLayer
+from control.pid import PIDController, get_pid_controllers
 
 try:
     from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
@@ -24,8 +25,6 @@ try:
     _GO2_VelStopF = 16000.0
 
 
-    # TODO: Identify how PID is meant to be used here
-    # TODO: Later, `self.low_state.motor_state[i].q` is how you get current position
     class UnitreeGo2(OutputLayer):
         def __init__(self, network_interface:str = "eth0"):  # Default to loopback interface (run locally)
             self.interface = network_interface
@@ -36,6 +35,8 @@ try:
 
             self.lowcmd_pub   = None
             self.lowstate_sub = None
+            self.pids:list[PIDController] = get_pid_controllers()
+            self._last_pid_time:float|None = None
 
             self.ready = threading.Event()
 
@@ -119,15 +120,31 @@ try:
             if not self.ready.is_set():
                 return
 
+            now = time.monotonic()
+            if self._last_pid_time is None:
+                dt = 0.002
+            else:
+                dt = min(max(now - self._last_pid_time, 0.0005), 0.02)
+            self._last_pid_time = now
+
             for i in range(12):
                 m = self.low_cmd.motor_cmd[i]
+                state = self.low_state.motor_state[i]
+                torque = self.pids[i].update(
+                    position.target_angles[i],
+                    state.q,
+                    state.dq,
+                    dt,
+                )
 
-                m.q    = position.target_angles[i]
-                m.dq   = 0
-                m.kp   = 60.0 # Standard Go2 Stance Gain
-                m.kd   = 5.0
-                m.tau  = 0  # TODO: Remove, temporary to match example
-                # m.tau  = position.feedforward_torques[i]  # TODO: Uncomment later when undestood
+                # Use torque mode for the project PID output.  Position and
+                # velocity gains stay zero so the Unitree controller does
+                # not apply a second, hidden PD loop.
+                m.q    = _GO2_PosStopF
+                m.dq   = _GO2_VelStopF
+                m.kp   = 0
+                m.kd   = 0
+                m.tau  = float(torque + position.feedforward_torques[i])
 
             # Calculate CRC on the populated command structure
             self.low_cmd.crc = self.crc.Crc(self.low_cmd)
