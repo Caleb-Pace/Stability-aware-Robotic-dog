@@ -4,7 +4,7 @@ from typing import Tuple
 from data_structures import Point3D, Vector, Point3DList
 from data_structures import AngleLimits, TorqueLimits, LegPose, LegPoseList
 
-from data_structures.gait_definition import LEG_COUNT
+from data_structures.constants import LEG_COUNT
 
 
 

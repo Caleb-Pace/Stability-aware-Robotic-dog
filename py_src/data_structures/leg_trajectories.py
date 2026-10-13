@@ -237,6 +237,11 @@ class LegTrajectories:
                 data = self._control_points[leg]
 
                 self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
+                # Catmull-Rom interpolation can overshoot the stance knots.
+                # Never command a foot below the ground plane.
+                self.foot_trajectories[leg][:, 2] = np.maximum(
+                    self.foot_trajectories[leg][:, 2], _GROUND_LEVEL
+                )
 
         # Store phase offsets in terms of steps
         self._calculate_phase_offsets_as_steps()

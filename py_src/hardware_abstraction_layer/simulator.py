@@ -10,9 +10,7 @@ import mujoco.viewer
 from data_structures import Position, LegPoseList
 from hardware_abstraction_layer import OutputLayer
 
-from data_structures.gait_definition import LEG_COUNT, JOINT_COUNT
-from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
-
+from data_structures.gait_definition import JOINT_COUNT
 from control.pid import PIDController
 
 
@@ -31,6 +29,11 @@ QVEL_INDEXES = np.array([[9, 10, 11], [6, 7, 8], [15, 16, 17], [12, 13, 14]]).fl
 # QVEL_IDX = slice(6, 18)    # 6 to 17
 
 class Simulator(OutputLayer):
+    _MAX_TARGET_SPEED = 6.0  # rad/s; smooths transitions without lagging swing
+    # This is the neutral pose produced by the current IK geometry for a
+    # [0, 0, 0] foot target at a 0.30 m body height.
+    _GAIT_STAND = (0.0333, 0.79, -1.58) * 4
+
     _REAL_LAY_DOWN = {
         "FR": ( 0.061,  1.236, -2.761),
         "FL": (-0.068,  1.241, -2.770),
@@ -55,8 +58,7 @@ class Simulator(OutputLayer):
 
         # Set position and orientation
         data.qpos[2] = z_height
-        data.qpos[3] = 1.0  # Set orientation; (w: real part of quaternion)
-        data.qpos[4] = np.pi  # Start upside-down; roll 180
+        data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]  # Upright: (w, x, y, z)
 
         # Apply pose
         data.qpos[QPOS_INDEXES] = pose[:12]
@@ -71,13 +73,17 @@ class Simulator(OutputLayer):
         model.opt.timestep = DT
 
         # Initialise position
-        initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
+        # Start from the same pose used by the gait's neutral foot targets.
+        # _REAL_STAND comes from a different calibration/kinematics convention
+        # and makes the rear knees fold when the first gait target arrives.
+        initial_pose = np.asarray(self._GAIT_STAND, dtype=np.float64)
         # initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
         self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
 
         # Persist angle targets
-        target_angles = initial_pose
+        target_angles = initial_pose.copy()
+        requested_target_angles = initial_pose.copy()
 
         # Bounded catch-up setup
         sim_time = 0.0
@@ -101,12 +107,17 @@ class Simulator(OutputLayer):
                         # Non-blocking check for new event
                         new_position = self._position_queue.get_nowait()
 
-                        target_angles       = new_position.target_angles
+                        requested_target_angles = new_position.target_angles
                         feedforward_torques = new_position.feedforward_torques
                     except queue.Empty:
                         pass  # Keep previous position in data.ctrl automatically  # TODO: Correct comment
 
                     # 2. Get current state from MuJoCo
+                    max_target_delta = self._MAX_TARGET_SPEED * DT
+                    target_delta = requested_target_angles - target_angles
+                    target_angles += np.clip(
+                        target_delta, -max_target_delta, max_target_delta
+                    )
                     current_angles     = data.qpos[QPOS_INDEXES]
                     current_velocities = data.qvel[QVEL_INDEXES]
 
@@ -118,8 +129,7 @@ class Simulator(OutputLayer):
                         applied_torques[i] = pid.update(target, angle, vel, DT)
 
                     # 4. Send the calculated applied torques to MuJoCo
-                    data.ctrl[:12] = applied_torques  # TODO: Use CTRL_INDEXES
-                    # data.ctrl[:12] = (applied_torques + feedforward_torques)  # TODO: Use CTRL_INDEXES
+                    data.ctrl[CTRL_INDEXES] = applied_torques + feedforward_torques
 
                     # for leg in range(4):
                     #     leg_num = leg * 3
@@ -166,7 +176,7 @@ class Simulator(OutputLayer):
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
+        return np.zeros(JOINT_COUNT, dtype=np.float64)
 
     def _get_target_angles_from_dict(self, preset_dict:dict):
         # Convert dict of tuples into 1D array

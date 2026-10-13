@@ -70,61 +70,6 @@ def main():
     gait:Gait = TROT
 
 
-    # TODO: vvv  Remove, for debugging
-
-    # Debug Gait Tranisitions
-    # Investigate how Maanas' code does transitions
-    # Compute tranisitions as part of gait.
-
-
-    print(f"Phase offsets:    {gait.loop._phase_offsets}")
-    print(f"Offsets as steps: {gait.loop.phase_offsets_as_steps}")
-
-    # Indexes
-    print()
-    
-    if gait.transition_in:
-        print("< T_in  >")
-        _print_indexes(gait.transition_in, gait.loop)
-
-    print("< Loop  >")
-    _print_indexes(gait.loop)
-
-    if gait.transition_out:
-        print("< T_out >")
-        _print_indexes(gait.transition_out, gait.loop)
-
-    # Values
-    print()
-
-    if gait.transition_in:
-        print("< T_in  >")
-        _print_values(gait.transition_in)
-
-    print("< Loop  >")
-    _print_values(gait.loop)
-
-    if gait.transition_out:
-        print("< T_out >")
-        _print_values(gait.transition_out)
-
-    # Origins
-    print()
-
-    if gait.transition_in:
-        print("< T_in  >")
-        _print_origins(gait.transition_in)
-
-    print("< Loop  >")
-    _print_origins(gait.loop)
-
-    if gait.transition_out:
-        print("< T_out >")
-        _print_origins(gait.transition_out)
-
-    return
-    # TODO: ^^^  Remove, for debugging
-
     pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
@@ -195,32 +140,17 @@ def main():
         rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
         has_input = movement_stick_sum > 0.2  # 0
         if movement_stick_sum > 0.2:
-            # print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-            # engine.input(input_data, 1)
-            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
+            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")
 
-            dist  = 1.0  # m
-            # speed = 0.5  # m/s
-            speed = 0.25  # m/s
-
-            # # TODO: For test
-            # if not has_performed_test:
-            #     # engine.perform_action(gait.transition_in, 50)
-            #     # print(f"[M ]  t_in done")
-            #     # engine.perform_action(gait.loop, 50)
-            #     # print(f"[M ]  loop done")
-            #     engine.perform_action(gait.transition_out, 50)
-            #     print(f"[M ]  t_out done")
-
-            #     has_performed_test = True
-
+            dist  = 0.5
+            speed = 0.25
             engine.move(dist, speed)
             try:
-                print(f"[M ]  sleeping for {dist / speed}s")  # TODO: Remove, for debugging
+                print(f"[M ]  sleeping for {dist / speed}s")
                 time.sleep(dist / speed)
-                print(f"[M ]  done sleeping")  # TODO: Remove, for debugging
+                print(f"[M ]  done sleeping")
             except KeyboardInterrupt:
-                break  # Exit loop
+                break
 
         if rotation_stick_sum > 0.2:  # 0
             sensitivity = 5 # TODO: Move

@@ -19,6 +19,8 @@ COMP_PITCH = np.pi/18 # 10%
 # STEP_SCALE = 0.5
 TRANSITION_STEP_COUNT = 4
 LOOP_STEP_COUNT = 12
+STEP_LENGTH_SCALE = 0.50
+STEP_HEIGHT_SCALE = 0.60
 
 
 trot_ctrl_pts = np.array([
@@ -27,6 +29,11 @@ trot_ctrl_pts = np.array([
     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
 ])
+
+# Keep the trot conservative while giving swing legs enough clearance.
+for _leg_points in trot_ctrl_pts:
+    _leg_points[:, 0] *= STEP_LENGTH_SCALE
+    _leg_points[:, 2] *= STEP_HEIGHT_SCALE
 
 TROT = Gait(
     loop            = LegTrajectories(

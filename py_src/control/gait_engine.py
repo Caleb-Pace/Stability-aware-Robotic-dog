@@ -14,7 +14,6 @@ from queue import Queue
 from data_structures.gait_definition import Gait, LEG_COUNT
 from control.stepper import step
 from kinematics.ik_solver import IK_Solver
-from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
 class Instruction:
@@ -61,8 +60,13 @@ class GaitEngine:
 
         # Retrieve position
         # print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
-        hip_origins         = trajectory.leg_origins_by_step[self._step_num]
-        foot_positions      = step(trajectory, self._step_num)
+        # Origins include the commanded body height, while foot trajectories
+        # are world-relative offsets from the ground plane. Keep this frame
+        # convention intact for the IK solver.
+        hip_origins = np.asarray(
+            trajectory.leg_origins_by_step[self._step_num]
+        )
+        foot_positions = step(trajectory, self._step_num)
         # Calculate motor angles
         target_motor_angles = self._ik.solve(foot_positions, hip_origins)
         if None in target_motor_angles:
@@ -273,7 +277,9 @@ class GaitEngine:
     # TODO: Later, dynamics model
     # _dynamic_recovery
     def _get_feedforward_torques(self):
-        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
+        # Torque limits are not gravity compensation.  Until an inverse
+        # dynamics model exists, send a neutral feed-forward term.
+        return np.zeros(LEG_COUNT * 3, dtype=np.float64)
     def _dynamic_recovery(self): # -> {Result}|None:
         # is_falling = { Forward Dynamics Solve }
         # if is_falling:  # Save from fall
