@@ -2,10 +2,11 @@ import numpy as np
 from data_structures.gait_definition import Gait
 from data_structures.leg_trajectories import LegTrajectories
 
+STAND_HEIGHT = 0.32
 
 SIT = LegTrajectories(
     sample_count       = 32,
-    heights            = np.array([0.3, 0.09], dtype=float),
+    heights            = np.array([STAND_HEIGHT, 0.09], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
@@ -18,7 +19,7 @@ SIT = LegTrajectories(
 
 STAND = LegTrajectories(
     sample_count       = 32,
-    heights            = np.array([0.09, 0.3], dtype=float),
+    heights            = np.array([0.09, STAND_HEIGHT], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([

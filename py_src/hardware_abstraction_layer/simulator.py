@@ -30,9 +30,9 @@ QVEL_INDEXES = np.array([[9, 10, 11], [6, 7, 8], [15, 16, 17], [12, 13, 14]]).fl
 
 class Simulator(OutputLayer):
     _MAX_TARGET_SPEED = 6.0  # rad/s; smooths transitions without lagging swing
-    # This is the neutral pose produced by the current IK geometry for a
-    # [0, 0, 0] foot target at a 0.30 m body height.
-    _GAIT_STAND = (0.0333, 0.79, -1.58) * 4
+    # Neutral pose produced by the gait IK for a [0, 0, 0] foot target at a
+    # 0.32 m body height. The slightly higher stance opens the knees.
+    _GAIT_STAND = (0.031, 0.72, -1.44) * 4
 
     _REAL_LAY_DOWN = {
         "FR": ( 0.061,  1.236, -2.761),
@@ -78,7 +78,7 @@ class Simulator(OutputLayer):
         # and makes the rear knees fold when the first gait target arrives.
         initial_pose = np.asarray(self._GAIT_STAND, dtype=np.float64)
         # initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
-        self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
+        self._set_pose(data, initial_pose, z_height=0.32)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
 
         # Persist angle targets

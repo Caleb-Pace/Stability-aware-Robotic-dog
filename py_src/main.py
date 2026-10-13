@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 
 from data_structures.controller_input import Button
+from data_structures.controller_input import JOYSTICK_DEADZONE
 from hardware_abstraction_layer import InputLayer, OutputLayer
 from hardware_abstraction_layer.gamepad_controller import GamepadController
 from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE
@@ -16,6 +17,14 @@ from control.gaits import TROT
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
+
+try:
+    from EKF.go2_lowcmd_recovery_node import Go2LowLevelRecoveryNode
+except ImportError:
+    try:
+        from py_src.EKF.go2_lowcmd_recovery_node import Go2LowLevelRecoveryNode
+    except ImportError:
+        Go2LowLevelRecoveryNode = None
 
 
 # TODO: Remove, for debugging
@@ -101,14 +110,24 @@ def main():
 
     # Gait Engine & Clock
     engine = GaitEngine(gait, out_layer)
+    engine.perform_action(SIT, 10)
     clock_interval_ms = read_delay_ms
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
+    recovery_thread = None
+    recovery_node = None
+    if UNITREE_SDK_AVAILABLE and Go2LowLevelRecoveryNode is not None:
+        recovery_node = Go2LowLevelRecoveryNode(output=out_layer, engine=engine, manage_output=False)
+        recovery_thread = threading.Thread(
+            target=recovery_node.run,
+            name="go2-low-level-recovery",
+        )
+        recovery_thread.start()
+
     # State
     is_sitting:bool = True
-    bearing:float   = 0.0
-    has_performed_test:bool = False
+    motion_was_active = False
 
     print("[M ]  Input loop started!")
     while True:
@@ -116,6 +135,7 @@ def main():
 
         # Buttons
         if a_btn.is_just_pressed(input_data.a_btn_down):
+            engine.stop_motion()
             if is_sitting:
                 engine.perform_action(STAND, 10)
                 print(f"[M ]  Stand action triggered!")
@@ -125,6 +145,7 @@ def main():
             is_sitting = not is_sitting
 
         if b_btn.is_just_pressed(input_data.b_btn_down):
+            engine.stop_motion()
             engine.perform_action(TURN_RIGHT, 10)
             print(f"[M ]  Turning test triggered!")
 
@@ -135,42 +156,32 @@ def main():
         #     engine.perform_action(TWISTING_TEST, 25)
         #     print(f"[M ]  Twisting test triggered!")
 
-        # Sticks
-        movement_stick_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y)
-        rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
-        has_input = movement_stick_sum > 0.2  # 0
-        if movement_stick_sum > 0.2:
-            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")
-
-            dist  = 0.5
-            speed = 0.25
-            engine.move(dist, speed)
-            try:
-                print(f"[M ]  sleeping for {dist / speed}s")
-                time.sleep(dist / speed)
-                print(f"[M ]  done sleeping")
-            except KeyboardInterrupt:
-                break
-
-        if rotation_stick_sum > 0.2:  # 0
-            sensitivity = 5 # TODO: Move
-            # print(f"[M ]      R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-            
-            delta_x  = input_data.right_stick.delta_x
-            yaw      = delta_x * sensitivity
-            
-            bearing += yaw
-            if bearing >= 360 or bearing < 0:
-                bearing = bearing % 360
-            print(f"Bearing: {round(bearing, 2)}")
-
-            # # Currently unused
-            # delta_y = input_data.right_stick.delta_y
-            # pitch   = delta_y * sensitivity
-
-            # if not has_performed_test:
-            #     has_performed_test = True
-            #     engine.rotate(bearing)
+        # Sticks are continuous velocity-style commands. The gait engine
+        # advances while the stick is deflected and returns to the default
+        # standing pose as soon as the command returns to the deadzone.
+        if is_sitting:
+            motion_was_active = False
+        else:
+            command = (
+                input_data.left_stick.delta_y,
+                input_data.left_stick.delta_x,
+                input_data.right_stick.delta_x,
+            )
+            # Keep the release state latched through small controller readings.
+            # Without this threshold, stick noise can alternate between motion
+            # and return-to-stand on successive polls.
+            command_is_active = float(np.linalg.norm(command)) > max(
+                0.1,
+                JOYSTICK_DEADZONE,
+            )
+            if command_is_active:
+                engine.set_motion(*command)
+                motion_was_active = True
+            elif motion_was_active:
+                engine.stop_motion()
+                engine.return_to_stand()
+                print("[M ]  Joystick released; returning to standing pose")
+                motion_was_active = False
 
 
         # Delay
@@ -181,6 +192,10 @@ def main():
 
     print("[M ]  Input loop finished!")
     interrupt_flag.set()  # Stop the clock thread
+    if recovery_node is not None:
+        recovery_node.stop()
+    if recovery_thread is not None and recovery_thread.is_alive():
+        recovery_thread.join(timeout=2.0)
 
 
 if __name__ == "__main__":

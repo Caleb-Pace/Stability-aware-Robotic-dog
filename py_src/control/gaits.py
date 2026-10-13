@@ -21,6 +21,7 @@ TRANSITION_STEP_COUNT = 4
 LOOP_STEP_COUNT = 12
 STEP_LENGTH_SCALE = 0.50
 STEP_HEIGHT_SCALE = 0.60
+STAND_HEIGHT = 0.32
 
 
 trot_ctrl_pts = np.array([
@@ -38,7 +39,7 @@ for _leg_points in trot_ctrl_pts:
 TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
-        heights            = np.array([0.3], dtype=float),
+        heights            = np.array([STAND_HEIGHT], dtype=float),
         orientations       = np.array([[0, 0, 0]], dtype=float),
         # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
         # leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
