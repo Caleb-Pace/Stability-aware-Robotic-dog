@@ -12,7 +12,7 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT, MAANAS_TROT
+from control.gaits import TROT, MAANAS_TROT, TIP_TOE
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
@@ -67,7 +67,7 @@ def _print_origins(traj:LegTrajectories):
 
 
 def main():
-    gait:Gait = MAANAS_TROT
+    gait:Gait = TIP_TOE
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -144,7 +144,7 @@ def main():
             print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
 
             dist  = 1.0  # m
-            speed = 1.0  # m/s
+            speed = 0.5  # m/s
             # speed = 0.25  # m/s
             # speed = 0.1  # m/s
 
