@@ -18,7 +18,7 @@ else:
 try:
     from .stability_ekf import UnitreeGo2StabilityEKF
 except ImportError:
-    from stability_ekf import UnitreeGo2StabilityEKF
+    from .stability_ekf import UnitreeGo2StabilityEKF
 
 
 class Go2LowLevelRecoveryNode:
