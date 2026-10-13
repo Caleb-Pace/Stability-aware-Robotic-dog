@@ -110,7 +110,7 @@ def main():
 
     # Gait Engine & Clock
     engine = GaitEngine(gait, out_layer)
-    engine.perform_action(SIT, 10)
+    # engine.perform_action(SIT, 10)
     clock_interval_ms = read_delay_ms
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()

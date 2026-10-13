@@ -76,8 +76,8 @@ class Simulator(OutputLayer):
         # Start from the same pose used by the gait's neutral foot targets.
         # _REAL_STAND comes from a different calibration/kinematics convention
         # and makes the rear knees fold when the first gait target arrives.
-        initial_pose = np.asarray(self._GAIT_STAND, dtype=np.float64)
-        # initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
+        # initial_pose = np.asarray(self._GAIT_STAND, dtype=np.float64)
+        initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
         self._set_pose(data, initial_pose, z_height=0.32)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
 
