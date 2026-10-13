@@ -244,7 +244,7 @@ class GaitEngine:
 
         magnitude = float(np.linalg.norm(command))
         if magnitude > 0.0:
-            frequency_hz = 0.5 + 1.5 * min(1.0, magnitude)
+            frequency_hz = 0.75 + 1.75 * min(1.0, magnitude)
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
