@@ -6,24 +6,36 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 KP = [100.0, 250.0, 200.0]
 KI = [5.0, 10.0, 10.0]
 KD = [3.0, 6.0, 5.0]
-TORQUE_MAX = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
+# TORQUE_MAX = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
+TORQUE_MAX = [23.7, 23.7, 45.43]
 
-#     Credit: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_PID.py
-class PIDController:
-    def __init__(self, kp, ki, kd, max_torque):
-        self.kp = kp
-        self.ki = ki
-        self.kd = kd
-        self.max_torque = max_torque
-        self.integral = 0.0
+# #     Credit: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_PID.py
+# class PIDController:
+#     def __init__(self, kp, ki, kd, max_torque):
+#         self.kp = kp
+#         self.ki = ki
+#         self.kd = kd
+#         self.max_torque = max_torque
+#         self.integral = 0.0
 
-    def update(self, target, current, velocity, dt):
-        error = target - current
-        self.integral += error * dt
+#     def update(self, target, current, velocity, dt):
+#         error = target - current
+#         self.integral += error * dt
 
-        output = (self.kp * error) + (self.ki * self.integral) - (self.kd * velocity)
+#         output = (self.kp * error) + (self.ki * self.integral) - (self.kd * velocity)
         
-        return np.clip(output, -self.max_torque, self.max_torque)
+#         return np.clip(output, -self.max_torque, self.max_torque)
+
+class PIDController:
+    def __init__(self, kp, ki, kd, torque_max):
+        self.kp, self.ki, self.kd, self.torque_max = kp, ki, kd, torque_max
+        self.integral, self.integral_max = 0.0, 10.0
+
+    def update(self, target, pos, vel, dt):
+        error = target - pos
+        self.integral = np.clip(self.integral + error * dt, -self.integral_max, self.integral_max)
+        torque = (self.kp * error) + (self.ki * self.integral) - (self.kd * vel)
+        return float(np.clip(torque, -self.torque_max, self.torque_max))
 
 def get_pid_controllers() -> list[PIDController]:
     # 3 motors per leg
