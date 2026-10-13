@@ -17,8 +17,8 @@ COMP_PITCH = np.pi/18 # 10%
 # # Scale steps
 # STEP_SCALE = 2
 # STEP_SCALE = 0.5
-TRANSITION_STEP_COUNT = 4
-LOOP_STEP_COUNT = 12
+# LOOP_STEP_COUNT = 12
+LOOP_STEP_COUNT = 192
 
 
 trot_ctrl_pts = np.array([

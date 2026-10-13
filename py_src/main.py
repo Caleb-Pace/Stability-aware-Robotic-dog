@@ -69,62 +69,6 @@ def _print_origins(traj:LegTrajectories):
 def main():
     gait:Gait = TROT
 
-
-    # TODO: vvv  Remove, for debugging
-
-    # Debug Gait Tranisitions
-    # Investigate how Maanas' code does transitions
-    # Compute tranisitions as part of gait.
-
-
-    print(f"Phase offsets:    {gait.loop._phase_offsets}")
-    print(f"Offsets as steps: {gait.loop.phase_offsets_as_steps}")
-
-    # Indexes
-    print()
-    
-    if gait.transition_in:
-        print("< T_in  >")
-        _print_indexes(gait.transition_in, gait.loop)
-
-    print("< Loop  >")
-    _print_indexes(gait.loop)
-
-    if gait.transition_out:
-        print("< T_out >")
-        _print_indexes(gait.transition_out, gait.loop)
-
-    # Values
-    print()
-
-    if gait.transition_in:
-        print("< T_in  >")
-        _print_values(gait.transition_in)
-
-    print("< Loop  >")
-    _print_values(gait.loop)
-
-    if gait.transition_out:
-        print("< T_out >")
-        _print_values(gait.transition_out)
-
-    # Origins
-    print()
-
-    if gait.transition_in:
-        print("< T_in  >")
-        _print_origins(gait.transition_in)
-
-    print("< Loop  >")
-    _print_origins(gait.loop)
-
-    if gait.transition_out:
-        print("< T_out >")
-        _print_origins(gait.transition_out)
-
-    return
-    # TODO: ^^^  Remove, for debugging
-
     pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
