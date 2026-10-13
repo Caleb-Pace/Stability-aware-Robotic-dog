@@ -98,7 +98,7 @@ class Go2LowLevelRecoveryNode:
         """Queue one recovery action through the gait engine."""
         action = self.action_builder(estimate)
         if action is not None and self.engine is not None:
-            self.engine.perform_action(action)
+            self.engine.perform_action(action, 5)
 
     @staticmethod
     def _format_contacts(estimate: Any) -> str:
