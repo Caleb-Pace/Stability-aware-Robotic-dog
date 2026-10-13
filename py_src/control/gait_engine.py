@@ -18,7 +18,7 @@ from kinematics.ik_solver import IK_Solver
 
 
 class Instruction:
-    DEFAULT_STEP_INTERVAL_MS = 5
+    DEFAULT_STEP_INTERVAL_MS = 2
 
     step_interval_ms:float = DEFAULT_STEP_INTERVAL_MS
     trajectory:LegTrajectories
