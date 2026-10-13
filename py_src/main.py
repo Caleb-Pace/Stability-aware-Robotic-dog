@@ -56,6 +56,15 @@ def _print_values(traj:LegTrajectories):
             debug_str += f" {str( np.round(foot_points[leg], 6) ):<31} |"
         print(debug_str)
 
+def _print_origins(traj:LegTrajectories):
+    for step_num in range(traj.steps_in_gait):
+        origins = traj.leg_origins_by_step[step_num]
+
+        debug_str = f"{{{step_num:>2}}}  |"
+        for leg in range(4):
+            debug_str += f" {str( np.round(origins[leg], 6) ):<31} |"
+        print(debug_str)
+
 
 def main():
     gait:Gait = TROT
@@ -98,6 +107,20 @@ def main():
     if gait.transition_out:
         print("< T_out >")
         _print_values(gait.transition_out)
+
+    # Origins
+    print()
+
+    if gait.transition_in:
+        print("< T_in  >")
+        _print_origins(gait.transition_in)
+
+    print("< Loop  >")
+    _print_origins(gait.loop)
+
+    if gait.transition_out:
+        print("< T_out >")
+        _print_origins(gait.transition_out)
 
     return
     # TODO: ^^^  Remove, for debugging
