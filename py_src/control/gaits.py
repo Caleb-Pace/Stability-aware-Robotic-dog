@@ -18,25 +18,26 @@ COMP_PITCH = np.pi/18 # 10%
 # STEP_SCALE = 2
 # STEP_SCALE = 0.5
 TRANSITION_STEP_COUNT = 4
-LOOP_STEP_COUNT = 128
+LOOP_STEP_COUNT = 120
 STEP_LENGTH_SCALE = 0.5
 STEP_HEIGHT_SCALE = 0.6
 STAND_HEIGHT = 0.32
 
 
-front_step = np.array([
+step_profile = np.array([
     [-0.15, 0.0, 0.0], [-0.075, 0.0, 0.10], [0.0, 0.0, 0.14],
     [0.075, 0.0, 0.10], [0.15, 0.0, 0.0],
-    [0.075, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.075, 0.0, 0.0],
-    [-0.15, 0.0, 0.0],
+    [0.125, 0.0, 0.0], [0.10, 0.0, 0.0], [0.075, 0.0, 0.0],
+    [0.05, 0.0, 0.0], [0.025, 0.0, 0.0], [0.0, 0.0, 0.0],
+    [-0.025, 0.0, 0.0], [-0.05, 0.0, 0.0], [-0.075, 0.0, 0.0],
+    [-0.10, 0.0, 0.0], [-0.125, 0.0, 0.0], [-0.15, 0.0, 0.0],
 ])
-rear_step = np.array([
-    [-0.05, 0.0, 0.0], [0.0, 0.0, 0.10], [0.05, 0.0, 0.14],
-    [0.10, 0.0, 0.10], [0.15, 0.0, 0.0],
-    [0.10, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0],
-    [-0.05, 0.0, 0.0],
-])
-trot_ctrl_pts = np.array([front_step, front_step, rear_step, rear_step], dtype=object)
+trot_ctrl_pts = np.array(
+    [step_profile.copy() for _ in range(4)],
+    dtype=object,
+)
+for _leg, _side in enumerate((1.0, -1.0, 1.0, -1.0)):
+    trot_ctrl_pts[_leg][:, 1] = 0.018 * _side
 
 # Use a full front-to-rear stance sweep so each planted foot can push the body.
 for _leg_points in trot_ctrl_pts:

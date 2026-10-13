@@ -18,7 +18,7 @@ from kinematics.ik_solver import IK_Solver
 
 
 class Instruction:
-    DEFAULT_STEP_INTERVAL_MS = 2
+    DEFAULT_STEP_INTERVAL_MS = 1
 
     step_interval_ms:float = DEFAULT_STEP_INTERVAL_MS
     trajectory:LegTrajectories
@@ -117,7 +117,7 @@ class GaitEngine:
         # existing leg timing and transitions while allowing direction changes
         # without creating a new queued trajectory for every joystick sample.
         stride_profile = foot_positions[:, 0].copy()
-        stride_profile -= float(np.mean(stride_profile))
+        #stride_profile -= float(np.mean(stride_profile))
         side_sign = np.array([1.0, -1.0, 1.0, -1.0])
         foot_positions[:, 0] = stride_profile * (
             forward / command_magnitude + yaw / command_magnitude * side_sign
