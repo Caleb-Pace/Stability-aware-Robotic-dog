@@ -41,7 +41,7 @@ def main():
     #     Setup button state holders
     a_btn = Button()
     b_btn = Button()
-    # y_btn = Button()
+    y_btn = Button()
 
     # Output Interface
     #     Select output layer (Default to Robot)
@@ -94,12 +94,8 @@ def main():
             engine.perform_action(TURN_RIGHT, 10)
             print(f"[M ]  Turning test triggered!")
 
-        # if y_btn.is_just_pressed(input_data.y_btn_down):
-        #     engine.perform_action(TWISTING_TEST, 25)
-        #     print(f"[M ]  Twisting test triggered!")
-        # if y_btn.is_just_pressed(input_data.y_btn_down):
-        #     engine.perform_action(TWISTING_TEST, 25)
-        #     print(f"[M ]  Twisting test triggered!")
+        if y_btn.is_just_pressed(input_data.y_btn_down) and recovery_node is not None:
+            recovery_node.toggle_ekf()
 
 
         # Sticks

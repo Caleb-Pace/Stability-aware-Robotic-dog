@@ -29,6 +29,9 @@ class Go2LowLevelRecoveryNode:
     system is implemented.
     """
 
+    _STABLE_REARM_TIME = 1.0
+    _RECOVERY_LOCKOUT_TIME = 2.0
+
     def __init__(
         self,
         output: OutputLayer,
@@ -41,16 +44,19 @@ class Go2LowLevelRecoveryNode:
         self.engine = engine
         self.action_builder = action_builder or (lambda _estimate: STAND)
         self.manage_output = manage_output
+        self.ekf_enabled = False
         self._recovery_requested = False
         self.stop_event = threading.Event()
         self.output_thread: threading.Thread | None = None
         self._stable_since: float | None = None
+        self._recovery_lockout_until = 0.0
         if self.manage_output:
             self.output_thread = threading.Thread(
                 target=self.output.connect,
                 args=(self.stop_event,),
                 name="go2-low-level-output",
             )
+        print("[EKF] Stability EKF disabled by default.")
 
     def run(self) -> None:
         if self.manage_output and self.output_thread is not None:
@@ -66,16 +72,28 @@ class Go2LowLevelRecoveryNode:
                 if low_state is None:
                     self.stop_event.wait(self.ekf.dt)
                     continue
+                if not self.ekf_enabled:
+                    self.stop_event.wait(self.ekf.dt)
+                    continue
                 estimate = self.ekf.step_low_state(low_state)
 
-                if self.engine is not None and estimate.is_tipping and not self._recovery_requested:
-                    self._trigger_low_level_recovery(estimate)
-                    self._recovery_requested = True
+                if estimate.is_tipping:
                     self._stable_since = None
-                elif self.engine is not None and not estimate.is_tipping:
+                    if (
+                        self.engine is not None
+                        and not self._recovery_requested
+                        and now >= self._recovery_lockout_until
+                    ):
+                        self._trigger_low_level_recovery(estimate)
+                        self._recovery_requested = True
+                        self._recovery_lockout_until = now + self._RECOVERY_LOCKOUT_TIME
+                elif self.engine is not None:
                     if self._stable_since is None:
                         self._stable_since = now
-                    elif now - self._stable_since >= 0.5:
+                    elif (
+                        now - self._stable_since >= self._STABLE_REARM_TIME
+                        and now >= self._recovery_lockout_until
+                    ):
                         self._recovery_requested = False
                         self._stable_since = None
 
@@ -99,6 +117,16 @@ class Go2LowLevelRecoveryNode:
         action = self.action_builder(estimate)
         if action is not None and self.engine is not None:
             self.engine.perform_action(action, 5)
+
+    def toggle_ekf(self) -> bool:
+        """Toggle EKF processing and return the new enabled state."""
+        self.ekf_enabled = not self.ekf_enabled
+        self._recovery_requested = False
+        self._stable_since = None
+        self._recovery_lockout_until = 0.0
+        state = "enabled" if self.ekf_enabled else "disabled"
+        print(f"[EKF] Stability EKF {state}.")
+        return self.ekf_enabled
 
     @staticmethod
     def _format_contacts(estimate: Any) -> str:
