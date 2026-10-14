@@ -1,2 +1,5 @@
 LEG_COUNT:int = 4
 JOINT_COUNT:int = LEG_COUNT * 3  # LEG_COUNT * (Abductor, Hip, Knee)
+
+SIT_HEIGHT   = 0.09
+STAND_HEIGHT = 0.32
