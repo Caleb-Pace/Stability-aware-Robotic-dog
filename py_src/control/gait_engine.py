@@ -66,7 +66,9 @@ class GaitEngine:
         self._continuous_motion_active = False
         self._last_motion_foot_positions = None
         self._motion_start_step = 0
-        self._motion_start_steps = 48    # ~half a gait cycle of ramp-in (was 8 ticks, ~40ms)
+        self._motion_start_steps = 24    # ~quarter gait cycle of stride ramp-in
+        self._min_gait_hz = 0.6          # step frequency at light stick
+        self._max_gait_hz = 1.6          # step frequency at full stick
         self._returning_to_stand = False
 
         # --- Anti-waddle tuning ---
@@ -153,7 +155,9 @@ class GaitEngine:
         if self._motion_start_step < self._motion_start_steps:
             phase = (self._motion_start_step + 1) / self._motion_start_steps
             blend = phase * phase * (3.0 - 2.0 * phase)
-            foot_positions *= blend
+            # Ramp stride (x, y) only. Keep full swing height (z) so the feet
+            # lift cleanly from the first step instead of dragging.
+            foot_positions[:, :2] *= blend
             self._motion_start_step += 1
 
         hip_origins = self._apply_lateral_comp(
@@ -278,7 +282,9 @@ class GaitEngine:
 
         magnitude = float(np.linalg.norm(command))
         if magnitude > 0.0:
-            frequency_hz = 0.4 + 0.6 * min(1.0, magnitude)  # max 1 Hz (was 2 Hz)
+            frequency_hz = self._min_gait_hz + (
+                self._max_gait_hz - self._min_gait_hz
+            ) * min(1.0, magnitude)
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
