@@ -371,49 +371,6 @@ class GaitEngine:
 
 
 
-
-
-    def _pid(self, expected, actual) -> None:
-        # TODO: Call Maanas' implementation
-        pass
-
-    # def _step_old(self):
-    #     trajectory:LegTrajectories|None = self.gait.loop
-    #     # trajectory:LegTrajectories|None = None
-
-    #     # Action support
-    #     if self._current_instruction is not None:
-    #         if self._step_num == self._current_instruction.trajectory.steps_in_gait: # Action finished
-    #             self._current_action = None
-    #             self._step_num       = 0
-    #         else:
-    #             trajectory = self._current_instruction.trajectory
-    #     # print(f"[GE]  has trajectory? {trajectory is not None}")  # TODO: Remove, for debugging
-
-    #     if trajectory:
-    #         # Retrieve position
-    #         foot_positions = step(trajectory, self._step_num)
-    #         target_motor_angles = self._ik.solve(foot_positions, trajectory.leg_origins_by_step[self._step_num])
-    #         if None in target_motor_angles:
-    #             return  # Early exit: IK - Failed
-
-    #         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
-
-    #         # Send position
-    #         position = Position(target_motor_angles, feedforward_torques)
-    #         self.output.send_position(position)
-
-    # # TODO: Implement multiplier
-    # def input(self, controller_data:ControllerData, multiplier:float) -> None:
-    #     if controller_data.left_stick.delta_y > 0:
-    #         self._step_num += 1
-    #     if controller_data.left_stick.delta_y < 0:
-    #         self._step_num -= 1
-
-    #     self._step_num %= self.gait.loop.steps_in_gait
-    #     print(f"[GE]  {self._step_num}    (L-d_y: {np.round(controller_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-
-
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
         return np.zeros(JOINT_COUNT, dtype=np.float64)
