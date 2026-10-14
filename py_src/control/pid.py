@@ -3,9 +3,9 @@ from data_structures.gait_definition import JOINT_COUNT
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
-KP = [100.0, 250.0, 200.0]
-KI = [5.0, 10.0, 10.0]
-KD = [3.0, 6.0, 5.0]
+KP = [60.0] * 3
+KI = [0.0] * 3
+KD = [5.0] * 3
 TORQUE_MAX = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
 
 #     Credit: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_PID.py
