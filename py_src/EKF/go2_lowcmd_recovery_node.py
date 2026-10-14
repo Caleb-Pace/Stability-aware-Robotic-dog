@@ -29,6 +29,9 @@ class Go2LowLevelRecoveryNode:
     system is implemented.
     """
 
+    _STABLE_REARM_TIME = 1.0
+    _RECOVERY_LOCKOUT_TIME = 2.0
+
     def __init__(
         self,
         output: OutputLayer,
@@ -46,6 +49,7 @@ class Go2LowLevelRecoveryNode:
         self.stop_event = threading.Event()
         self.output_thread: threading.Thread | None = None
         self._stable_since: float | None = None
+        self._recovery_lockout_until = 0.0
         if self.manage_output:
             self.output_thread = threading.Thread(
                 target=self.output.connect,
@@ -73,14 +77,23 @@ class Go2LowLevelRecoveryNode:
                     continue
                 estimate = self.ekf.step_low_state(low_state)
 
-                if self.engine is not None and estimate.is_tipping and not self._recovery_requested:
-                    self._trigger_low_level_recovery(estimate)
-                    self._recovery_requested = True
+                if estimate.is_tipping:
                     self._stable_since = None
-                elif self.engine is not None and not estimate.is_tipping:
+                    if (
+                        self.engine is not None
+                        and not self._recovery_requested
+                        and now >= self._recovery_lockout_until
+                    ):
+                        self._trigger_low_level_recovery(estimate)
+                        self._recovery_requested = True
+                        self._recovery_lockout_until = now + self._RECOVERY_LOCKOUT_TIME
+                elif self.engine is not None:
                     if self._stable_since is None:
                         self._stable_since = now
-                    elif now - self._stable_since >= 0.5:
+                    elif (
+                        now - self._stable_since >= self._STABLE_REARM_TIME
+                        and now >= self._recovery_lockout_until
+                    ):
                         self._recovery_requested = False
                         self._stable_since = None
 
@@ -110,6 +123,7 @@ class Go2LowLevelRecoveryNode:
         self.ekf_enabled = not self.ekf_enabled
         self._recovery_requested = False
         self._stable_since = None
+        self._recovery_lockout_until = 0.0
         state = "enabled" if self.ekf_enabled else "disabled"
         print(f"[EKF] Stability EKF {state}.")
         return self.ekf_enabled
