@@ -198,6 +198,14 @@ class UnitreeGo2StabilityEKF:
 
         # Gravity direction update
         if abs(acc_norm - self.gravity) < 2.0 and gyro_norm < 1.5:
+            measured_roll, measured_pitch = self._gravity_attitude(sample.accelerometer)
+            if (
+                abs(self.x[0]) >= self.upside_down_tilt
+                or abs(self.x[1]) >= self.upside_down_tilt
+            ) and sample.accelerometer[2] > 0.0:
+                self.x[0] = measured_roll
+                self.x[1] = measured_pitch
+
             R_W_B = self._rotation_world_from_body(self.x[0], self.x[1])
             expected_acc = R_W_B.T @ np.array([0.0, 0.0, self.gravity])
 
@@ -224,6 +232,14 @@ class UnitreeGo2StabilityEKF:
         elif n_contacts in (1, 2):
             self._kalman_update(np.zeros(3), self.x[2:5], H_vel, self.R_slip_vel)
 
+    @staticmethod
+    def _gravity_attitude(accelerometer: np.ndarray) -> tuple[float, float]:
+        """Estimate roll and pitch from a stationary accelerometer."""
+        ax, ay, az = accelerometer
+        roll = np.arctan2(ay, az)
+        pitch = np.arctan2(-ax, np.hypot(ay, az))
+        return float(roll), float(pitch)
+
     def classify_stability(self, sample: StabilitySensorSample) -> StabilityState:
         roll, pitch = abs(self.x[0]), abs(self.x[1])
         tilt = float(np.hypot(roll, pitch))
@@ -242,6 +258,12 @@ class UnitreeGo2StabilityEKF:
 
         if acc_norm < 2.5 and n_contacts == 0:
             return StabilityState.FREE_FALL
+
+        if abs(acc_norm - self.gravity) < 2.0 and np.linalg.norm(sample.gyroscope) < 1.5:
+            roll, pitch = (
+                abs(angle)
+                for angle in self._gravity_attitude(sample.accelerometer)
+            )
 
         roll_rate, pitch_rate = sample.gyroscope[0], sample.gyroscope[1]
 
