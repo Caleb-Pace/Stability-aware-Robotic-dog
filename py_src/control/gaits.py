@@ -20,7 +20,7 @@ COMP_PITCH = np.pi/18 # 10%
 TRANSITION_STEP_COUNT = 4
 LOOP_STEP_COUNT = 120
 STEP_LENGTH_SCALE = 0.7
-STEP_HEIGHT_SCALE = 0.75
+STEP_HEIGHT_SCALE = 1.0
 STAND_HEIGHT = 0.32
 
 
@@ -40,7 +40,7 @@ TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
         heights            = np.array([STAND_HEIGHT], dtype=float),
-        orientations       = np.array([[0, 0.02, 0]], dtype=float),
+        orientations       = np.array([[0, 0.03, 0]], dtype=float),
         # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
         # leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
         leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
