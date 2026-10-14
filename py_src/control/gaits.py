@@ -22,7 +22,7 @@ LOOP_STEP_COUNT = 64+32
 STEP_LENGTH_SCALE = 1
 STEP_HEIGHT_SCALE = 1.25
 STAND_HEIGHT = 0.32
-BREADTH = -0.01
+BREADTH = -0.1
 
 # trot_ctrl_pts = np.array([
 #     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
