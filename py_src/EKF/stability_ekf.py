@@ -112,6 +112,7 @@ class UnitreeGo2StabilityEKF:
         self.max_stable_roll = np.radians(15.0)
         self.max_stable_pitch = np.radians(15.0)
         self.max_angular_vel = np.radians(120.0)
+        self.prediction_horizon = 0.25
         self.upside_down_tilt = np.radians(90.0)
         self.unrecoverable_tilt = np.radians(45.0)
 
@@ -267,11 +268,11 @@ class UnitreeGo2StabilityEKF:
 
         roll_rate, pitch_rate = sample.gyroscope[0], sample.gyroscope[1]
 
-        predicted_roll = abs(self.x[0] + roll_rate * 0.15)
+        predicted_roll = abs(self.x[0] + roll_rate * self.prediction_horizon)
         if predicted_roll > self.max_stable_roll or (roll > self.max_stable_roll * 0.8 and abs(roll_rate) > self.max_angular_vel):
             return StabilityState.TIPPING_ROLL
 
-        predicted_pitch = abs(self.x[1] + pitch_rate * 0.15)
+        predicted_pitch = abs(self.x[1] + pitch_rate * self.prediction_horizon)
         if predicted_pitch > self.max_stable_pitch or (pitch > self.max_stable_pitch * 0.8 and abs(pitch_rate) > self.max_angular_vel):
             return StabilityState.TIPPING_PITCH
 
