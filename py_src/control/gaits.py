@@ -9,23 +9,17 @@ from data_structures.leg_trajectories import LegTrajectories
 #
 # # # # # # # # # # #
 
-# Pitch to compensate for weight distribution
-# COMP_PITCH = np.pi/12 # 15% 
-COMP_PITCH = np.pi/18 # 10% 
-# COMP_PITCH = 0 # 10%
 
 # # Scale steps
-# STEP_SCALE = 2
-# STEP_SCALE = 0.5
 TRANSITION_STEP_COUNT = 12
 LOOP_STEP_COUNT = 64+32
 STEP_LENGTH_SCALE = 1
-STEP_HEIGHT_SCALE = 1.25
+STEP_HEIGHT_SCALE = 1
 STAND_HEIGHT = 0.32
 # BREADTH = -0.025
 # BREADTH = -0.01
-# BREADTH =  0.01
-BREADTH =  0.15
+BREADTH =  0.015
+# BREADTH =  0.15
 
 # trot_ctrl_pts = np.array([
 #     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
@@ -49,8 +43,7 @@ TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
         heights            = np.array([STAND_HEIGHT], dtype=float),
-        orientations       = np.array([[0, 0.02, 0]], dtype=float),
-        # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
+        orientations       = np.array([[0, 0.03, 0]], dtype=float),
         leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
         leg_control_points = trot_ctrl_pts
     )
