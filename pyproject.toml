@@ -16,6 +16,7 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = [
+    "py_src/EKF",
     "py_src/control",
     "py_src/data_structures",
     "py_src/hardware_abstraction_layer",
