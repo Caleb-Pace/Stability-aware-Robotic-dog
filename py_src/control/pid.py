@@ -1,5 +1,5 @@
 import numpy as np
-from data_structures.gait_definition import JOINT_COUNT
+from data_structures.constants import JOINT_COUNT
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 

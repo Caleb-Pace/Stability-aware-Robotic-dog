@@ -3,8 +3,7 @@ import numpy.typing as npt
 
 from data_structures import Point3D, EulerAngles, Point3DList
 
-from data_structures.constants import LEG_COUNT
-from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
+from data_structures.constants import LEG_COUNT, LEG_OFFSETS_FROM_BODY_ORIGIN
 
 from interpolation import Interpolator, CatmullRomSpline
 

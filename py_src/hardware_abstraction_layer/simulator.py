@@ -10,8 +10,7 @@ import mujoco.viewer
 from data_structures import Position, LegPoseList
 from hardware_abstraction_layer import OutputLayer
 
-from data_structures.gait_definition import LEG_COUNT, JOINT_COUNT
-from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
+from data_structures.constants import JOINT_COUNT
 
 from control.pid import PIDController
 
@@ -55,7 +54,8 @@ class Simulator(OutputLayer):
 
         # Set position and orientation
         data.qpos[2] = z_height
-        data.qpos[3] = 1.0  # Set orientation; (w: real part of quaternion)
+        data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]  # Set orientation; (w, x, y, z) (w: real part of quaternion)
+        # data.qpos[3] = 1.0  # Set orientation; (w: real part of quaternion)
         # data.qpos[4] = np.pi  # Start upside-down; roll 180
 
         # Apply pose
@@ -71,13 +71,14 @@ class Simulator(OutputLayer):
         model.opt.timestep = DT
 
         # Initialise position
-        initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
-        # initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
-        self._set_pose(data, initial_pose, z_height=0.30)  # z_height is in meters
+        # initial_pose = self._get_target_angles_from_dict(self._REAL_STAND)
+        initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
+        self._set_pose(data, initial_pose, z_height=0.32)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
 
         # Persist angle targets
-        target_angles = initial_pose
+        target_angles = initial_pose.copy()
+        requested_target_angles = initial_pose.copy()
 
         # Bounded catch-up setup
         sim_time = 0.0
@@ -101,12 +102,13 @@ class Simulator(OutputLayer):
                         # Non-blocking check for new event
                         new_position = self._position_queue.get_nowait()
 
-                        target_angles       = new_position.target_angles
-                        feedforward_torques = new_position.feedforward_torques
+                        requested_target_angles = new_position.target_angles
+                        feedforward_torques     = new_position.feedforward_torques
                     except queue.Empty:
                         pass  # Keep previous position in data.ctrl automatically  # TODO: Correct comment
 
                     # 2. Get current state from MuJoCo
+                    target_angles = requested_target_angles
                     current_angles     = data.qpos[QPOS_INDEXES]
                     current_velocities = data.qvel[QVEL_INDEXES]
 
@@ -118,8 +120,7 @@ class Simulator(OutputLayer):
                         applied_torques[i] = pid.update(target, angle, vel, DT)
 
                     # 4. Send the calculated applied torques to MuJoCo
-                    data.ctrl[:12] = applied_torques  # TODO: Use CTRL_INDEXES
-                    # data.ctrl[:12] = (applied_torques + feedforward_torques)  # TODO: Use CTRL_INDEXES
+                    data.ctrl[CTRL_INDEXES] = applied_torques + feedforward_torques
 
                     # for leg in range(4):
                     #     leg_num = leg * 3
@@ -166,8 +167,8 @@ class Simulator(OutputLayer):
 
     # TODO: Later, dynamics model
     def _get_feedforward_torques(self):
-        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
-
+        return np.zeros(JOINT_COUNT, dtype=np.float64)
+    
     def _get_target_angles_from_dict(self, preset_dict:dict):
         # Convert dict of tuples into 1D array
         return np.array([item for tup in preset_dict.values() for item in tup])

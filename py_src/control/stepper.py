@@ -2,9 +2,7 @@ import numpy as np
 
 from data_structures import Point3DList
 from data_structures.leg_trajectories import LegTrajectories
-from data_structures.gait_definition import LEG_COUNT
-
-from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
+from data_structures.constants import LEG_COUNT, LEG_OFFSETS_FROM_BODY_ORIGIN
 
 
 def step(trajectory:LegTrajectories, step_num:int) -> Point3DList:

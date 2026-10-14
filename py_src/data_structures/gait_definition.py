@@ -1,6 +1,6 @@
 import numpy as np
 
-from data_structures.constants import LEG_COUNT  # Related constants
+from data_structures.constants import LEG_COUNT
 from data_structures.leg_trajectories import LegTrajectories
 
 
