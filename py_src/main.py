@@ -94,6 +94,7 @@ def main():
     #     Setup button state holders
     a_btn = Button()
     b_btn = Button()
+    x_btn = Button()
     # y_btn = Button()
 
     # Output Interface
@@ -148,6 +149,13 @@ def main():
             engine.stop_motion()
             engine.perform_action(TURN_RIGHT, 10)
             print(f"[M ]  Turning test triggered!")
+
+        if x_btn.is_just_pressed(input_data.x_btn_down) and isinstance(out_layer, Simulator):
+            engine.stop_motion()
+            out_layer.reset_state()
+            is_sitting = True
+            motion_was_active = False
+            print("[M ]  Simulator reset to startup state")
 
         # if y_btn.is_just_pressed(input_data.y_btn_down):
         #     engine.perform_action(TWISTING_TEST, 25)

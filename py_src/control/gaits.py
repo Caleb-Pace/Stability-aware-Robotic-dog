@@ -19,8 +19,8 @@ COMP_PITCH = np.pi/18 # 10%
 # STEP_SCALE = 0.5
 TRANSITION_STEP_COUNT = 4
 LOOP_STEP_COUNT = 120
-STEP_LENGTH_SCALE = 0.7
-STEP_HEIGHT_SCALE = 1.0
+STEP_LENGTH_SCALE = 0.8
+STEP_HEIGHT_SCALE = 0.8
 STAND_HEIGHT = 0.32
 
 
@@ -31,13 +31,16 @@ STAND_HEIGHT = 0.32
 #     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
 # ])
 trot_ctrl_pts = np.array([
-np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+    np.array([
+        [-0.12, 0.0, 0.0], [-0.06, 0.0, 0.11], [0.0, 0.0, 0.15],
+        [0.06, 0.0, 0.11], [0.12, 0.0, 0.0], [0.105, 0.0, 0.0],
+        [0.09, 0.0, 0.0], [0.06, 0.0, 0.0], [0.03, 0.0, 0.0],
+        [0.0, 0.0, 0.0], [-0.03, 0.0, 0.0], [-0.06, 0.0, 0.0],
+        [-0.09, 0.0, 0.0], [-0.12, 0.0, 0.0],
+    ]),
 ])
+trot_ctrl_pts = np.array([trot_ctrl_pts[0].copy() for _ in range(4)], dtype=object)
 
-# Keep the trot conservative while giving swing legs enough clearance.
 for _leg_points in trot_ctrl_pts:
     _leg_points[:, 0] *= STEP_LENGTH_SCALE
     _leg_points[:, 2] *= STEP_HEIGHT_SCALE
@@ -46,7 +49,7 @@ TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
         heights            = np.array([STAND_HEIGHT], dtype=float),
-        orientations       = np.array([[0, 0.03, 0]], dtype=float),
+        orientations       = np.array([[0, 0, 0]], dtype=float),
         # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
         # leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
         leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),

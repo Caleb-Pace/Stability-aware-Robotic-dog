@@ -49,6 +49,7 @@ class Simulator(OutputLayer):
 
     def __init__(self, pids:list[PIDController]):
         self._position_queue:queue.Queue[Position] = queue.Queue()
+        self._reset_requested = threading.Event()
 
         self.pids = pids
 
@@ -98,6 +99,14 @@ class Simulator(OutputLayer):
                 target_sim = min(time.perf_counter() - wall_origin, sim_time + 0.050) # Capped at 50ms
 
                 while sim_time < target_sim:
+                    if self._reset_requested.is_set():
+                        self._reset_requested.clear()
+                        self._set_pose(data, initial_pose, z_height=0.32)
+                        target_angles = initial_pose.copy()
+                        requested_target_angles = initial_pose.copy()
+                        for pid in self.pids:
+                            pid.integral = 0.0
+                        mujoco.mj_forward(model, data)  # pyright: ignore[reportAttributeAccessIssue]
 
                     # Create/Clear feedforward torque buffer
                     feedforward_torques = np.zeros(JOINT_COUNT)
@@ -169,6 +178,12 @@ class Simulator(OutputLayer):
 
     def send_position(self, position:Position):
         self._position_queue.put(position)
+
+    def reset_state(self) -> None:
+        """Restore the simulator to its startup pose and clear motion state."""
+        with self._position_queue.mutex:
+            self._position_queue.queue.clear()
+        self._reset_requested.set()
 
     def get_low_state(self):
         pass
