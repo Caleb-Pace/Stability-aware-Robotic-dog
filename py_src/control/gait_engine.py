@@ -4,7 +4,6 @@ import math
 import numpy as np
 
 from data_structures import Position
-from data_structures.controller_input import ControllerData
 from data_structures.leg_trajectories import LegTrajectories
 from typing import Tuple
 
@@ -15,6 +14,8 @@ from data_structures.gait_definition import Gait, LEG_COUNT
 from control.stepper import step
 from kinematics.ik_solver import IK_Solver
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
+
+from control.actions import STAND
 
 
 class Instruction:
@@ -32,18 +33,31 @@ class Instruction:
         self.repeat     = repeat
 
 class GaitEngine:
-    _instruction_queue = Queue()
-    _current_instruction:Instruction|None = None
+    _instruction_queue:Queue
+    _current_instruction:Instruction|None
     # _current_pose =  # Stores current position of all end-effectors
-    _clock_interval_ms:float = 5
+    _clock_interval_ms:float
 
     _last_position:Position|None = None
 
     gait:Gait
     _current_bearing:float = 0.0
 
+    # Direct input support
+    _motion_command: np.ndarray
+    _motion_lock: threading.Lock
+    _continuous_motion_active: bool
+    _last_motion_foot_positions: np.ndarray | None
+    _motion_start_step: int
+    _motion_start_steps: int
+    _returning_to_stand: bool
+
 
     def __init__(self, gait:Gait, output:OutputLayer):
+        self._instruction_queue = Queue()
+        self._current_instruction = None
+        self._clock_interval_ms = Instruction.DEFAULT_STEP_INTERVAL_MS
+
         self._last_step_num:int = -1
         self._step_num:int = 0
         
@@ -52,7 +66,16 @@ class GaitEngine:
 
         self._ik = IK_Solver()
 
+        self._motion_command = np.zeros(3, dtype=np.float64)
+        self._motion_lock = threading.Lock()
+        self._continuous_motion_active = False
+        self._last_motion_foot_positions = None
+        self._motion_start_step = 0
+        self._motion_start_steps = 8
+        self._returning_to_stand = False
 
+
+    # TODO: Fix typing
     def _send_position(self):
         if self._current_instruction is None:
             return  # Early exit: no work to do
@@ -78,7 +101,58 @@ class GaitEngine:
         self.output.send_position(position)
         self._last_position = position
 
+    def _send_motion_position(self) -> None:
+        """Send one phase of the continuously commanded gait."""
+        trajectory = self.gait.loop
+        self._step_num %= trajectory.steps_in_gait
+        foot_positions = step(trajectory, self._step_num).copy()
+
+        with self._motion_lock:
+            forward, lateral, yaw = self._motion_command
+
+        command_magnitude = float(np.linalg.norm([forward, lateral, yaw]))
+        if command_magnitude == 0.0:
+            return
+
+        # The gait's x profile is reused as the stride profile. This keeps the
+        # existing leg timing and transitions while allowing direction changes
+        # without creating a new queued trajectory for every joystick sample.
+        stride_profile = foot_positions[:, 0].copy()
+        #stride_profile -= float(np.mean(stride_profile))
+        side_sign = np.array([1.0, -1.0, 1.0, -1.0])
+        foot_positions[:, 0] = stride_profile * (
+            forward / command_magnitude + yaw / command_magnitude * side_sign
+        )
+        foot_positions[:, 1] += stride_profile * lateral / command_magnitude
+
+        if self._motion_start_step < self._motion_start_steps:
+            phase = (self._motion_start_step + 1) / self._motion_start_steps
+            blend = phase * phase * (3.0 - 2.0 * phase)
+            foot_positions *= blend
+            self._motion_start_step += 1
+
+        hip_origins = np.asarray(trajectory.leg_origins_by_step[self._step_num])
+        self._last_motion_foot_positions = foot_positions.copy()
+        target_motor_angles = self._ik.solve(foot_positions, hip_origins)
+        if None in target_motor_angles:
+            return
+
+        position = Position(
+            target_motor_angles,
+            self._get_feedforward_torques(),
+        )
+        self.output.send_position(position)
+        self._last_position = position
+
     def _step(self):
+        with self._motion_lock:
+            continuous_motion = bool(np.any(self._motion_command))
+
+        if continuous_motion and self._current_instruction is None:
+            self._send_motion_position()
+            self._step_num = (self._step_num + 1) % self.gait.loop.steps_in_gait
+            return
+
         # # TODO: Remove, for debugging
         # if not (self._current_instruction is None and self._instruction_queue.empty()):
         #     print(f"[GE]  _step() call | got instruction? {self._current_instruction is not None} | {self._instruction_queue.qsize()} instructions queued")
@@ -115,6 +189,7 @@ class GaitEngine:
             self._current_instruction.repeat -= 1
             if self._current_instruction.repeat <= 0:  # Clear finished instruction
                 self._current_instruction = None
+                self._returning_to_stand = False
             else:
                 self._step_num = 0  # Reset step count
 
@@ -145,6 +220,75 @@ class GaitEngine:
                 pass
 
 
+    # TODO: FLAG, calculates loop time.
+    # TODO: Add scale to make faster
+    def set_motion(self, forward: float, lateral: float, yaw: float) -> None:
+        """Update continuous joystick motion without queueing a fixed move.
+
+        Values are normalized to approximately [-1, 1]. The caller handles
+        the zero-command transition to the desired neutral pose.
+        """
+        command = np.clip(
+            np.asarray([forward, lateral, yaw], dtype=np.float64),
+            -1.0,
+            1.0,
+        )
+        with self._motion_lock:
+            starting_motion = not self._continuous_motion_active and bool(np.any(command))
+            self._motion_command = command
+            self._continuous_motion_active = bool(np.any(command))
+
+        if starting_motion and self._current_instruction is None:
+            self._step_num = 0
+            self._motion_start_step = 0
+
+        magnitude = float(np.linalg.norm(command))
+        if magnitude > 0.0:
+            frequency_hz = 0.75 + 1.75 * min(1.0, magnitude)
+            self._clock_interval_ms = 1000.0 / (
+                self.gait.loop.steps_in_gait * frequency_hz
+            )
+
+    def stop_motion(self) -> None:
+        """Stop continuous gait advancement and clear the motion command."""
+        with self._motion_lock:
+            self._motion_command.fill(0.0)
+            self._continuous_motion_active = False
+        self._clock_interval_ms = Instruction.DEFAULT_STEP_INTERVAL_MS
+
+    # TODO: FLAG, transition to stand time.
+    def return_to_stand(self, step_interval_ms: float = 20.0) -> None:
+        """Ease from the current moving foot targets into neutral standing."""
+        if self._returning_to_stand:
+            return
+
+        start_positions = self._last_motion_foot_positions
+        if start_positions is None:
+            self.perform_action(STAND, step_interval_ms)
+            return
+
+        phase = np.linspace(0.0, 1.0, 32)
+        smooth_phase = phase * phase * (3.0 - 2.0 * phase)
+        control_points = np.empty(LEG_COUNT, dtype=object)
+        for leg, start in enumerate(start_positions):
+            control_points[leg] = start * (1.0 - smooth_phase[:, np.newaxis])
+
+        transition = LegTrajectories(
+            sample_count=32,
+            heights=np.array([0.3], dtype=float),
+            orientations=np.array([[0.0, 0.0, 0.0]], dtype=float),
+            leg_phase_offset=np.zeros(LEG_COUNT, dtype=float),
+            leg_control_points=control_points,
+            should_interpolate=False,
+        )
+        neutral_origins = np.asarray(STAND.leg_origins_by_step[-1])
+        transition.leg_origins_by_step = [
+            neutral_origins.copy() for _ in range(transition.steps_in_gait)
+        ]
+        self._returning_to_stand = True
+        self.perform_action(transition, step_interval_ms)
+
+
     def clear_instruction_queue(self):
         self._instruction_queue.queue.clear()
 
@@ -153,11 +297,11 @@ class GaitEngine:
     #     self.clear_instruction_queue()
     #     # TODO: Add stablise method
 
-
     def perform_action(self, action:LegTrajectories, step_interval_ms:float|None = None):
         instruction = Instruction(action, step_interval_ms)
         self._instruction_queue.put(instruction)
         print(f"[GE]  action requested")  # TODO: Remove, for debugging
+
 
     def _calculate_move_distance_data(self, distance:float, speed:float) -> Tuple[float, int]:
         # 1. Handle gait transitions
