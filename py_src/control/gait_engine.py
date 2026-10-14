@@ -66,11 +66,11 @@ class GaitEngine:
         self._continuous_motion_active = False
         self._last_motion_foot_positions = None
         self._motion_start_step = 0
-        self._motion_start_steps = 8
+        self._motion_start_steps = 48    # ~half a gait cycle of ramp-in (was 8 ticks, ~40ms)
         self._returning_to_stand = False
 
         # --- Anti-waddle tuning ---
-        self._sway_amplitude = 0.01      # metres. Try 0.005-0.02. Set 0 to disable.
+        self._sway_amplitude = 0.0       # metres. Off by default; try 0.005 only after the gait is stable.
         self._sway_sign = 1.0            # flip to -1.0 if the roll gets worse
         # Per-leg lateral offset between hip origin and foot plane (FR, FL, RR, RL).
         # Leave at 0 unless the IK diagnostic shows a constant y offset.
@@ -142,10 +142,13 @@ class GaitEngine:
         stride_profile = foot_positions[:, 0].copy()
         stride_profile -= float(np.mean(stride_profile))
         side_sign = np.array([1.0, -1.0, 1.0, -1.0])
+        # Stride scales with stick deflection (full stride only at magnitude >= 1),
+        # so a light push gives a short, gentle step instead of a full one.
+        divisor = max(command_magnitude, 1.0)
         foot_positions[:, 0] = stride_profile * (
-            forward / command_magnitude + yaw / command_magnitude * side_sign
+            forward / divisor + yaw / divisor * side_sign
         )
-        foot_positions[:, 1] += stride_profile * lateral / command_magnitude
+        foot_positions[:, 1] += stride_profile * lateral / divisor
 
         if self._motion_start_step < self._motion_start_steps:
             phase = (self._motion_start_step + 1) / self._motion_start_steps
@@ -275,7 +278,7 @@ class GaitEngine:
 
         magnitude = float(np.linalg.norm(command))
         if magnitude > 0.0:
-            frequency_hz = 0.5 + 1.5 * min(1.0, magnitude)
+            frequency_hz = 0.4 + 0.6 * min(1.0, magnitude)  # max 1 Hz (was 2 Hz)
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
