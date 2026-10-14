@@ -1,7 +1,6 @@
 import numpy as np
-import numpy.typing as npt
 
-from data_structures.constants import LEG_COUNT, JOINT_COUNT  # Related constants
+from data_structures.constants import LEG_COUNT  # Related constants
 from data_structures.leg_trajectories import LegTrajectories
 
 
@@ -32,7 +31,7 @@ class Gait:
             # TODO: Raise exception when offset is past available_steps
             
             if offset == 0:
-                n = max_offset
+                n = max_offset + 1
                 points_per_leg.append( np.array([leg_steps[0]] * n) )
                 continue
 
@@ -42,8 +41,8 @@ class Gait:
             leg_points  = []
             if end < available_steps:
                 leg_points = []
-                leg_points.extend( [leg_steps[0]] * (max_offset - offset) )
-                leg_points.extend( leg_steps[0:end] )
+                leg_points.extend( [leg_steps[0]] * (max_offset - offset + 1) )
+                leg_points.extend( leg_steps[1:end + 1] )
             else:
                 # TODO: Implement
                 print("Not implemented yet... womp womp")
@@ -52,10 +51,10 @@ class Gait:
 
             points_per_leg.append( np.asarray(leg_points) )
 
-        leg_origins = self.loop.leg_origins_by_step[0:max_offset]
+        leg_origins = self.loop.leg_origins_by_step[0:max_offset + 1]
 
         self.transition_in = LegTrajectories(
-            sample_count       = max_offset,
+            sample_count       = max_offset + 1,
             heights            = np.array([0.3], dtype=float),        # TODO: Implement (Extract current)
             orientations       = np.array([[0, 0, 0]], dtype=float),  # TODO: Implement (Extract with control points)
             leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
@@ -70,7 +69,7 @@ class Gait:
             points_per_leg[i] = points_per_leg[i][::-1, :][1:]  # Reverse and skip first
 
         self.transition_out = LegTrajectories(
-            sample_count       = (max_offset - 1),
+            sample_count       = max_offset,
             heights            = np.array([0.3], dtype=float),        # TODO: Implement (Extract current)
             orientations       = np.array([[0, 0, 0]], dtype=float),  # TODO: Implement (Extract with control points)
             leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
