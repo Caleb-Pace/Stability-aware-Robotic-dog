@@ -22,7 +22,9 @@ LOOP_STEP_COUNT = 64+32
 STEP_LENGTH_SCALE = 1
 STEP_HEIGHT_SCALE = 1.25
 STAND_HEIGHT = 0.32
-BREADTH = -0.1
+# BREADTH = -0.025
+BREADTH = -0.01
+# BREADTH =  0.01
 
 # trot_ctrl_pts = np.array([
 #     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
@@ -34,9 +36,11 @@ trot_ctrl_pts = np.array([
     np.array([[0.0, BREADTH, 0.0], [0.04, BREADTH, 0.06], [0.09, BREADTH, 0.08], [0.14, BREADTH, 0.06], [0.18, BREADTH, 0.01], [0.14, BREADTH, 0.0], [0.09, BREADTH, 0.0], [0.04, BREADTH, 0.0], [0.0, BREADTH, 0.0]]),
 ] * 4)
 
-
 # Keep the trot conservative while giving swing legs enough clearance.
-for _leg_points in trot_ctrl_pts:
+for i, _leg_points in enumerate(trot_ctrl_pts):
+    if i % 2 == 0:
+        _leg_points[:, 1] *= -1
+    
     _leg_points[:, 0] *= STEP_LENGTH_SCALE
     _leg_points[:, 2] *= STEP_HEIGHT_SCALE
 
