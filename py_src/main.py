@@ -111,7 +111,8 @@ def main():
         else:
             command = (
                 input_data.left_stick.delta_y,
-                input_data.left_stick.delta_x,
+                0,
+                # input_data.left_stick.delta_x,
                 input_data.right_stick.delta_x,
             )
             # Keep the release state latched through small controller readings.
