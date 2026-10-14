@@ -40,7 +40,7 @@ TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
         heights            = np.array([STAND_HEIGHT], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
+        orientations       = np.array([[0, 0.04, 0]], dtype=float),
         # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
         # leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
         leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
