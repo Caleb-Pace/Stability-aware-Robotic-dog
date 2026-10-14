@@ -8,8 +8,8 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 # KD = [1.0,  1.0,  1.5]    # keep much lower than 5; raise only if you see oscillation
 KI = [0.0] * 3  # UNUSED
 TORQUE_MAX = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
-KP = [25.0] * 3
-KD = [0.6] * 3
+KP = [60, 80, 80]
+KD = [5, 4, 4]
 
 
 #     Credit: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_PID.py
