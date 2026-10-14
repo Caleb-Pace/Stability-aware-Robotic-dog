@@ -69,6 +69,22 @@ class GaitEngine:
         self._motion_start_steps = 8
         self._returning_to_stand = False
 
+        # --- Anti-waddle tuning ---
+        self._sway_amplitude = 0.01      # metres. Try 0.005-0.02. Set 0 to disable.
+        self._sway_sign = 1.0            # flip to -1.0 if the roll gets worse
+        # Per-leg lateral offset between hip origin and foot plane (FR, FL, RR, RL).
+        # Leave at 0 unless the IK diagnostic shows a constant y offset.
+        self._hip_y_offset = np.array([0.0, 0.0, 0.0, 0.0])
+        self._debug_gait = False         # True prints foot/hip y per step
+
+    def _apply_lateral_comp(self, hip_origins: np.ndarray, step_num: int, steps_in_gait: int) -> np.ndarray:
+        """Shift hip origins sideways in phase with the gait (weight shift)
+        and apply the fixed per-leg abduction offset."""
+        hip_origins = np.array(hip_origins, dtype=np.float64, copy=True)
+        phase = step_num / steps_in_gait
+        sway = self._sway_sign * self._sway_amplitude * math.sin(2.0 * math.pi * phase)
+        hip_origins[:, 1] += sway + self._hip_y_offset
+        return hip_origins
 
     def _send_position(self):
         if self._current_instruction is None:
@@ -76,18 +92,25 @@ class GaitEngine:
 
         trajectory = self._current_instruction.trajectory
 
-        # Retrieve position
-        # print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
         # Origins include the commanded body height, while foot trajectories
         # are world-relative offsets from the ground plane. Keep this frame
         # convention intact for the IK solver.
         hip_origins = np.asarray(
             trajectory.leg_origins_by_step[self._step_num]
         )
+        # Only the walking loop gets sway; stand/transition actions stay as-is.
+        if trajectory is self.gait.loop:
+            hip_origins = self._apply_lateral_comp(
+                hip_origins, self._step_num, trajectory.steps_in_gait
+            )
         foot_positions = step(trajectory, self._step_num)
+
+        if self._debug_gait:
+            print(self._step_num, np.round(foot_positions[:, 1], 4), np.round(hip_origins[:, 1], 4))
+
         # Calculate motor angles
         target_motor_angles = self._ik.solve(foot_positions, hip_origins)
-        if None in target_motor_angles:
+        if any(a is None for a in target_motor_angles):
             return  # Early exit: IK - Failed
 
         feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
@@ -130,10 +153,18 @@ class GaitEngine:
             foot_positions *= blend
             self._motion_start_step += 1
 
-        hip_origins = np.asarray(trajectory.leg_origins_by_step[self._step_num])
+        hip_origins = self._apply_lateral_comp(
+            trajectory.leg_origins_by_step[self._step_num],
+            self._step_num,
+            trajectory.steps_in_gait,
+        )
+
+        if self._debug_gait:
+            print(self._step_num, np.round(foot_positions[:, 1], 4), np.round(hip_origins[:, 1], 4))
+
         self._last_motion_foot_positions = foot_positions.copy()
         target_motor_angles = self._ik.solve(foot_positions, hip_origins)
-        if None in target_motor_angles:
+        if any(a is None for a in target_motor_angles):
             return
 
         position = Position(
