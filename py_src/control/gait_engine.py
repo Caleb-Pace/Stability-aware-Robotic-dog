@@ -10,10 +10,10 @@ from typing import Tuple
 from hardware_abstraction_layer import OutputLayer
 from queue import Queue
 
-from data_structures.gait_definition import Gait, LEG_COUNT
+from data_structures.constants import LEG_COUNT, JOINT_COUNT
+from data_structures.gait_definition import Gait
 from control.stepper import step
 from kinematics.ik_solver import IK_Solver
-from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 from control.actions import STAND
 
@@ -415,14 +415,6 @@ class GaitEngine:
 
 
     # TODO: Later, dynamics model
-    # _dynamic_recovery
     def _get_feedforward_torques(self):
-        return np.array(([_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum] * LEG_COUNT), dtype=np.float64)
-    def _dynamic_recovery(self): # -> {Result}|None:
-        # is_falling = { Forward Dynamics Solve }
-        # if is_falling:  # Save from fall
-        #     correction_forces = { Inverse Dynamics Solve }
-        #     TODO: Calculate safe/stable position
-        #     TODO: You are working in a time frame not instantly moving with those forces
-
-        pass
+        return np.zeros(JOINT_COUNT, dtype=np.float64)
+    
