@@ -12,62 +12,14 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT, MAANAS_TROT, TIP_TOE
+from control.gaits import TROT
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
 
-# TODO: Remove, for debugging
-def _print_indexes(traj:LegTrajectories, loop_ref:LegTrajectories|None = None):
-    for step_num in range(traj.steps_in_gait):
-        debug_str = f"{{{step_num:>2}}}  |"
-
-        if loop_ref is None:
-            for leg in range(4):
-                offset = traj.phase_offsets_as_steps[leg]
-
-                # Calculate new point/step index
-                index = offset + step_num
-                if index >= traj.steps_in_gait:  # Wrap index if necessary
-                    index %= traj.steps_in_gait
-
-                debug_str += f" {str( index ):<2} |"
-        else:
-            for leg in range(4):
-                target_point = traj.foot_trajectories[leg][step_num]
-                leg_points   = loop_ref.foot_trajectories[leg]
-
-                match_mask = (leg_points == target_point).all(axis=1)
-                index      = np.where(match_mask)[0][0]
-
-                debug_str += f" {str( index ):<2} |"
-        
-        print(debug_str)
-
-def _print_values(traj:LegTrajectories):
-    import control.stepper as stepper
-
-    for step_num in range(traj.steps_in_gait):
-        foot_points = stepper.step(traj, step_num)
-
-        debug_str = f"{{{step_num:>2}}}  |"
-        for leg in range(4):
-            debug_str += f" {str( np.round(foot_points[leg], 6) ):<31} |"
-        print(debug_str)
-
-def _print_origins(traj:LegTrajectories):
-    for step_num in range(traj.steps_in_gait):
-        origins = traj.leg_origins_by_step[step_num]
-
-        debug_str = f"{{{step_num:>2}}}  |"
-        for leg in range(4):
-            debug_str += f" {str( np.round(origins[leg], 6) ):<31} |"
-        print(debug_str)
-
-
 def main():
-    gait:Gait = TIP_TOE
+    gait:Gait = TROT
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
