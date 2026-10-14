@@ -4,6 +4,8 @@ import threading
 from data_structures import Position
 from hardware_abstraction_layer import OutputLayer
 
+from control.pid import KP, KD
+
 try:
     from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
     from unitree_sdk2py.utils.crc import CRC
@@ -124,8 +126,10 @@ try:
 
                 m.q    = position.target_angles[i]
                 m.dq   = 0
-                m.kp   = 60.0 # Standard Go2 Stance Gain
-                m.kd   = 5.0
+                # m.kp   = 60.0 # Standard Go2 Stance Gain
+                # m.kd   = 5.0
+                m.kp   = KP[i % 3]
+                m.kd   = KD[i % 3]
                 m.tau  = 0  # TODO: Remove, temporary to match example
                 # m.tau  = position.feedforward_torques[i]  # TODO: Uncomment later when undestood
 
