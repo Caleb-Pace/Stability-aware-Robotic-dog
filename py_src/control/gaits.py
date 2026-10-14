@@ -1,74 +1,54 @@
 import numpy as np
 from data_structures.gait_definition import Gait
 from data_structures.leg_trajectories import LegTrajectories
+from data_structures.constants import STAND_HEIGHT
 
 # # # < Notes > # # #
 # 
-# Scale: 1.0 = 1 meter
-# Legs order: ["FR", "FL", "RR", "RL"]
+# Scale:       1.0 = 1 meter
+# Legs order:  ["FR", "FL", "RR", "RL"]
+# Orientation: [roll, pitch, yaw] (in radians)
 #
 # # # # # # # # # # #
 
-# Pitch to compensate for weight distribution
-# COMP_PITCH = np.pi/18 # 10% 
-# COMP_PITCH = np.pi/12 # 15% 
-# COMP_PITCH = np.pi/36 # 5% 
-# COMP_PITCH = 0 # 0% 
 
-# # Scale steps
-# STEP_SCALE = 2
-# STEP_SCALE = 0.5
-# LOOP_STEP_COUNT = 12
+### Tuning parameters
+TRANSITION_STEP_COUNT = 12
+LOOP_STEP_COUNT = 64+32
+STEP_LENGTH_SCALE = 1
+STEP_HEIGHT_SCALE = 1
+# PITCH_COMP = 0.03
+PITCH_COMP = 0.02
+# BREADTH = -0.025
+# BREADTH = -0.01
+BREADTH =  0.015
+# BREADTH =  0.15
 
-
+### Control Points
+# trot_ctrl_pts = np.array([
+#     np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+# ] * 4)  # Original
+# trot_ctrl_pts = np.array([
+#     np.array([[0.0, 0.0, 0.0], [0.04, 0.0, 0.06], [0.09, 0.0, 0.08], [0.14, 0.0, 0.06], [0.18, 0.0, 0.0], [0.14, 0.0, 0.0], [0.09, 0.0, 0.0], [0.04, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+# ] * 4)  # Tip toe
 trot_ctrl_pts = np.array([
-    np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-    np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-    np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-    np.array([[0.0, 0.0, 0.0], [0.05, 0.0, 0.08], [0.1, 0.0, 0.1], [0.15, 0.0, 0.08], [0.2, 0.0, 0.0], [0.15, 0.0, 0.0], [0.1, 0.0, 0.0], [0.05, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-])
+    np.array([[0.0, BREADTH, 0.0], [0.04, BREADTH, 0.06], [0.09, BREADTH, 0.08], [0.14, BREADTH, 0.06], [0.18, BREADTH, 0.01], [0.14, BREADTH, 0.0], [0.09, BREADTH, 0.0], [0.04, BREADTH, 0.0], [0.0, BREADTH, 0.0]]),
+] * 4)  # Maanas gait copy
 
-LOOP_STEP_COUNT = 192
+### Tuning
+for i, _leg_points in enumerate(trot_ctrl_pts):
+    if i % 2 == 0:
+        _leg_points[:, 1] *= -1
+    
+    _leg_points[:, 0] *= STEP_LENGTH_SCALE
+    _leg_points[:, 2] *= STEP_HEIGHT_SCALE
+
 TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
-        heights            = np.array([0.3], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        # orientations       = np.array([[0, COMP_PITCH, 0]], dtype=float),
-        # leg_phase_offset   = np.array([0, np.pi/2, np.pi/2, 0], dtype=float),
+        heights            = np.array([STAND_HEIGHT], dtype=float),
+        orientations       = np.array([[0, PITCH_COMP, 0]], dtype=float),
         leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
         leg_control_points = trot_ctrl_pts
-    )
-)
-
-LOOP_STEP_COUNT = 256
-MAANAS_TROT = Gait(
-    loop            = LegTrajectories(
-        sample_count       = LOOP_STEP_COUNT,
-        heights            = np.array([0.32], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.0, 0.0, 0.0], [0.04, 0.0, 0.06], [0.09, 0.0, 0.08], [0.14, 0.0, 0.06], [0.18, 0.0, 0.0], [0.14, 0.0, 0.0], [0.09, 0.0, 0.0], [0.04, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.04, 0.0, 0.06], [0.09, 0.0, 0.08], [0.14, 0.0, 0.06], [0.18, 0.0, 0.0], [0.14, 0.0, 0.0], [0.09, 0.0, 0.0], [0.04, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.04, 0.0, 0.06], [0.09, 0.0, 0.08], [0.14, 0.0, 0.06], [0.18, 0.0, 0.0], [0.14, 0.0, 0.0], [0.09, 0.0, 0.0], [0.04, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.04, 0.0, 0.06], [0.09, 0.0, 0.08], [0.14, 0.0, 0.06], [0.18, 0.0, 0.0], [0.14, 0.0, 0.0], [0.09, 0.0, 0.0], [0.04, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-        ])
-    )
-)
-
-LOOP_STEP_COUNT = 64
-TIP_TOE = Gait(
-    loop            = LegTrajectories(
-        sample_count       = LOOP_STEP_COUNT,
-        heights            = np.array([0.32], dtype=float),
-        orientations       = np.array([[0, 0, 0]], dtype=float),
-        leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
-        leg_control_points = np.array([
-            np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-            np.array([[0.0, 0.0, 0.0], [0.005, 0.0, 0.03], [0.02, 0.0, 0.04], [0.035, 0.0, 0.03], [0.04, 0.0, 0.0], [0.035, 0.0, 0.0], [0.02, 0.0, 0.0], [0.005, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-        ])
     )
 )
