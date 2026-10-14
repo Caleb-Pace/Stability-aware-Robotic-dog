@@ -50,6 +50,7 @@ class GaitEngine:
     _last_motion_foot_positions: np.ndarray | None
     _motion_start_step: int
     _motion_start_steps: int
+    _motion_lift_steps: int
     _returning_to_stand: bool
 
 
@@ -71,7 +72,8 @@ class GaitEngine:
         self._continuous_motion_active = False
         self._last_motion_foot_positions = None
         self._motion_start_step = 0
-        self._motion_start_steps = 8
+        self._motion_start_steps = 24
+        self._motion_lift_steps = 6
         self._returning_to_stand = False
 
 
@@ -125,9 +127,19 @@ class GaitEngine:
         foot_positions[:, 1] += stride_profile * lateral / command_magnitude
 
         if self._motion_start_step < self._motion_start_steps:
-            phase = (self._motion_start_step + 1) / self._motion_start_steps
-            blend = phase * phase * (3.0 - 2.0 * phase)
-            foot_positions *= blend
+            stride_phase = (self._motion_start_step + 1) / self._motion_start_steps
+            stride_blend = stride_phase * stride_phase * (3.0 - 2.0 * stride_phase)
+
+            # Establish swing-foot clearance before applying horizontal stride.
+            # Ramping all coordinates together leaves a lifted foot close to the
+            # ground while it is already being moved forward.
+            lift_phase = min(
+                1.0,
+                (self._motion_start_step + 1) / self._motion_lift_steps,
+            )
+            lift_blend = lift_phase * lift_phase * (3.0 - 2.0 * lift_phase)
+            foot_positions[:, :2] *= stride_blend
+            foot_positions[:, 2] *= lift_blend
             self._motion_start_step += 1
 
         hip_origins = np.asarray(trajectory.leg_origins_by_step[self._step_num])
