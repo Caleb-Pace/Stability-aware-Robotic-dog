@@ -3,10 +3,14 @@ from data_structures.constants import JOINT_COUNT
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
-KP = [60.0] * 3
-KI = [0.0] * 3
-KD = [5.0] * 3
+# per leg: [hip (abductor), thigh, calf]
+# KP = [40.0, 40.0, 50.0]   # RL-style Go2 policies use ~20-25; IK/MPC trotting is usually 40-60
+# KD = [1.0,  1.0,  1.5]    # keep much lower than 5; raise only if you see oscillation
+KI = [0.0] * 3  # UNUSED
 TORQUE_MAX = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
+KP = [25.0] * 3
+KD = [0.6] * 3
+
 
 #     Credit: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_PID.py
 class PIDController:
