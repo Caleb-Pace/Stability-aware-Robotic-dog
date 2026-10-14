@@ -95,7 +95,7 @@ def main():
     a_btn = Button()
     b_btn = Button()
     x_btn = Button()
-    # y_btn = Button()
+    y_btn = Button()
 
     # Output Interface
     #     Select output layer (Default to Robot)
@@ -157,12 +157,8 @@ def main():
             motion_was_active = False
             print("[M ]  Simulator reset to startup state")
 
-        # if y_btn.is_just_pressed(input_data.y_btn_down):
-        #     engine.perform_action(TWISTING_TEST, 25)
-        #     print(f"[M ]  Twisting test triggered!")
-        # if y_btn.is_just_pressed(input_data.y_btn_down):
-        #     engine.perform_action(TWISTING_TEST, 25)
-        #     print(f"[M ]  Twisting test triggered!")
+        if y_btn.is_just_pressed(input_data.y_btn_down) and recovery_node is not None:
+            recovery_node.toggle_ekf()
 
         # Sticks are continuous velocity-style commands. The gait engine
         # advances while the stick is deflected and returns to the default

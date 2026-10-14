@@ -41,6 +41,7 @@ class Go2LowLevelRecoveryNode:
         self.engine = engine
         self.action_builder = action_builder or (lambda _estimate: STAND)
         self.manage_output = manage_output
+        self.ekf_enabled = False
         self._recovery_requested = False
         self.stop_event = threading.Event()
         self.output_thread: threading.Thread | None = None
@@ -51,6 +52,7 @@ class Go2LowLevelRecoveryNode:
                 args=(self.stop_event,),
                 name="go2-low-level-output",
             )
+        print("[EKF] Stability EKF disabled by default.")
 
     def run(self) -> None:
         if self.manage_output and self.output_thread is not None:
@@ -64,6 +66,9 @@ class Go2LowLevelRecoveryNode:
                 now = time.monotonic()
                 low_state = self.output.get_low_state()
                 if low_state is None:
+                    self.stop_event.wait(self.ekf.dt)
+                    continue
+                if not self.ekf_enabled:
                     self.stop_event.wait(self.ekf.dt)
                     continue
                 estimate = self.ekf.step_low_state(low_state)
@@ -99,6 +104,15 @@ class Go2LowLevelRecoveryNode:
         action = self.action_builder(estimate)
         if action is not None and self.engine is not None:
             self.engine.perform_action(action, 5)
+
+    def toggle_ekf(self) -> bool:
+        """Toggle EKF processing and return the new enabled state."""
+        self.ekf_enabled = not self.ekf_enabled
+        self._recovery_requested = False
+        self._stable_since = None
+        state = "enabled" if self.ekf_enabled else "disabled"
+        print(f"[EKF] Stability EKF {state}.")
+        return self.ekf_enabled
 
     @staticmethod
     def _format_contacts(estimate: Any) -> str:
