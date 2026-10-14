@@ -75,7 +75,6 @@ class GaitEngine:
         self._returning_to_stand = False
 
 
-    # TODO: Fix typing
     def _send_position(self):
         if self._current_instruction is None:
             return  # Early exit: no work to do
@@ -84,7 +83,7 @@ class GaitEngine:
 
         # Retrieve position
         # print(f"[GE][DEBUG]:59  get origin: {self._step_num}/{len(trajectory.leg_origins_by_step)}")  # TODO: Remove, for debugging
-        hip_origins         = trajectory.leg_origins_by_step[self._step_num]
+        hip_origins         = np.asarray( trajectory.leg_origins_by_step[self._step_num] )
         foot_positions      = step(trajectory, self._step_num)
         # Calculate motor angles
         target_motor_angles = self._ik.solve(foot_positions, hip_origins)
