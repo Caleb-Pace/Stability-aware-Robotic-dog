@@ -18,7 +18,7 @@ LOOP_STEP_COUNT = 64+32
 # Keep the first gait conservative while retaining a backward stance sweep.
 # The stance phase must move the foot rearward against the ground to create
 # propulsion; returning only to x=0 produces little usable grip.
-STEP_LENGTH_SCALE = 1.5
+STEP_LENGTH_SCALE = 1.0
 STEP_HEIGHT_SCALE = 1.5
 # STEP_LENGTH_SCALE = 0.50
 # STEP_HEIGHT_SCALE = 0.60
