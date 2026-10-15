@@ -265,7 +265,10 @@ class GaitEngine:
 
         magnitude = float(np.linalg.norm(command))
         if magnitude > 0.0:
-            frequency_hz = 0.75 + 1.75 * min(1.0, magnitude)
+            # Run the same foothold trajectory faster at higher stick
+            # magnitudes. Keep a nonzero minimum so small commands do not
+            # stall the gait, while limiting the maximum to protect motors.
+            frequency_hz = 1.0 + 2.0 * min(1.0, magnitude)
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
