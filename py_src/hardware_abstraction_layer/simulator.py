@@ -12,7 +12,7 @@ from hardware_abstraction_layer import OutputLayer
 
 from data_structures.constants import JOINT_COUNT
 
-from control.pid import PIDController
+from control.pid import PIDController, TORQUE_MAX_TILED
 
 
 SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
@@ -123,7 +123,12 @@ class Simulator(OutputLayer):
                         applied_torques[i] = pid.update(target, angle, vel, DT)
 
                     # 4. Send the calculated applied torques to MuJoCo
-                    data.ctrl[CTRL_INDEXES] = applied_torques + feedforward_torques
+                    # data.ctrl[CTRL_INDEXES] = applied_torques + feedforward_torques
+                    data.ctrl[CTRL_INDEXES] = np.clip(
+                        applied_torques + feedforward_torques,
+                        -TORQUE_MAX_TILED,
+                        TORQUE_MAX_TILED,
+                    )
 
                     # for leg in range(4):
                     #     leg_num = leg * 3
@@ -169,6 +174,7 @@ class Simulator(OutputLayer):
 
 
     # TODO: Later, dynamics model
+    # TODO: Place holder, remove
     def _get_feedforward_torques(self):
         return np.zeros(JOINT_COUNT, dtype=np.float64)
     

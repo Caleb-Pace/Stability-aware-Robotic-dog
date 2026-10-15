@@ -1,15 +1,16 @@
 import numpy as np
-from data_structures.constants import JOINT_COUNT
+from data_structures.constants import LEG_COUNT, JOINT_COUNT
 from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, _KNEE_TORQUE_LIMIT
 
 
 # per leg: [hip (abductor), thigh, calf]
 # KP = [40.0, 40.0, 50.0]   # RL-style Go2 policies use ~20-25; IK/MPC trotting is usually 40-60
 # KD = [1.0,  1.0,  1.5]    # keep much lower than 5; raise only if you see oscillation
+KP = [60.0] * 3
+KD = [5] * 3
 KI = [0.0] * 3  # UNUSED
-TORQUE_MAX = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
-KP = [60, 80, 80]
-KD = [5, 4, 4]
+TORQUE_MAX       = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
+TORQUE_MAX_TILED = np.asarray( TORQUE_MAX * LEG_COUNT )
 
 
 #     Credit: https://github.com/maanas444/go2-simulation/blob/main/mujoco/go2_PID.py
