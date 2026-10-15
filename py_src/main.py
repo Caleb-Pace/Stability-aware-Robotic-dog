@@ -12,7 +12,7 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT
+from control.gaits import TROT, CRAWL
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
@@ -24,7 +24,8 @@ except ImportError:
 
 
 def main():
-    gait:Gait = TROT
+    # gait:Gait = TROT
+    gait:Gait = CRAWL
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 

@@ -1,7 +1,7 @@
 import numpy as np
 from data_structures.gait_definition import Gait
 from data_structures.leg_trajectories import LegTrajectories
-from data_structures.constants import STAND_HEIGHT
+from data_structures.constants import *
 
 # # # < Notes > # # #
 # 
@@ -76,6 +76,16 @@ TROT = Gait(
     loop            = LegTrajectories(
         sample_count       = LOOP_STEP_COUNT,
         heights            = np.array([STAND_HEIGHT], dtype=float),
+        orientations       = np.array([[0, PITCH_COMP, 0]], dtype=float),
+        leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
+        leg_control_points = trot_ctrl_pts
+    )
+)
+
+CRAWL = Gait(
+    loop            = LegTrajectories(
+        sample_count       = LOOP_STEP_COUNT,
+        heights            = np.array([CRAWL_HEIGHT], dtype=float),
         orientations       = np.array([[0, PITCH_COMP, 0]], dtype=float),
         leg_phase_offset   = np.array([0, np.pi, np.pi, 0], dtype=float),
         leg_control_points = trot_ctrl_pts
