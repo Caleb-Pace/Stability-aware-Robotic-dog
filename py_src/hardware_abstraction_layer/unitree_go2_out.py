@@ -130,8 +130,8 @@ try:
                 # m.kd   = 5.0
                 m.kp   = KP[i % 3]
                 m.kd   = KD[i % 3]
-                m.tau  = 0  # TODO: Remove, temporary to match example
-                # m.tau  = position.feedforward_torques[i]  # TODO: Uncomment later when undestood
+                # m.tau  = 0  # TODO: Remove, temporary to match example
+                m.tau  = position.feedforward_torques[i]  # TODO: Uncomment later when undestood
 
             # Calculate CRC on the populated command structure
             self.low_cmd.crc = self.crc.Crc(self.low_cmd)

@@ -80,6 +80,9 @@ class Simulator(OutputLayer):
         target_angles = initial_pose.copy()
         requested_target_angles = initial_pose.copy()
 
+        # Persist feedforward torques (held until a new Position arrives, same as the target angles)
+        feedforward_torques = np.zeros(JOINT_COUNT)
+
         # Bounded catch-up setup
         sim_time = 0.0
         wall_origin = time.perf_counter()
@@ -94,8 +97,8 @@ class Simulator(OutputLayer):
 
                 while sim_time < target_sim:
 
-                    # Create/Clear feedforward torque buffer
-                    feedforward_torques = np.zeros(JOINT_COUNT)
+                    # # Create/Clear feedforward torque buffer
+                    # feedforward_torques = np.zeros(JOINT_COUNT)
 
                     # 1. Update targets if a new position has arrived
                     try:
