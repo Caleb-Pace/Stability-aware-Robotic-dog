@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import argparse
 import logging
 import threading
 import time
@@ -166,3 +167,57 @@ class EKFLogger:
         if values is None or len(values) != 4:
             raise ValueError("Foot force vector must contain exactly four values")
         return tuple(float(value) for value in values)
+
+
+def main() -> None:
+    """Record Unitree sensors and EKF estimates without starting the gait controller."""
+    parser = argparse.ArgumentParser(description="Record Go2 EKF data to CSV")
+    parser.add_argument("--output", type=Path, default=None, help="CSV output path")
+    parser.add_argument("--interval", type=float, default=0.01, help="Sampling interval in seconds")
+    parser.add_argument("--duration", type=float, default=None, help="Stop automatically after this many seconds")
+    parser.add_argument("--interface", default="eth0", help="Unitree network interface")
+    parser.add_argument("--contact-threshold", type=float, default=20.0, help="Contact threshold in newtons")
+    args = parser.parse_args()
+    if args.duration is not None and args.duration <= 0:
+        parser.error("--duration must be greater than zero")
+
+    try:
+        from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE, UnitreeGo2
+    except ImportError as error:
+        raise RuntimeError("Unitree SDK is required for standalone EKF logging") from error
+    if not UNITREE_SDK_AVAILABLE:
+        raise RuntimeError("Unitree SDK is required for standalone EKF logging")
+
+    stop_event = threading.Event()
+    output = UnitreeGo2(args.interface)
+    output_thread = threading.Thread(
+        target=output.connect,
+        args=(stop_event,),
+        name="unitree-ekf-output",
+        daemon=True,
+    )
+    logger = EKFLogger(
+        output,
+        path=args.output,
+        sample_interval_s=args.interval,
+        contact_force_threshold=args.contact_threshold,
+    )
+    output_thread.start()
+    path = logger.start()
+    print(f"[EKF] Recording to {path}. Press Ctrl-C to stop.")
+    try:
+        if args.duration is None:
+            while not stop_event.wait(0.5):
+                pass
+        else:
+            stop_event.wait(args.duration)
+    except KeyboardInterrupt:
+        print("\n[EKF] Stopping...")
+    finally:
+        logger.stop()
+        stop_event.set()
+        output_thread.join(timeout=5.0)
+
+
+if __name__ == "__main__":
+    main()

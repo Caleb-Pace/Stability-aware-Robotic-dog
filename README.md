@@ -61,6 +61,18 @@ run-dog --ekf-log logs/trial_01_ekf.csv --ekf-interval 0.01 \
 plot-ekf logs/trial_01_ekf.csv --save plots/trial_01_ekf.png --no-show
 ```
 
+For standalone comparison experiments using Unitree's proprietary movement
+controller, run either logger without starting this project's gait controller:
+
+```bash
+log-imu --output logs/unitree_trial_01_imu.csv --interface eth0
+log-ekf --output logs/unitree_trial_01_ekf.csv --interface eth0
+```
+
+Both commands run until `Ctrl-C`. Add `--duration 30` for an automatic
+30-second capture. The EKF command also accepts `--contact-threshold` to tune
+the foot-contact force threshold.
+
 To graph a completed experiment:
 
 ```bash

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import argparse
 import logging
 import threading
 import time
@@ -149,3 +150,51 @@ class IMULogger:
         if values is None or len(values) != 3:
             raise ValueError(f"IMU {name} must contain exactly three values")
         return (float(values[0]), float(values[1]), float(values[2]))
+
+
+def main() -> None:
+    """Record the Unitree low-state IMU without starting the gait controller."""
+    parser = argparse.ArgumentParser(description="Record Go2 IMU data to CSV")
+    parser.add_argument("--output", type=Path, default=None, help="CSV output path")
+    parser.add_argument("--interval", type=float, default=0.01, help="Sampling interval in seconds")
+    parser.add_argument("--duration", type=float, default=None, help="Stop automatically after this many seconds")
+    parser.add_argument("--interface", default="eth0", help="Unitree network interface")
+    args = parser.parse_args()
+    if args.duration is not None and args.duration <= 0:
+        parser.error("--duration must be greater than zero")
+
+    try:
+        from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE, UnitreeGo2
+    except ImportError as error:
+        raise RuntimeError("Unitree SDK is required for standalone IMU logging") from error
+    if not UNITREE_SDK_AVAILABLE:
+        raise RuntimeError("Unitree SDK is required for standalone IMU logging")
+
+    stop_event = threading.Event()
+    output = UnitreeGo2(args.interface)
+    output_thread = threading.Thread(
+        target=output.connect,
+        args=(stop_event,),
+        name="unitree-imu-output",
+        daemon=True,
+    )
+    logger = IMULogger(output, path=args.output, sample_interval_s=args.interval)
+    output_thread.start()
+    path = logger.start()
+    print(f"[IMU] Recording to {path}. Press Ctrl-C to stop.")
+    try:
+        if args.duration is None:
+            while not stop_event.wait(0.5):
+                pass
+        else:
+            stop_event.wait(args.duration)
+    except KeyboardInterrupt:
+        print("\n[IMU] Stopping...")
+    finally:
+        logger.stop()
+        stop_event.set()
+        output_thread.join(timeout=5.0)
+
+
+if __name__ == "__main__":
+    main()
