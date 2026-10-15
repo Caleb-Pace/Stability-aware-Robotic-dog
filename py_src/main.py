@@ -131,7 +131,7 @@ def main():
             elif motion_was_active:
                 engine.stop_motion()
                 engine.return_to_stand()
-                print("[M ]  Joystick released; returning to standing pose")
+                # print("[M ]  Joystick released; returning to standing pose")
                 motion_was_active = False
 
 
