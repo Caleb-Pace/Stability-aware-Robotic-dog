@@ -243,7 +243,7 @@ class GaitEngine:
 
     # TODO: FLAG, calculates loop time.
     # TODO: Add scale to make faster
-    def set_motion(self, forward: float, lateral: float, yaw: float, speed_scale:float=1.0) -> None:
+    def set_motion(self, forward: float, lateral: float, yaw: float) -> None:
         """Update continuous joystick motion without queueing a fixed move.
 
         Values are normalized to approximately [-1, 1]. The caller handles
@@ -265,11 +265,11 @@ class GaitEngine:
 
         magnitude = float(np.linalg.norm(command))
         if magnitude > 0.0:
-            frequency_hz = 0.75 + 1.75 * min(1.0, magnitude) * speed_scale
+            frequency_hz = 1.0 + 3.0 * min(1.0, magnitude)
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
-            print(f"[GE]  motion - update {frequency_hz}hz")
+            print(f"[GE]  motion - update {frequency_hz}hz")  # TODO: Remove, for debugging
 
     def stop_motion(self) -> None:
         """Stop continuous gait advancement and clear the motion command."""
