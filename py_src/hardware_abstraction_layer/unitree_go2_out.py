@@ -140,7 +140,7 @@ try:
 
             # Calculate CRC on the populated command structure
             self.low_cmd.crc = self.crc.Crc(self.low_cmd)
-            self.lowcmd_pub.Write(self.low_cmd)
+            self.lowcmd_pub.Write(self.low_cmd)  # pyright: ignore[reportOptionalMemberAccess]
 
 except ImportError:
     UNITREE_SDK_AVAILABLE = False

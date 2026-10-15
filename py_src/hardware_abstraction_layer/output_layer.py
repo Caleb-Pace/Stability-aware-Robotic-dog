@@ -1,6 +1,8 @@
 import threading
 
+from types import SimpleNamespace
 from abc import ABC, abstractmethod
+
 from data_structures import Position
 
 
@@ -15,5 +17,5 @@ class OutputLayer(ABC):
         pass
     
     @abstractmethod
-    def get_low_state(self):
+    def get_low_state(self) -> SimpleNamespace|None:
         pass

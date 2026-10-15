@@ -14,7 +14,7 @@ from hardware_abstraction_layer.simulator import Simulator
 
 from control.gait_switcher import GaitSwitcher
 from control.gaits import TROT, CRAWL
-from control.actions import *
+from control.actions import *  # pyright: ignore[reportWildcardImportFromLibrary]
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 from logger import IMULogger
@@ -49,8 +49,6 @@ def main():
     )
     args = parser.parse_args()
 
-    gait:Gait = TROT
-    # gait:Gait = CRAWL
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -123,76 +121,59 @@ def main():
     motion_was_active:bool = False
 
     print("[M ]  Input loop started!")
-    while True:
-        input_data = in_layer.poll()
+    try:
+        while True:
+            input_data = in_layer.poll()
 
-        ## Buttons
-        if a_btn.is_just_pressed(input_data.a_btn_down):
+            ## Buttons
+            if a_btn.is_just_pressed(input_data.a_btn_down):
+                if is_sitting:
+                    engine.perform_action(STAND, 10)
+                    print(f"[M ]  Stand action triggered!")
+                else:
+                    engine.perform_action(SIT, 10)
+                    print(f"[M ]  Sit action triggered!")
+                is_sitting = not is_sitting
+
+            # TODO: Test, actually going to be a better half stand
+            if b_btn.is_just_pressed(input_data.b_btn_down):
+                engine.HEHE = not engine.HEHE
+                print(f"[M ]  Toggled Dynamics {('ON' if engine.HEHE else 'off')}!")
+                # engine.perform_action(HALF_STAND, 10)
+                # print(f"[M ]  Half stand triggered!")
+                # engine.perform_action(TURN_RIGHT, 10)
+                # print(f"[M ]  Turning test triggered!")
+
+            if start_btn.is_just_pressed(input_data.start_btn_down):
+                if recovery_node is None:
+                    print(f"[M ]  EKF is not available!")
+                else:
+                    recovery_node.toggle_ekf()
+                    print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
+
+
+            ## Gait switcher
+            if gait_switcher.does_gait_change(input_data):
+                prev_gait_name = gait_switcher.current_gait_name
+                engine.gait = gait_switcher.current_gait
+                print(f"[GS]  Changing from \"{prev_gait_name}\" to \"{gait_switcher.current_gait_name}\"")
+
+            ## Sticks
+            # Sticks are continuous velocity-style commands. The gait engine
+            # advances while the stick is deflected and returns to the default
+            # standing pose as soon as the command returns to the deadzone.
             if is_sitting:
-                engine.perform_action(STAND, 10)
-                print(f"[M ]  Stand action triggered!")
-            else:
-                engine.perform_action(SIT, 10)
-                print(f"[M ]  Sit action triggered!")
-            is_sitting = not is_sitting
-
-        # TODO: Test, actually going to be a better half stand
-        if b_btn.is_just_pressed(input_data.b_btn_down):
-            engine.HEHE = not engine.HEHE
-            print(f"[M ]  Toggled Dynamics {('ON' if engine.HEHE else 'off')}!")
-            # engine.perform_action(HALF_STAND, 10)
-            # print(f"[M ]  Half stand triggered!")
-            # engine.perform_action(TURN_RIGHT, 10)
-            # print(f"[M ]  Turning test triggered!")
-
-        if start_btn.is_just_pressed(input_data.start_btn_down):
-            if recovery_node is None:
-                print(f"[M ]  EKF is not available!")
-            else:
-                recovery_node.toggle_ekf()
-                print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
-
-
-        ## Gait switcher
-        if gait_switcher.does_gait_change(input_data):
-            prev_gait_name = gait_switcher.current_gait_name
-            engine.gait = gait_switcher.current_gait
-            print(f"[GS]  Changing from \"{prev_gait_name}\" to \"{gait_switcher.current_gait_name}\"")
-
-        ## Sticks
-        # Sticks are continuous velocity-style commands. The gait engine
-        # advances while the stick is deflected and returns to the default
-        # standing pose as soon as the command returns to the deadzone.
-        if is_sitting:
-            motion_was_active = False
-        else:
-            command = (
-                input_data.left_stick.delta_y,
-                0,
-                # input_data.left_stick.delta_x,
-                input_data.right_stick.delta_x,
-            )
-            # Keep the release state latched through small controller readings.
-            # Without this threshold, stick noise can alternate between motion
-            # and return-to-stand on successive polls.
-            command_is_active = float(np.linalg.norm(command)) > max(
-                0.1,
-                JOYSTICK_DEADZONE,
-            )
-            if command_is_active:
-                engine.set_motion(*command)  # TODO: Add speed scale
-                motion_was_active = True
-            elif motion_was_active:
-                engine.stop_motion()
-                engine.return_to_stand()
-                # print("[M ]  Joystick released; returning to standing pose")
                 motion_was_active = False
             else:
                 command = (
                     input_data.left_stick.delta_y,
                     0,
+                    # input_data.left_stick.delta_x,
                     input_data.right_stick.delta_x,
                 )
+                # Keep the release state latched through small controller readings.
+                # Without this threshold, stick noise can alternate between motion
+                # and return-to-stand on successive polls.
                 command_is_active = float(np.linalg.norm(command)) > max(
                     0.1,
                     JOYSTICK_DEADZONE,
@@ -203,11 +184,29 @@ def main():
                 elif motion_was_active:
                     engine.stop_motion()
                     engine.return_to_stand()
-                    print("[M ]  Joystick released; returning to standing pose")
+                    # print("[M ]  Joystick released; returning to standing pose")
                     motion_was_active = False
+                else:
+                    command = (
+                        input_data.left_stick.delta_y,
+                        0,
+                        input_data.right_stick.delta_x,
+                    )
+                    command_is_active = float(np.linalg.norm(command)) > max(
+                        0.1,
+                        JOYSTICK_DEADZONE,
+                    )
+                    if command_is_active:
+                        engine.set_motion(*command)  # TODO: Add speed scale
+                        motion_was_active = True
+                    elif motion_was_active:
+                        engine.stop_motion()
+                        engine.return_to_stand()
+                        print("[M ]  Joystick released; returning to standing pose")
+                        motion_was_active = False
 
 
-            time.sleep(read_delay_ms / 1000)
+                time.sleep(read_delay_ms / 1000)
     except KeyboardInterrupt:
         print("\n[M ]  Stopping...")
     finally:

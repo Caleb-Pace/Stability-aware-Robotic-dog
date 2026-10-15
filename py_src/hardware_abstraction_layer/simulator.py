@@ -66,8 +66,8 @@ class Simulator(OutputLayer):
 
     # TODO: Fix dog not responding
     def _run(self, interrupt:threading.Event):
-        model = mujoco.MjModel.from_xml_path(SCENE_PATH)                           # pyright: ignore[reportAttributeAccessIssue]
-        data = mujoco.MjData(model)                                                # pyright: ignore[reportAttributeAccessIssue]
+        model = mujoco.MjModel.from_xml_path(SCENE_PATH)                       # pyright: ignore[reportAttributeAccessIssue]
+        data = mujoco.MjData(model)                                            # pyright: ignore[reportAttributeAccessIssue]
 
         # Timestep
         DT = 0.002  # 500Hz loop
@@ -174,7 +174,7 @@ class Simulator(OutputLayer):
     def send_position(self, position:Position):
         self._position_queue.put(position)
 
-    def get_low_state(self):
+    def get_low_state(self) -> SimpleNamespace|None:
         with self._state_lock:
             if self._low_state is None:
                 return None
@@ -221,7 +221,7 @@ class Simulator(OutputLayer):
                 foot_name = geom_to_foot.get(contact.geom2)
             if foot_name is None:
                 continue
-            mujoco.mj_contactForce(model, data, contact_index, contact_force)
+            mujoco.mj_contactForce(model, data, contact_index, contact_force)  # pyright: ignore[reportAttributeAccessIssue]
             forces[foot_name] += abs(float(contact_force[0]))
         return np.asarray(
             [forces["FL"], forces["FR"], forces["RL"], forces["RR"]],
