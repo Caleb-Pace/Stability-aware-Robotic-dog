@@ -35,3 +35,18 @@ Windows *(PowerShell)*:
 pip install .
 ```
 ***Note:** use the editable flag (`-e`) for development.*
+
+## IMU experiment logs
+
+`run-dog` starts an IMU CSV logger automatically. By default it writes a
+timestamped file under `logs/`. Choose a path and sampling interval when
+needed:
+
+```bash
+run-dog --imu-log logs/trot_trial_01.csv --imu-interval 0.01
+```
+
+The CSV contains UTC timestamps, elapsed experiment time, and accelerometer
+(`m/s^2`) and gyroscope (`rad/s`) axes. This works with both the Unitree
+backend and the MuJoCo simulator. Samples are flushed as they are written,
+and the file is closed cleanly when the controller stops.

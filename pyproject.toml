@@ -21,7 +21,8 @@ packages = [
     "py_src/data_structures",
     "py_src/hardware_abstraction_layer",
     "py_src/interpolation",
-    "py_src/kinematics"
+    "py_src/kinematics",
+    "py_src/logger"
 ]
 
 [project.scripts]

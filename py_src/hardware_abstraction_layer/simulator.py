@@ -3,6 +3,7 @@ import time
 import threading
 import queue
 import numpy as np
+from types import SimpleNamespace
 
 import mujoco
 import mujoco.viewer
@@ -45,6 +46,8 @@ class Simulator(OutputLayer):
 
     def __init__(self, pids:list[PIDController]):
         self._position_queue:queue.Queue[Position] = queue.Queue()
+        self._state_lock = threading.Lock()
+        self._low_state = None
 
         self.pids = pids
 
@@ -75,6 +78,7 @@ class Simulator(OutputLayer):
         initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
         self._set_pose(data, initial_pose, z_height=0.32)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
+        self._update_low_state(data)
 
         # Persist angle targets
         target_angles = initial_pose.copy()
@@ -158,6 +162,7 @@ class Simulator(OutputLayer):
                     #     print(f"[S2]    t_ag: {target_angles}")
 
                     mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
+                    self._update_low_state(data)
                     sim_time += DT
 
                 viewer.sync()  # Render
@@ -170,7 +175,30 @@ class Simulator(OutputLayer):
         self._position_queue.put(position)
 
     def get_low_state(self):
-        pass
+        with self._state_lock:
+            if self._low_state is None:
+                return None
+            return SimpleNamespace(
+                imu_state=SimpleNamespace(
+                    accelerometer=self._low_state.imu_state.accelerometer.copy(),
+                    gyroscope=self._low_state.imu_state.gyroscope.copy(),
+                )
+            )
+
+    def _update_low_state(self, data) -> None:
+        """Expose MuJoCo IMU sensors through the same shape as Unitree LowState."""
+        accelerometer = data.sensor("imu_acc").data.copy()
+        gyroscope = data.sensor("imu_gyro").data.copy()
+        if accelerometer.shape != (3,) or gyroscope.shape != (3,):
+            raise ValueError("Simulator IMU sensors must each contain three values")
+
+        with self._state_lock:
+            self._low_state = SimpleNamespace(
+                imu_state=SimpleNamespace(
+                    accelerometer=accelerometer,
+                    gyroscope=gyroscope,
+                )
+            )
 
 
     # TODO: Later, dynamics model
