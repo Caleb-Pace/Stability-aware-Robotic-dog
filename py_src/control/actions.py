@@ -29,6 +29,19 @@ STAND = LegTrajectories(
     ], dtype=object)
 )
 
+HALF_STAND = LegTrajectories(
+    sample_count       = 32,
+    heights            = np.array([(STAND_HEIGHT-0.1), STAND_HEIGHT], dtype=float),
+    orientations       = np.array([[0, 0, 0]], dtype=float),
+    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+    leg_control_points = np.array([
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+    ], dtype=object)
+)
+
 TWISTING_TEST = LegTrajectories(
     sample_count       = 256,
     heights            = np.array([STAND_HEIGHT], dtype=float),

@@ -91,11 +91,14 @@ def main():
             is_sitting = not is_sitting
 
         if b_btn.is_just_pressed(input_data.b_btn_down):
-            engine.perform_action(TURN_RIGHT, 10)
-            print(f"[M ]  Turning test triggered!")
+            engine.perform_action(HALF_STAND, 10)
+            print(f"[M ]  Half stand triggered!")
+            # engine.perform_action(TURN_RIGHT, 10)
+            # print(f"[M ]  Turning test triggered!")
 
         if y_btn.is_just_pressed(input_data.y_btn_down) and recovery_node is not None:
             recovery_node.toggle_ekf()
+            print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
 
 
         # Sticks
