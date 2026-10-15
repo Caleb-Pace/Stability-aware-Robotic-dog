@@ -26,7 +26,7 @@ except ImportError:
         Go2LowLevelRecoveryNode = None
 
 
-DISABLE_LOGGING:bool = False
+DISABLE_LOGGING:bool = True
 
 
 def main():
@@ -165,10 +165,11 @@ def main():
 
 
             ## Gait switcher
+            prev_gait_name = gait_switcher.current_gait_name
             if gait_switcher.does_gait_change(input_data):
-                prev_gait_name = gait_switcher.current_gait_name
                 engine.gait = gait_switcher.current_gait
                 print(f"[GS]  Changing from \"{prev_gait_name}\" to \"{gait_switcher.current_gait_name}\"")
+
 
             ## Sticks
             # Sticks are continuous velocity-style commands. The gait engine
