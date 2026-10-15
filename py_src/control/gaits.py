@@ -13,6 +13,7 @@ from data_structures.constants import STAND_HEIGHT
 
 
 ### Tuning parameters
+LEAN_FORWARD_X = -0.06
 TRANSITION_STEP_COUNT = 12
 LOOP_STEP_COUNT = 64+32
 STEP_LENGTH_SCALE = 1
@@ -52,9 +53,8 @@ for i, _leg_points in enumerate(trot_ctrl_pts):
     # Y
     if i % 2 == 0:
         _leg_points[:, 1] *= -1
+
     # X
-    _leg_points[:, 0] -= 0.06
-    # _leg_points[:, 0] -= 0.03
     _leg_points[:, 0] *= STEP_LENGTH_SCALE
     
     # Z

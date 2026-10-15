@@ -19,6 +19,8 @@ from control.actions import STAND
 
 from control.dynamics import BasicDynamicsModel
 
+from control.gaits import LEAN_FORWARD_X
+
 
 class Instruction:
     DEFAULT_STEP_INTERVAL_MS = 5
@@ -131,6 +133,11 @@ class GaitEngine:
             forward / command_magnitude + yaw / command_magnitude * side_sign
         )
         foot_positions[:, 1] += stride_profile * lateral / command_magnitude
+
+        # Lean: full at pure-forward, 0 for backward
+        forward_fraction = forward / command_magnitude          # -1 .. +1
+        lean_weight = max(0.0, forward_fraction)                # 1 forward, 0 back/side
+        foot_positions[:, 0] += LEAN_FORWARD_X * lean_weight
 
         if self._motion_start_step < self._motion_start_steps:
             stride_phase = (self._motion_start_step + 1) / self._motion_start_steps
