@@ -5,6 +5,7 @@ import numpy as np
 
 from data_structures import Position, Point3DList
 from data_structures.leg_trajectories import LegTrajectories
+from data_structures.constants import LEG_COUNT, JOINT_COUNT, STAND_HEIGHT
 from typing import Tuple
 
 from hardware_abstraction_layer import OutputLayer
@@ -19,7 +20,7 @@ from control.actions import STAND
 
 from control.dynamics import BasicDynamicsModel
 
-from control.gaits import LEAN_FORWARD_X
+from control.gaits import LEAN_FORWARD_X, RETURN_TO_STAND_LIFT_HEIGHT, PITCH_COMP
 
 
 class Instruction:
@@ -113,7 +114,9 @@ class GaitEngine:
         self._last_position = position
 
     def _send_motion_position(self) -> None:
-        """Send one phase of the continuously commanded gait."""
+        """Send one phase of the continuously commanded gait with correct 
+        forward walking and corrected turn direction.
+        """
         trajectory = self.gait.loop
         self._step_num %= trajectory.steps_in_gait
         foot_positions = step(trajectory, self._step_num).copy()
@@ -125,12 +128,12 @@ class GaitEngine:
         if command_magnitude == 0.0:
             return
 
-        # The gait's x profile is reused as the stride profile. This keeps the
-        # existing leg timing and transitions while allowing direction changes
-        # without creating a new queued trajectory for every joystick sample.
         stride_profile = foot_positions[:, 0].copy()
-        #stride_profile -= float(np.mean(stride_profile))
-        side_sign = np.array([1.0, -1.0, 1.0, -1.0])
+        
+        # Corrected side_sign for turning right (clockwise):
+        # FR (-1), FL (+1), RR (-1), RL (+1)
+        side_sign = np.array([-1.0, 1.0, -1.0, 1.0])
+        
         foot_positions[:, 0] = stride_profile * (
             forward / command_magnitude + yaw / command_magnitude * side_sign
         )
@@ -146,8 +149,6 @@ class GaitEngine:
             stride_blend = stride_phase * stride_phase * (3.0 - 2.0 * stride_phase)
 
             # Establish swing-foot clearance before applying horizontal stride.
-            # Ramping all coordinates together leaves a lifted foot close to the
-            # ground while it is already being moved forward.
             lift_phase = min(
                 1.0,
                 (self._motion_start_step + 1) / self._motion_lift_steps,
@@ -288,8 +289,10 @@ class GaitEngine:
         self._clock_interval_ms = Instruction.DEFAULT_STEP_INTERVAL_MS
 
     # TODO: FLAG, transition to stand time.
-    def return_to_stand(self, step_interval_ms: float = 20.0) -> None:
-        """Ease from the current moving foot targets into neutral standing."""
+    def return_to_stand(self, step_interval_ms: float = 10.0) -> None:
+        """Ease from current motion foot targets into neutral standing 
+        quickly and smoothly with alternating diagonal stomps.
+        """
         if self._returning_to_stand:
             return
 
@@ -298,16 +301,61 @@ class GaitEngine:
             self.perform_action(STAND, step_interval_ms)
             return
 
-        phase = np.linspace(0.0, 1.0, 32)
-        smooth_phase = phase * phase * (3.0 - 2.0 * phase)
+        # Retrieve true neutral standing foot positions from the STAND action
+        neutral_stand_positions = step(STAND, 0)
+
+        sample_count = 24
+        phase = np.linspace(0.0, 1.0, sample_count)
         control_points = np.empty(LEG_COUNT, dtype=object)
+
         for leg, start in enumerate(start_positions):
-            control_points[leg] = start * (1.0 - smooth_phase[:, np.newaxis])
+            target = neutral_stand_positions[leg]
+            
+            # Diagonal pairs: FR/RL (legs 0 and 3) and FL/RR (legs 1 and 2)
+            pair_delay = 0.0 if leg in (0, 3) else 0.2
+            pair_duration = 0.65
+            
+            # Normalize local phase for this leg pair
+            pair_phase = np.clip((phase - pair_delay) / pair_duration, 0.0, 1.0)
+            
+            # Smoothstep easing for lift and lower phases
+            lift_progress = np.clip(pair_phase / 0.3, 0.0, 1.0)
+            lift_progress = lift_progress * lift_progress * (3.0 - 2.0 * lift_progress)
+            
+            lower_progress = np.clip((pair_phase - 0.7) / 0.3, 0.0, 1.0)
+            lower_progress = lower_progress * lower_progress * (3.0 - 2.0 * lower_progress)
+            
+            max_start_z = max(start[2], target[2])
+            z_profile = np.empty(sample_count)
+            
+            for i, p in enumerate(pair_phase):
+                if p <= 0.3:
+                    # Step 1: Lift up from current height
+                    z_profile[i] = start[2] + RETURN_TO_STAND_LIFT_HEIGHT * lift_progress[i]
+                elif p <= 0.7:
+                    # Step 2: Hold elevated height while shifting horizontally
+                    z_profile[i] = max_start_z + RETURN_TO_STAND_LIFT_HEIGHT
+                else:
+                    # Step 3: Lower down smoothly to neutral stand target Z
+                    z_profile[i] = (max_start_z + RETURN_TO_STAND_LIFT_HEIGHT) * (1.0 - lower_progress[i]) + target[2] * lower_progress[i]
+            
+            # Horizontal movement phase (occurs entirely while foot is elevated)
+            move_phase = np.clip((pair_phase - 0.25) / 0.5, 0.0, 1.0)
+            move_phase = move_phase * move_phase * (3.0 - 2.0 * move_phase)
+            
+            points = np.empty((sample_count, 3), dtype=float)
+            for i in range(sample_count):
+                # Smoothly interpolate X and Y from current stop position to neutral stand target
+                points[i, 0] = start[0] * (1.0 - move_phase[i]) + target[0] * move_phase[i]
+                points[i, 1] = start[1] * (1.0 - move_phase[i]) + target[1] * move_phase[i]
+                points[i, 2] = z_profile[i]
+                
+            control_points[leg] = points
 
         transition = LegTrajectories(
-            sample_count=32,
-            heights=np.array([0.3], dtype=float),
-            orientations=np.array([[0.0, 0.0, 0.0]], dtype=float),
+            sample_count=sample_count,
+            heights=np.array([STAND_HEIGHT], dtype=float),
+            orientations=np.array([[0.0, PITCH_COMP, 0.0]], dtype=float),
             leg_phase_offset=np.zeros(LEG_COUNT, dtype=float),
             leg_control_points=control_points,
             should_interpolate=False,
