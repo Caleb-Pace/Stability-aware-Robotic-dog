@@ -8,12 +8,12 @@ import numpy as np
 from control.pid import KP, KD, TORQUE_MAX_TILED
 
 try:
-    from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
-    from unitree_sdk2py.utils.crc import CRC
-    from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowCmd_, LowState_
-    from unitree_sdk2py.idl.default import unitree_go_msg_dds__LowCmd_, unitree_go_msg_dds__LowState_
-    from unitree_sdk2py.go2.sport.sport_client import SportClient
-    from unitree_sdk2py.comm.motion_switcher.motion_switcher_client import MotionSwitcherClient
+    from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize  # pyright: ignore[reportMissingImports]
+    from unitree_sdk2py.utils.crc import CRC                                                               # pyright: ignore[reportMissingImports]
+    from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowCmd_, LowState_                                  # pyright: ignore[reportMissingImports]
+    from unitree_sdk2py.idl.default import unitree_go_msg_dds__LowCmd_, unitree_go_msg_dds__LowState_      # pyright: ignore[reportMissingImports]
+    from unitree_sdk2py.go2.sport.sport_client import SportClient                                          # pyright: ignore[reportMissingImports]
+    from unitree_sdk2py.comm.motion_switcher.motion_switcher_client import MotionSwitcherClient            # pyright: ignore[reportMissingImports]
 
     UNITREE_SDK_AVAILABLE = True
 

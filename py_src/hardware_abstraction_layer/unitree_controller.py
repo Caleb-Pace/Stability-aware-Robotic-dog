@@ -4,8 +4,8 @@ from data_structures.controller_input import ControllerData, JoyStickData, apply
 from hardware_abstraction_layer.input_layer import InputLayer
 
 try:
-    from unitree_sdk2py.core.channel import ChannelFactoryInitialize, ChannelSubscriber
-    from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_
+    from unitree_sdk2py.core.channel import ChannelFactoryInitialize, ChannelSubscriber  # pyright: ignore[reportMissingImports]
+    from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_                         # pyright: ignore[reportMissingImports]
 
 
     class UnitreeController(InputLayer):
