@@ -33,12 +33,21 @@ class ControllerData():
     b_btn_down:bool
     x_btn_down:bool
     y_btn_down:bool
+    l1_btn_down:bool
+    r1_btn_down:bool
+    start_btn_down:bool
 
 
-    def __init__(self, left_stick:JoyStickData, right_stick:JoyStickData, a_btn_down:bool, b_btn_down:bool, x_btn_down:bool, y_btn_down:bool):
+    def __init__(self, left_stick:JoyStickData, right_stick:JoyStickData, a_btn_down:bool, b_btn_down:bool, x_btn_down:bool, y_btn_down:bool, l1_btn_down:bool, r1_btn_down:bool, start_btn_down:bool):
         self.left_stick  = left_stick
         self.right_stick = right_stick
+
         self.a_btn_down  = a_btn_down
         self.b_btn_down  = b_btn_down
         self.x_btn_down  = x_btn_down
         self.y_btn_down  = y_btn_down
+
+        self.l1_btn_down  = l1_btn_down
+        self.r1_btn_down  = r1_btn_down
+        
+        self.start_btn_down  = start_btn_down
