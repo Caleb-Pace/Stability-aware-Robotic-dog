@@ -19,7 +19,7 @@ from control.actions import STAND
 
 from control.dynamics import BasicDynamicsModel
 
-from control.gaits import LEAN_FORWARD_X
+from control.gaits import LEAN_FORWARD_X, RETURN_TO_STAND_LIFT_HEIGHT
 
 
 class Instruction:
@@ -300,9 +300,13 @@ class GaitEngine:
 
         phase = np.linspace(0.0, 1.0, 32)
         smooth_phase = phase * phase * (3.0 - 2.0 * phase)
+        lift_phase = np.sin(np.pi * phase)
         control_points = np.empty(LEG_COUNT, dtype=object)
         for leg, start in enumerate(start_positions):
             control_points[leg] = start * (1.0 - smooth_phase[:, np.newaxis])
+            control_points[leg][:, 2] += (
+                RETURN_TO_STAND_LIFT_HEIGHT * lift_phase
+            )
 
         transition = LegTrajectories(
             sample_count=32,
