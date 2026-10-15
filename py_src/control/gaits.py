@@ -17,10 +17,13 @@ TRANSITION_STEP_COUNT = 12
 LOOP_STEP_COUNT = 64+32
 STEP_LENGTH_SCALE = 1
 STEP_HEIGHT_SCALE = 1
+# STEP_LENGTH_SCALE = 1.5
+# STEP_HEIGHT_SCALE = 1.5
 # STEP_LENGTH_SCALE = 0.50
 # STEP_HEIGHT_SCALE = 0.60
+# PITCH_COMP = 0.02
 # PITCH_COMP = 0.03
-PITCH_COMP = 0.02
+PITCH_COMP = 0.06
 # BREADTH = -0.025
 # BREADTH = -0.01
 BREADTH =  0.015
@@ -33,9 +36,12 @@ BREADTH =  0.015
 # trot_ctrl_pts = np.array([
 #     np.array([[0.0, 0.0, 0.0], [0.04, 0.0, 0.06], [0.09, 0.0, 0.08], [0.14, 0.0, 0.06], [0.18, 0.0, 0.0], [0.14, 0.0, 0.0], [0.09, 0.0, 0.0], [0.04, 0.0, 0.0], [0.0, 0.0, 0.0]]),
 # ] * 4)  # Tip toe
+# trot_ctrl_pts = np.array([
+#     np.array([[0.0, BREADTH, 0.0], [0.04, BREADTH, 0.06], [0.09, BREADTH, 0.08], [0.14, BREADTH, 0.06], [0.18, BREADTH, 0.01], [0.14, BREADTH, 0.0], [0.09, BREADTH, 0.0], [0.04, BREADTH, 0.0], [0.0, BREADTH, 0.0]]),
+# ] * 4)  # Maanas gait copy
 trot_ctrl_pts = np.array([
-    np.array([[0.0, BREADTH, 0.0], [0.04, BREADTH, 0.06], [0.09, BREADTH, 0.08], [0.14, BREADTH, 0.06], [0.18, BREADTH, 0.01], [0.14, BREADTH, 0.0], [0.09, BREADTH, 0.0], [0.04, BREADTH, 0.0], [0.0, BREADTH, 0.0]]),
-] * 4)  # Maanas gait copy
+    np.array([[-0.06, BREADTH, 0.0], [-0.02, BREADTH, 0.06], [0.03, BREADTH, 0.08], [0.07, BREADTH, 0.06], [0.10, BREADTH, 0.01], [0.05, BREADTH, 0.0], [0.00, BREADTH, 0.0], [-0.05, BREADTH, 0.0], [-0.06, BREADTH, 0.0]]),
+] * 4)  # Dynamics one
 
 ### Tuning
 for i, _leg_points in enumerate(trot_ctrl_pts):
