@@ -16,13 +16,16 @@ from data_structures.constants import STAND_HEIGHT
 TRANSITION_STEP_COUNT = 12
 LOOP_STEP_COUNT = 64+32
 STEP_LENGTH_SCALE = 1
-STEP_HEIGHT_SCALE = 2
+STEP_HEIGHT_SCALE = 1.5
 # STEP_LENGTH_SCALE = 1.5
 # STEP_HEIGHT_SCALE = 1.5
 # STEP_LENGTH_SCALE = 0.50
 # STEP_HEIGHT_SCALE = 0.60
+# PITCH_COMP = -0.03
 # PITCH_COMP = 0.02
-PITCH_COMP = 0.03
+# PITCH_COMP = 0.03
+PITCH_COMP = 0.0
+# PITCH_COMP = 0.04
 # PITCH_COMP = 0.05
 # PITCH_COMP = 0.06
 # BREADTH = -0.025
@@ -46,10 +49,15 @@ trot_ctrl_pts = np.array([
 
 ### Tuning
 for i, _leg_points in enumerate(trot_ctrl_pts):
+    # Y
     if i % 2 == 0:
         _leg_points[:, 1] *= -1
-    
+    # X
+    _leg_points[:, 0] -= 0.06
+    # _leg_points[:, 0] -= 0.03
     _leg_points[:, 0] *= STEP_LENGTH_SCALE
+    
+    # Z
     _leg_points[:, 2] *= STEP_HEIGHT_SCALE
 
 TROT = Gait(
