@@ -268,7 +268,8 @@ class GaitEngine:
             # Run the same foothold trajectory faster at higher stick
             # magnitudes. Keep a nonzero minimum so small commands do not
             # stall the gait, while limiting the maximum to protect motors.
-            frequency_hz = 1.0 + 2.0 * min(1.0, magnitude)
+            frequency_hz = 1.0 + 3.0 * min(1.0, magnitude)
+            print(f"[GE]  gait frequency: {frequency_hz:.2f} Hz")
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
