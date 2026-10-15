@@ -57,6 +57,8 @@ class GaitEngine:
     _motion_lift_steps: int
     _returning_to_stand: bool
 
+    HEHE:bool = True
+
 
     def __init__(self, gait:Gait, output:OutputLayer):
         self._instruction_queue = Queue()
@@ -407,9 +409,12 @@ class GaitEngine:
         hip_origins: np.ndarray,
         target_motor_angles: list,
     ) -> np.ndarray:
-        return self._dynamics.compute_support_torques(
-            foot_positions,
-            hip_origins,
-            np.asarray(target_motor_angles, dtype=np.float64).reshape(JOINT_COUNT),
-        )
+        if not self.HEHE:
+            return np.asarray( [0.0] *  JOINT_COUNT )  # TODO: Ignore Dynamics
+        else:
+            return self._dynamics.compute_support_torques(
+                foot_positions,
+                hip_origins,
+                np.asarray(target_motor_angles, dtype=np.float64).reshape(JOINT_COUNT),
+            )
     

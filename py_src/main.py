@@ -91,8 +91,10 @@ def main():
             is_sitting = not is_sitting
 
         if b_btn.is_just_pressed(input_data.b_btn_down):
-            engine.perform_action(HALF_STAND, 10)
-            print(f"[M ]  Half stand triggered!")
+            engine.HEHE = not engine.HEHE
+            print(f"[M ]  Toggled Dynamics {('ON' if engine.HEHE else 'off')}!")
+            # engine.perform_action(HALF_STAND, 10)
+            # print(f"[M ]  Half stand triggered!")
             # engine.perform_action(TURN_RIGHT, 10)
             # print(f"[M ]  Turning test triggered!")
 
