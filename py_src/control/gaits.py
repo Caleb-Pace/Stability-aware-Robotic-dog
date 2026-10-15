@@ -13,24 +13,35 @@ from data_structures.constants import STAND_HEIGHT
 
 
 ### Tuning parameters
-LEAN_FORWARD_X = -0.06
+# LEAN_FORWARD_X   = -0.06
+# LEAN_FORWARD_X   = -0.05
+LEAN_FORWARD_X   = -0.04
+LEAN_BACKWARDS_X = -0.01
+
 TRANSITION_STEP_COUNT = 12
 LOOP_STEP_COUNT = 64+32
+
 STEP_LENGTH_SCALE = 1
 STEP_HEIGHT_SCALE = 1.5
 # STEP_LENGTH_SCALE = 1.5
 # STEP_HEIGHT_SCALE = 1.5
 # STEP_LENGTH_SCALE = 0.50
 # STEP_HEIGHT_SCALE = 0.60
+
+## More pitchy less leany
 # PITCH_COMP = -0.03
+# PITCH_COMP = 0.0
+PITCH_COMP = 0.01
 # PITCH_COMP = 0.02
 # PITCH_COMP = 0.03
-PITCH_COMP = 0.0
 # PITCH_COMP = 0.04
 # PITCH_COMP = 0.05
 # PITCH_COMP = 0.06
+
+## Wide more waddle
 # BREADTH = -0.025
 BREADTH = -0.01
+# BREADTH = 0.01
 # BREADTH =  0.015
 # BREADTH =  0.15
 
@@ -55,6 +66,7 @@ for i, _leg_points in enumerate(trot_ctrl_pts):
         _leg_points[:, 1] *= -1
 
     # X
+    _leg_points[:, 0] += LEAN_BACKWARDS_X
     _leg_points[:, 0] *= STEP_LENGTH_SCALE
     
     # Z
