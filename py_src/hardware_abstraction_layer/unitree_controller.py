@@ -69,16 +69,16 @@ try:
             return ControllerData(
                 left_stick=JoyStickData(delta_x=apply_deadzone(lx), delta_y=apply_deadzone(ly)),
                 right_stick=JoyStickData(delta_x=apply_deadzone(rx), delta_y=apply_deadzone(ry)),
-                
+
                 a_btn_down=bool(keys & self.BUTTON_MASKS['A']),
                 b_btn_down=bool(keys & self.BUTTON_MASKS['B']),
                 x_btn_down=bool(keys & self.BUTTON_MASKS['X']),
                 y_btn_down=bool(keys & self.BUTTON_MASKS['Y']),
 
-                start_btn_down=bool(keys & self.BUTTON_MASKS['start']),
+                l1_btn_down=bool(keys & self.BUTTON_MASKS['L1']),
+                r1_btn_down=bool(keys & self.BUTTON_MASKS['R1']),
 
-                l1_down=bool(keys & self.BUTTON_MASKS['L1']),
-                r1_down=bool(keys & self.BUTTON_MASKS['R1']),
+                start_btn_down=bool(keys & self.BUTTON_MASKS['start']),
             )
 
 except ImportError:
