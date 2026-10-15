@@ -3,7 +3,8 @@ import numpy as np
 LEG_COUNT:int = 4
 JOINT_COUNT:int = LEG_COUNT * 3  # LEG_COUNT * (Abductor, Hip, Knee)
 
-SIT_HEIGHT   = 0.09
+SIT_PITCH    = -0.01
+SIT_HEIGHT   = 0.092
 STAND_HEIGHT = 0.32
 
 # Leg offsets from body origin #

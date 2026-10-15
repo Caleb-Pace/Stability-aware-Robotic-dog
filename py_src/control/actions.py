@@ -1,12 +1,12 @@
 import numpy as np
 from data_structures.leg_trajectories import LegTrajectories
-from data_structures.constants import SIT_HEIGHT, STAND_HEIGHT
+from data_structures.constants import SIT_PITCH, SIT_HEIGHT, STAND_HEIGHT
 
 
 SIT = LegTrajectories(
     sample_count       = 32,
     heights            = np.array([STAND_HEIGHT, SIT_HEIGHT], dtype=float),
-    orientations       = np.array([[0, 0, 0], [0, 0, 0]], dtype=float),
+    orientations       = np.array([[0, 0, 0], [0, SIT_PITCH, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
         np.array([[0.0, 0.0, 0.0]]),
@@ -19,7 +19,7 @@ SIT = LegTrajectories(
 STAND = LegTrajectories(
     sample_count       = 32,
     heights            = np.array([SIT_HEIGHT, STAND_HEIGHT], dtype=float),
-    orientations       = np.array([[0, 0, 0]], dtype=float),
+    orientations       = np.array([[0, SIT_PITCH, 0], [0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
         np.array([[0.0, 0.0, 0.0]]),
