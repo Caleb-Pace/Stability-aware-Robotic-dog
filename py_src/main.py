@@ -26,7 +26,7 @@ except ImportError:
         Go2LowLevelRecoveryNode = None
 
 
-DISABLE_LOGGING:bool = True
+DISABLE_LOGGING:bool = False
 
 
 def main():
@@ -91,24 +91,25 @@ def main():
     #     Start output layer on separate thread
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
+    if not DISABLE_LOGGING:
+        # imu_logger = IMULogger(
+        #     output=out_layer,
+        #     path=args.imu_log,
+        #     sample_interval_s=args.imu_interval,
+        # )
+        # imu_log_path = imu_logger.start()
+        # print(f"[M ]  IMU logging to {imu_log_path}")
+        ekf_logger = EKFLogger(
+            out_layer,
+            path=args.ekf_log,
+            sample_interval_s=args.ekf_interval,
+            contact_force_threshold=args.ekf_contact_threshold,
+        )
+        ekf_log_path = ekf_logger.start()
+        print(f"[M ]  EKF logging to {ekf_log_path}")
 
     # Gait switcher
     gait_switcher = GaitSwitcher()
-    # imu_logger = IMULogger(
-    #     output=out_layer,
-    #     path=args.imu_log,
-    #     sample_interval_s=args.imu_interval,
-    # )
-    # imu_log_path = imu_logger.start()
-    # print(f"[M ]  IMU logging to {imu_log_path}")
-    ekf_logger = EKFLogger(
-        out_layer,
-        path=args.ekf_log,
-        sample_interval_s=args.ekf_interval,
-        contact_force_threshold=args.ekf_contact_threshold,
-    )
-    ekf_log_path = ekf_logger.start()
-    print(f"[M ]  EKF logging to {ekf_log_path}")
 
     # Gait Engine & Clock
     engine = GaitEngine(gait_switcher.current_gait, out_layer)
