@@ -19,7 +19,6 @@ class Gait:
             return  # Early exit: no transition needed.
 
         max_offset = max(self.loop.phase_offsets_as_steps)
-        print(f"max:{max_offset} | {self.loop.phase_offsets_as_steps}")
 
         # Note: Extract Transition in
         points_per_leg  = []
@@ -45,6 +44,7 @@ class Gait:
                 leg_points.extend( leg_steps[1:end + 1] )
             else:
                 # TODO: Implement
+                # I don't even know man, good luck
                 print("Not implemented yet... womp womp")
                 import sys
                 sys.exit(1)
