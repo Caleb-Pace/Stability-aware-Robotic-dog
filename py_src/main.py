@@ -156,6 +156,15 @@ def main():
                 # engine.perform_action(TURN_RIGHT, 10)
                 # print(f"[M ]  Turning test triggered!")
 
+            if x_btn.is_just_pressed(input_data.x_btn_down):
+                engine.perform_action(CATCH, 5)
+                print(f"[M ]  Catch action triggered!")
+
+            if y_btn.is_just_pressed(input_data.y_btn_down):
+                engine.perform_action(GET_UP_FROM_FALL, 10)
+                print(f"[M ]  Get help action triggered!")
+                
+
             if start_btn.is_just_pressed(input_data.start_btn_down):
                 if recovery_node is None:
                     print(f"[M ]  EKF is not available!")

@@ -30,8 +30,8 @@ STAND = LegTrajectories(
 )
 
 HALF_STAND = LegTrajectories(
-    sample_count       = 32,
-    heights            = np.array([(STAND_HEIGHT-0.1), STAND_HEIGHT], dtype=float),
+    sample_count       = 24,
+    heights            = np.array([(STAND_HEIGHT-0.15), STAND_HEIGHT], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
@@ -39,6 +39,47 @@ HALF_STAND = LegTrajectories(
         np.array([[0.0, 0.0, 0.0]]),
         np.array([[0.0, 0.0, 0.0]]),
         np.array([[0.0, 0.0, 0.0]]),
+    ], dtype=object)
+)
+
+
+GET_UP_FROM_FALL = LegTrajectories(
+    sample_count       = 32,
+    heights            = np.array([(STAND_HEIGHT-0.15), STAND_HEIGHT], dtype=float),
+    orientations       = np.array([[0, 0, 0]], dtype=float),
+    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+    leg_control_points = np.array([
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+    ], dtype=object)
+)
+
+CATCH = LegTrajectories(
+    sample_count       = 24,
+    heights            = np.array([(STAND_HEIGHT-0.15), STAND_HEIGHT], dtype=float),
+    orientations       = np.array([[0, 0, 0]], dtype=float),
+    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+    leg_control_points = np.array([
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+    ], dtype=object)
+)
+
+
+TURN_RIGHT = LegTrajectories(
+    sample_count       = 64,
+    heights            = np.array([STAND_HEIGHT], dtype=float),
+    orientations       = np.array([[0, 0, 0]], dtype=float),
+    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+    leg_control_points = np.array([
+        np.array([[0.0, 0.0, 0.0], [ 0.025, 0.0, 0.08], [ 0.05, 0.0, 0.1], [ 0.075, 0.0, 0.08], [ 0.1, 0.0, 0.0], [ 0.075, 0.0, 0.0], [ 0.05, 0.0, 0.0], [ 0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0], [-0.025, 0.0, 0.08], [-0.05, 0.0, 0.1], [-0.075, 0.0, 0.08], [-0.1, 0.0, 0.0], [-0.075, 0.0, 0.0], [-0.05, 0.0, 0.0], [-0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0], [ 0.025, 0.0, 0.08], [ 0.05, 0.0, 0.1], [ 0.075, 0.0, 0.08], [ 0.1, 0.0, 0.0], [ 0.075, 0.0, 0.0], [ 0.05, 0.0, 0.0], [ 0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0], [-0.025, 0.0, 0.08], [-0.05, 0.0, 0.1], [-0.075, 0.0, 0.08], [-0.1, 0.0, 0.0], [-0.075, 0.0, 0.0], [-0.05, 0.0, 0.0], [-0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
     ], dtype=object)
 )
 
@@ -72,18 +113,5 @@ YEET = LegTrajectories(
         np.array([[0.0, 0.0, 0.0]]),
         np.array([[0.0, 0.0, 0.0]]),
         np.array([[0.0, 0.0, 0.0]]),
-    ], dtype=object)
-)
-
-TURN_RIGHT = LegTrajectories(
-    sample_count       = 64,
-    heights            = np.array([STAND_HEIGHT], dtype=float),
-    orientations       = np.array([[0, 0, 0]], dtype=float),
-    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-    leg_control_points = np.array([
-        np.array([[0.0, 0.0, 0.0], [ 0.025, 0.0, 0.08], [ 0.05, 0.0, 0.1], [ 0.075, 0.0, 0.08], [ 0.1, 0.0, 0.0], [ 0.075, 0.0, 0.0], [ 0.05, 0.0, 0.0], [ 0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-        np.array([[0.0, 0.0, 0.0], [-0.025, 0.0, 0.08], [-0.05, 0.0, 0.1], [-0.075, 0.0, 0.08], [-0.1, 0.0, 0.0], [-0.075, 0.0, 0.0], [-0.05, 0.0, 0.0], [-0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-        np.array([[0.0, 0.0, 0.0], [ 0.025, 0.0, 0.08], [ 0.05, 0.0, 0.1], [ 0.075, 0.0, 0.08], [ 0.1, 0.0, 0.0], [ 0.075, 0.0, 0.0], [ 0.05, 0.0, 0.0], [ 0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-        np.array([[0.0, 0.0, 0.0], [-0.025, 0.0, 0.08], [-0.05, 0.0, 0.1], [-0.075, 0.0, 0.08], [-0.1, 0.0, 0.0], [-0.075, 0.0, 0.0], [-0.05, 0.0, 0.0], [-0.025, 0.0, 0.0], [0.0, 0.0, 0.0]]),
     ], dtype=object)
 )
