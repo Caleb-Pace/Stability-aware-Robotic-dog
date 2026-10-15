@@ -44,6 +44,7 @@ def main():
     b_btn = Button()
     x_btn = Button()
     y_btn = Button()
+    start_btn = Button()
 
     # Output Interface
     #     Select output layer (Default to Robot)
@@ -101,9 +102,12 @@ def main():
             # engine.perform_action(TURN_RIGHT, 10)
             # print(f"[M ]  Turning test triggered!")
 
-        if y_btn.is_just_pressed(input_data.y_btn_down) and recovery_node is not None:
-            recovery_node.toggle_ekf()
-            print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
+        if start_btn.is_just_pressed(input_data.start_btn_down):
+            if recovery_node is None:
+                print(f"[M ]  EKF is not available!")
+            else:
+                recovery_node.toggle_ekf()
+                print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
 
 
         # Sticks
