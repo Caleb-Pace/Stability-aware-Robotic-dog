@@ -17,6 +17,3 @@ __pycache__/
 .idea/
 .DS_Store
 *.code-workspace
-
-#logs for experiments
-*.csv
