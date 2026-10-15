@@ -26,7 +26,7 @@ except ImportError:
         Go2LowLevelRecoveryNode = None
 
 
-# DISABLE_LOGGING:bool = True
+DISABLE_LOGGING:bool = True
 
 
 def main():
@@ -51,6 +51,14 @@ def main():
         help="Foot-force threshold in newtons for EKF contact detection (default: 20)",
     )
     args = parser.parse_args()
+    if DISABLE_LOGGING:
+        msg = [
+            "##########################",
+            "## Logging is disabled! ##",
+            "##########################",
+            "",
+        ]
+        print("\n".join(msg))
 
 
     pid_controllers:list[PIDController] = get_pid_controllers()
@@ -197,8 +205,9 @@ def main():
         print("\n[M ]  Stopping...")
     finally:
         interrupt_flag.set()
-        # imu_logger.stop()
-        ekf_logger.stop()
+        if not DISABLE_LOGGING:
+            # imu_logger.stop() # pyright: ignore[reportPossiblyUnboundVariable]
+            ekf_logger.stop() # pyright: ignore[reportPossiblyUnboundVariable]
         if recovery_node is not None:
             recovery_node.stop()
         print("[M ]  Input loop finished!")
