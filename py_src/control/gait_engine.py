@@ -114,7 +114,9 @@ class GaitEngine:
         self._last_position = position
 
     def _send_motion_position(self) -> None:
-        """Send one phase of the continuously commanded gait."""
+        """Send one phase of the continuously commanded gait with correct 
+        forward walking and corrected turn direction.
+        """
         trajectory = self.gait.loop
         self._step_num %= trajectory.steps_in_gait
         foot_positions = step(trajectory, self._step_num).copy()
@@ -126,12 +128,12 @@ class GaitEngine:
         if command_magnitude == 0.0:
             return
 
-        # The gait's x profile is reused as the stride profile. This keeps the
-        # existing leg timing and transitions while allowing direction changes
-        # without creating a new queued trajectory for every joystick sample.
         stride_profile = foot_positions[:, 0].copy()
-        #stride_profile -= float(np.mean(stride_profile))
-        side_sign = np.array([1.0, -1.0, 1.0, -1.0])
+        
+        # Corrected side_sign for turning right (clockwise):
+        # FR (-1), FL (+1), RR (-1), RL (+1)
+        side_sign = np.array([-1.0, 1.0, -1.0, 1.0])
+        
         foot_positions[:, 0] = stride_profile * (
             forward / command_magnitude + yaw / command_magnitude * side_sign
         )
@@ -147,8 +149,6 @@ class GaitEngine:
             stride_blend = stride_phase * stride_phase * (3.0 - 2.0 * stride_phase)
 
             # Establish swing-foot clearance before applying horizontal stride.
-            # Ramping all coordinates together leaves a lifted foot close to the
-            # ground while it is already being moved forward.
             lift_phase = min(
                 1.0,
                 (self._motion_start_step + 1) / self._motion_lift_steps,
