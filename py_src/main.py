@@ -24,8 +24,8 @@ except ImportError:
 
 
 def main():
-    # gait:Gait = TROT
-    gait:Gait = CRAWL
+    gait:Gait = TROT
+    # gait:Gait = CRAWL
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -91,6 +91,7 @@ def main():
                 print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
 
+        # TODO: Test, actually going to be a better half stand
         if b_btn.is_just_pressed(input_data.b_btn_down):
             engine.HEHE = not engine.HEHE
             print(f"[M ]  Toggled Dynamics {('ON' if engine.HEHE else 'off')}!")
