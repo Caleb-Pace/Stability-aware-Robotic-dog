@@ -18,6 +18,7 @@ from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 from logger import IMULogger
+from logger import EKFLogger
 
 try:
     from EKF.go2_lowcmd_recovery_node import Go2LowLevelRecoveryNode
@@ -37,6 +38,14 @@ def main():
         type=float,
         default=0.01,
         help="IMU logging interval in seconds (default: 0.01)",
+    )
+    parser.add_argument("--ekf-log", default=None, help="CSV path for EKF experiment data")
+    parser.add_argument("--ekf-interval", type=float, default=0.01, help="EKF logging interval in seconds")
+    parser.add_argument(
+        "--ekf-contact-threshold",
+        type=float,
+        default=20.0,
+        help="Foot-force threshold in newtons for EKF contact detection (default: 20)",
     )
     args = parser.parse_args()
 
@@ -78,6 +87,14 @@ def main():
     )
     imu_log_path = imu_logger.start()
     print(f"[M ]  IMU logging to {imu_log_path}")
+    ekf_logger = EKFLogger(
+        out_layer,
+        path=args.ekf_log,
+        sample_interval_s=args.ekf_interval,
+        contact_force_threshold=args.ekf_contact_threshold,
+    )
+    ekf_log_path = ekf_logger.start()
+    print(f"[M ]  EKF logging to {ekf_log_path}")
 
     # Gait Engine & Clock
     engine = GaitEngine(gait, out_layer)
@@ -160,6 +177,7 @@ def main():
     finally:
         interrupt_flag.set()
         imu_logger.stop()
+        ekf_logger.stop()
         if recovery_node is not None:
             recovery_node.stop()
         print("[M ]  Input loop finished!")

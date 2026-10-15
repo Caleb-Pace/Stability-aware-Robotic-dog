@@ -78,7 +78,7 @@ class Simulator(OutputLayer):
         initial_pose = self._get_target_angles_from_dict(self._REAL_LAY_DOWN)
         self._set_pose(data, initial_pose, z_height=0.32)  # z_height is in meters
         mujoco.mj_forward(model, data)                                         # pyright: ignore[reportAttributeAccessIssue]
-        self._update_low_state(data)
+        self._update_low_state(model, data)
 
         # Persist angle targets
         target_angles = initial_pose.copy()
@@ -162,7 +162,7 @@ class Simulator(OutputLayer):
                     #     print(f"[S2]    t_ag: {target_angles}")
 
                     mujoco.mj_step(model, data)                                        # pyright: ignore[reportAttributeAccessIssue]
-                    self._update_low_state(data)
+                    self._update_low_state(model, data)
                     sim_time += DT
 
                 viewer.sync()  # Render
@@ -185,20 +185,48 @@ class Simulator(OutputLayer):
                 )
             )
 
-    def _update_low_state(self, data) -> None:
+    def _update_low_state(self, model, data) -> None:
         """Expose MuJoCo IMU sensors through the same shape as Unitree LowState."""
         accelerometer = data.sensor("imu_acc").data.copy()
         gyroscope = data.sensor("imu_gyro").data.copy()
         if accelerometer.shape != (3,) or gyroscope.shape != (3,):
             raise ValueError("Simulator IMU sensors must each contain three values")
+        foot_force = self._get_foot_forces(model, data)
 
         with self._state_lock:
             self._low_state = SimpleNamespace(
                 imu_state=SimpleNamespace(
                     accelerometer=accelerometer,
                     gyroscope=gyroscope,
-                )
+                ),
+                foot_force=foot_force,
             )
+
+    @staticmethod
+    def _get_foot_forces(model, data) -> np.ndarray:
+        """Sum normal contact force for each named foot geom."""
+        foot_geom_ids = {
+            name: model.geom(name).id
+            for name in ("FL", "FR", "RL", "RR")
+        }
+        forces = {name: 0.0 for name in foot_geom_ids}
+        geom_to_foot = {
+            geom_id: name for name, geom_id in foot_geom_ids.items()
+        }
+        contact_force = np.zeros(6, dtype=np.float64)
+        for contact_index in range(data.ncon):
+            contact = data.contact[contact_index]
+            foot_name = geom_to_foot.get(contact.geom1)
+            if foot_name is None:
+                foot_name = geom_to_foot.get(contact.geom2)
+            if foot_name is None:
+                continue
+            mujoco.mj_contactForce(model, data, contact_index, contact_force)
+            forces[foot_name] += abs(float(contact_force[0]))
+        return np.asarray(
+            [forces["FL"], forces["FR"], forces["RL"], forces["RR"]],
+            dtype=np.float64,
+        )
 
 
     # TODO: Later, dynamics model
