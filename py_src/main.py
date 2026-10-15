@@ -11,7 +11,7 @@ from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE
 from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
-from data_structures.gait_definition import Gait
+from control.gait_switcher import GaitSwitcher
 from control.gaits import TROT, CRAWL
 from control.actions import *
 from control.gait_engine import GaitEngine
@@ -24,9 +24,6 @@ except ImportError:
 
 
 def main():
-    gait:Gait = TROT
-    # gait:Gait = CRAWL
-
     pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
@@ -58,8 +55,11 @@ def main():
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
 
+    # Gait switcher
+    gait_switcher = GaitSwitcher()
+
     # Gait Engine & Clock
-    engine = GaitEngine(gait, out_layer)
+    engine = GaitEngine(gait_switcher.current_gait, out_layer)
     clock_interval_ms = read_delay_ms
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
@@ -83,7 +83,7 @@ def main():
     while True:
         input_data = in_layer.poll()
 
-        # Buttons
+        ## Buttons
         if a_btn.is_just_pressed(input_data.a_btn_down):
             if is_sitting:
                 engine.perform_action(STAND, 10)
@@ -110,7 +110,13 @@ def main():
                 print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
 
 
-        # Sticks
+        ## Gait switcher
+        if gait_switcher.does_gait_change(input_data):
+            prev_gait_name = gait_switcher.current_gait_name
+            engine.gait = gait_switcher.current_gait
+            print(f"[GS]  Changing from \"{prev_gait_name}\" to \"{gait_switcher.current_gait_name}\"")
+
+        ## Sticks
         # Sticks are continuous velocity-style commands. The gait engine
         # advances while the stick is deflected and returns to the default
         # standing pose as soon as the command returns to the deadzone.
