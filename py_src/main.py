@@ -17,7 +17,7 @@ from control.gaits import TROT, CRAWL
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
-from logger import IMULogger
+# from logger import IMULogger
 from logger import EKFLogger
 
 try:
@@ -80,13 +80,13 @@ def main():
     #     Start output layer on separate thread
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
-    imu_logger = IMULogger(
-        output=out_layer,
-        path=args.imu_log,
-        sample_interval_s=args.imu_interval,
-    )
-    imu_log_path = imu_logger.start()
-    print(f"[M ]  IMU logging to {imu_log_path}")
+    # imu_logger = IMULogger(
+    #     output=out_layer,
+    #     path=args.imu_log,
+    #     sample_interval_s=args.imu_interval,
+    # )
+    # imu_log_path = imu_logger.start()
+    # print(f"[M ]  IMU logging to {imu_log_path}")
     ekf_logger = EKFLogger(
         out_layer,
         path=args.ekf_log,
@@ -176,7 +176,7 @@ def main():
         print("\n[M ]  Stopping...")
     finally:
         interrupt_flag.set()
-        imu_logger.stop()
+        # imu_logger.stop()
         ekf_logger.stop()
         if recovery_node is not None:
             recovery_node.stop()

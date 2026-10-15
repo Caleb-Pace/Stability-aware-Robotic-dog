@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
+from zoneinfo import ZoneInfo
 import numpy as np
 
 from EKF.stability_ekf import UnitreeGo2StabilityEKF
@@ -62,7 +62,8 @@ class EKFLogger:
 
     @staticmethod
     def default_path(directory: str | Path = "logs") -> Path:
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        nz_time = datetime.now(ZoneInfo("Pacific/Auckland"))
+        timestamp = nz_time.strftime("%Y%m%dT%H%M%SZ")
         return Path(directory) / f"ekf_{timestamp}.csv"
 
     def start(self) -> Path:
