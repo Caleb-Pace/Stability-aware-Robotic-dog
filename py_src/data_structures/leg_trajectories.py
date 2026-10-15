@@ -3,8 +3,7 @@ import numpy.typing as npt
 
 from data_structures import Point3D, EulerAngles, Point3DList
 
-from data_structures.constants import LEG_COUNT
-from kinematics.ik_solver import LEG_OFFSETS_FROM_BODY_ORIGIN
+from data_structures.constants import LEG_COUNT, LEG_OFFSETS_FROM_BODY_ORIGIN
 
 from interpolation import Interpolator, CatmullRomSpline
 
@@ -15,7 +14,9 @@ class LegTrajectories:
     _body_heights:   npt.NDArray[np.float64]  # z values
     _orientations:   npt.NDArray[np.float64]  # (Control Points, Euler angles)
     _control_points: npt.NDArray[np.object_]  # (Leg, Control Points, Relative Coordinates)
-    _phase_offset:   npt.NDArray[np.float64]  # Normalised [0.0, 1.0); Movement delay
+
+    _phase_offsets:         npt.NDArray[np.float64]  # Period in radians
+    phase_offsets_as_steps: list[int]
 
     leg_origins_by_step:     list[Point3DList]  # (Knot/Point, Leg, Relative Coordinates)
     foot_trajectories:       list   # (Leg, Knot/Point, Relative Coordinates)
@@ -30,7 +31,8 @@ class LegTrajectories:
                        heights:npt.NDArray[np.float64],
                        orientations:npt.NDArray[np.float64],
                        leg_phase_offset:npt.NDArray[np.float64],
-                       leg_control_points:npt.NDArray[np.object_]):
+                       leg_control_points:npt.NDArray[np.object_],
+                       should_interpolate:bool = True):  # Note: only set to false if defining all points manually.
         # Shape checks
         #     (Leg)
         required_shape = (LEG_COUNT,)
@@ -53,10 +55,14 @@ class LegTrajectories:
 
         self._body_heights         = heights
         self._orientations         = orientations
-        self._phase_offset         = leg_phase_offset
+        self._phase_offsets        = leg_phase_offset
         self._control_points       = leg_control_points
+
+        if not should_interpolate:
+            self.foot_trajectories = leg_control_points.tolist()
+            self.time_anchors      = []
     
-        self.calculate_foot_trajectories(sample_count)
+        self.calculate_foot_trajectories(sample_count, should_interpolate)
 
     def _calculate_last_time_anchor(self, leg:int, alpha:float = 0.5) -> float:
         """
@@ -88,7 +94,7 @@ class LegTrajectories:
         ])
         max_movement_horizon     = max(movement_horizons)
 
-        normalized_phase_offsets = self._phase_offset % 1.0
+        normalized_phase_offsets = self._phase_offsets % (2 * np.pi)
         movement_delays          = normalized_phase_offsets * max_movement_horizon   # Parametric duration
 
         leg_durations = movement_delays + movement_horizons  # Parametric duration
@@ -191,24 +197,52 @@ class LegTrajectories:
         self.leg_origins_by_step = np.asarray( _leg_origins ).transpose(1, 0, 2).tolist()
         # print()  # TODO: Remove, for debugging
 
-    # TODO: Rename
-    def calculate_foot_trajectories(self, sample_count:int) -> None:
-        ALPHA = 0.5  # Centripedal knot spacing
-        self.steps_in_gait = sample_count
-        self._calculate_time_horizon(ALPHA)
-        interpolator:Interpolator = CatmullRomSpline(ALPHA)
+    def _convert_phase_offset_to_step_number(self, radians: float, step_count: int) -> int:
+        """Maps a radian phase to a cyclic index [0, step_count - 1]."""
+        # Normalize to [0, 2*pi)
+        normalized = radians % (2 * np.pi)
 
-        # Find leg origins for each time anchor
-        self._calculate_origins_over_time(interpolator)
+        # Map to step count (round up)
+        #     Note: 2pi wraps to 0
+        return int( (normalized / (2 * np.pi)) * step_count ) % step_count
 
-        # Interpolate foot trajectiories with constant time
-        self.foot_trajectories = [None] * LEG_COUNT
-        self.time_anchors      = [None] * LEG_COUNT
+    def _calculate_phase_offsets_as_steps(self):
+        self.phase_offsets_as_steps = []
 
         for leg in range(LEG_COUNT):
-            data = self._control_points[leg]
+            phase_offset    = self._phase_offsets[leg]
+            offset_as_steps = self._convert_phase_offset_to_step_number(phase_offset, self.steps_in_gait)
+            
+            self.phase_offsets_as_steps.append(offset_as_steps)
 
-            self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
+
+    # TODO: Rename
+    def calculate_foot_trajectories(self, sample_count:int, should_interpolate:bool = True) -> None:
+        ALPHA = 0.5  # Centripedal knot spacing
+        self.steps_in_gait = sample_count
+
+        if should_interpolate:
+            self._calculate_time_horizon(ALPHA)
+            interpolator:Interpolator = CatmullRomSpline(ALPHA)
+
+            # Find leg origins for each time anchor
+            self._calculate_origins_over_time(interpolator)
+
+            # Interpolate foot trajectiories with constant time
+            self.foot_trajectories = [None] * LEG_COUNT
+            self.time_anchors      = [None] * LEG_COUNT
+
+            for leg in range(LEG_COUNT):
+                data = self._control_points[leg]
+
+                self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
+                # Never command a foot below the ground plane.
+                self.foot_trajectories[leg][:, 2] = np.maximum(
+                    self.foot_trajectories[leg][:, 2], _GROUND_LEVEL
+                )
+
+        # Store phase offsets in terms of steps
+        self._calculate_phase_offsets_as_steps()
 
         # Find travel distance
         self._calculate_distance()

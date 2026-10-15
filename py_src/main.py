@@ -2,9 +2,9 @@
 import time
 import threading
 import numpy as np
-from datetime import datetime
 
 from data_structures.controller_input import Button
+from data_structures.controller_input import JOYSTICK_DEADZONE
 from hardware_abstraction_layer import InputLayer, OutputLayer
 from hardware_abstraction_layer.gamepad_controller import GamepadController
 from hardware_abstraction_layer.unitree_go2_out import UNITREE_SDK_AVAILABLE
@@ -12,14 +12,20 @@ from hardware_abstraction_layer.dummy_out import DummyOutput
 from hardware_abstraction_layer.simulator import Simulator
 
 from data_structures.gait_definition import Gait
-from control.gaits import TROT
+from control.gaits import TROT, CRAWL
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
 
+try:
+    from EKF.go2_lowcmd_recovery_node import Go2LowLevelRecoveryNode
+except ImportError:
+        Go2LowLevelRecoveryNode = None
+
 
 def main():
     gait:Gait = TROT
+    # gait:Gait = CRAWL
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
@@ -56,10 +62,20 @@ def main():
     clock_thread      = threading.Thread(target=engine.clock_start, args=(clock_interval_ms, interrupt_flag))
     clock_thread.start()
 
+    # EFK / Stability
+    recovery_thread = None
+    recovery_node = None
+    if UNITREE_SDK_AVAILABLE and Go2LowLevelRecoveryNode is not None:
+        recovery_node = Go2LowLevelRecoveryNode(output=out_layer, engine=engine, manage_output=False)
+        recovery_thread = threading.Thread(
+            target=recovery_node.run,
+            name="go2-low-level-recovery",
+        )
+        recovery_thread.start()
+
     # State
-    is_sitting:bool = False
-    bearing:float   = 0.0
-    has_performed_test:bool = False
+    is_sitting:bool = True
+    motion_was_active:bool = False
 
     print("[M ]  Input loop started!")
     while True:
@@ -68,69 +84,55 @@ def main():
         # Buttons
         if a_btn.is_just_pressed(input_data.a_btn_down):
             if is_sitting:
-                # engine.perform_action(STAND, 10)
+                engine.perform_action(STAND, 10)
                 print(f"[M ]  Stand action triggered!")
             else:
-                # engine.perform_action(SIT, 10)
+                engine.perform_action(SIT, 10)
                 print(f"[M ]  Sit action triggered!")
             is_sitting = not is_sitting
 
+        # TODO: Test, actually going to be a better half stand
         if b_btn.is_just_pressed(input_data.b_btn_down):
-            engine.perform_action(TURN_RIGHT, 10)
-            print(f"[M ]  Turning test triggered!")
+            engine.HEHE = not engine.HEHE
+            print(f"[M ]  Toggled Dynamics {('ON' if engine.HEHE else 'off')}!")
+            # engine.perform_action(HALF_STAND, 10)
+            # print(f"[M ]  Half stand triggered!")
+            # engine.perform_action(TURN_RIGHT, 10)
+            # print(f"[M ]  Turning test triggered!")
 
-        # if y_btn.is_just_pressed(input_data.y_btn_down):
-        #     engine.perform_action(TWISTING_TEST, 25)
-        #     print(f"[M ]  Twisting test triggered!")
+        if y_btn.is_just_pressed(input_data.y_btn_down) and recovery_node is not None:
+            recovery_node.toggle_ekf()
+            print(f"[M ]  Toggled EKF {('ON' if recovery_node.ekf_enabled else 'off')}!")
+
 
         # Sticks
-        movement_stick_sum = abs(input_data.left_stick.delta_x) + abs(input_data.left_stick.delta_y)
-        rotation_stick_sum = abs(input_data.right_stick.delta_x) + abs(input_data.right_stick.delta_y)
-        has_input = movement_stick_sum > 0.2  # 0
-        if movement_stick_sum > 0.2:
-            # print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})    |    R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-            # engine.input(input_data, 1)
-            print(f"[M ]      L ({np.round(input_data.left_stick.delta_x, 3):>6}, {np.round(input_data.left_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-
-            dist  = 1.0  # m
-            speed = 0.5  # m/s
-
-            # # TODO: For test
-            # if not has_performed_test:
-            #     # engine.perform_action(gait.transition_in, 50)
-            #     # print(f"[M ]  t_in done")
-            #     # engine.perform_action(gait.loop, 50)
-            #     # print(f"[M ]  loop done")
-            #     engine.perform_action(gait.transition_out, 50)
-            #     print(f"[M ]  t_out done")
-
-            #     has_performed_test = True
-
-            engine.move(dist, speed)
-            try:
-                time.sleep(dist / speed)
-            except KeyboardInterrupt:
-                break  # Exit loop
-
-        if rotation_stick_sum > 0.2:  # 0
-            sensitivity = 5 # TODO: Move
-            # print(f"[M ]      R ({np.round(input_data.right_stick.delta_x, 3):>6}, {np.round(input_data.right_stick.delta_y, 3):>6})")  # TODO: remove, for debugging
-            
-            delta_x  = input_data.right_stick.delta_x
-            yaw      = delta_x * sensitivity
-            
-            bearing += yaw
-            if bearing >= 360 or bearing < 0:
-                bearing = bearing % 360
-            print(f"Bearing: {round(bearing, 2)}")
-
-            # # Currently unused
-            # delta_y = input_data.right_stick.delta_y
-            # pitch   = delta_y * sensitivity
-
-            # if not has_performed_test:
-            #     has_performed_test = True
-            #     engine.rotate(bearing)
+        # Sticks are continuous velocity-style commands. The gait engine
+        # advances while the stick is deflected and returns to the default
+        # standing pose as soon as the command returns to the deadzone.
+        if is_sitting:
+            motion_was_active = False
+        else:
+            command = (
+                input_data.left_stick.delta_y,
+                0,
+                # input_data.left_stick.delta_x,
+                input_data.right_stick.delta_x,
+            )
+            # Keep the release state latched through small controller readings.
+            # Without this threshold, stick noise can alternate between motion
+            # and return-to-stand on successive polls.
+            command_is_active = float(np.linalg.norm(command)) > max(
+                0.1,
+                JOYSTICK_DEADZONE,
+            )
+            if command_is_active:
+                engine.set_motion(*command)  # TODO: Add speed scale
+                motion_was_active = True
+            elif motion_was_active:
+                engine.stop_motion()
+                engine.return_to_stand()
+                # print("[M ]  Joystick released; returning to standing pose")
+                motion_was_active = False
 
 
         # Delay

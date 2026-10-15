@@ -29,7 +29,10 @@ class GamepadController(InputLayer):
         print(f"Using \"{self.controller.get_name()}\" controller")
 
     def poll(self) -> ControllerData:
-        pygame.event.pump()  # Fetch latest controller state
+        try:
+            pygame.event.pump()  # Fetch latest controller state
+        except KeyboardInterrupt:
+            sys.exit(1)
 
         # Read joy sticks
         lx = apply_deadzone(self.controller.get_axis(0))

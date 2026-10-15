@@ -1,12 +1,12 @@
 import numpy as np
-from data_structures.gait_definition import Gait
 from data_structures.leg_trajectories import LegTrajectories
+from data_structures.constants import SIT_PITCH, SIT_HEIGHT, STAND_HEIGHT
 
 
 SIT = LegTrajectories(
     sample_count       = 32,
-    heights            = np.array([0.3, 0.09], dtype=float),
-    orientations       = np.array([[0, 0, 0]], dtype=float),
+    heights            = np.array([STAND_HEIGHT, SIT_HEIGHT], dtype=float),
+    orientations       = np.array([[0, 0, 0], [0, SIT_PITCH, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
         np.array([[0.0, 0.0, 0.0]]),
@@ -18,7 +18,20 @@ SIT = LegTrajectories(
 
 STAND = LegTrajectories(
     sample_count       = 32,
-    heights            = np.array([0.09, 0.3], dtype=float),
+    heights            = np.array([SIT_HEIGHT, STAND_HEIGHT], dtype=float),
+    orientations       = np.array([[0, SIT_PITCH, 0], [0, 0, 0]], dtype=float),
+    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
+    leg_control_points = np.array([
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.0, 0.0]]),
+    ], dtype=object)
+)
+
+HALF_STAND = LegTrajectories(
+    sample_count       = 32,
+    heights            = np.array([(STAND_HEIGHT-0.1), STAND_HEIGHT], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
@@ -31,7 +44,7 @@ STAND = LegTrajectories(
 
 TWISTING_TEST = LegTrajectories(
     sample_count       = 256,
-    heights            = np.array([0.3], dtype=float),
+    heights            = np.array([STAND_HEIGHT], dtype=float),
     orientations       = np.array([
         [0, 0, 0], [-np.pi/2, 0, 0],
         [0, 0, 0], [np.pi/2, 0, 0],
@@ -51,7 +64,7 @@ TWISTING_TEST = LegTrajectories(
 
 YEET = LegTrajectories(
     sample_count       = 2,
-    heights            = np.array([0.09, 0.386], dtype=float),
+    heights            = np.array([SIT_HEIGHT, 0.386], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
@@ -64,7 +77,7 @@ YEET = LegTrajectories(
 
 TURN_RIGHT = LegTrajectories(
     sample_count       = 64,
-    heights            = np.array([0.3], dtype=float),
+    heights            = np.array([STAND_HEIGHT], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
