@@ -24,8 +24,8 @@ except ImportError:
 
 
 def main():
-    # gait:Gait = TROT
-    gait:Gait = CRAWL
+    gait:Gait = TROT
+    # gait:Gait = CRAWL
 
     pid_controllers:list[PIDController] = get_pid_controllers()
 
