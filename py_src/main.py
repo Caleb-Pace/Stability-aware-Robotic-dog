@@ -42,6 +42,7 @@ def main():
     #     Setup button state holders
     a_btn = Button()
     b_btn = Button()
+    x_btn = Button()
     y_btn = Button()
 
     # Output Interface

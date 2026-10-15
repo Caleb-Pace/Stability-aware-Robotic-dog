@@ -52,6 +52,11 @@ class GamepadController(InputLayer):
         b_btn_down = self.controller.get_button(1)
         x_btn_down = self.controller.get_button(2)
         y_btn_down = self.controller.get_button(3)
+        
+        start_btn_down = self.controller.get_button(9)
+
+        l1_btn_down = self.controller.get_button(4)
+        r1_btn_down = self.controller.get_button(5)
 
         return ControllerData(
             left_stick=left_stick,
@@ -60,4 +65,7 @@ class GamepadController(InputLayer):
             b_btn_down=b_btn_down,
             x_btn_down=x_btn_down,
             y_btn_down=y_btn_down,
+            start_btn_down=start_btn_down,
+            l1_down=l1_btn_down,
+            r1_down=r1_btn_down,
         )
