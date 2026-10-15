@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "whole_body_controller"
 version = "0.9.0"
 description = "Stability-aware controller for Unitree Go2"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12"
 dependencies = [
     "numpy",
     "matplotlib",
@@ -21,10 +21,15 @@ packages = [
     "py_src/data_structures",
     "py_src/hardware_abstraction_layer",
     "py_src/interpolation",
-    "py_src/kinematics"
+    "py_src/kinematics",
+    "py_src/logger"
 ]
 
 [project.scripts]
 run-dog   = "main:main"
 visualise = "visualisation.main:main"
 test-ik   = "visualisation.graph_angle:main"
+plot-imu  = "logger.imu_plotter:main"
+plot-ekf  = "logger.ekf_plotter:main"
+log-imu   = "logger.imu_logger:main"
+log-ekf   = "logger.ekf_logger:main"

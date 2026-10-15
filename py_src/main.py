@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import threading
+import argparse
 import numpy as np
 
 from data_structures.controller_input import Button
@@ -16,6 +17,8 @@ from control.gaits import TROT, CRAWL
 from control.actions import *
 from control.gait_engine import GaitEngine
 from control.pid import PIDController, get_pid_controllers
+from logger import IMULogger
+from logger import EKFLogger
 
 try:
     from EKF.go2_lowcmd_recovery_node import Go2LowLevelRecoveryNode
@@ -24,6 +27,31 @@ except ImportError:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Run the stability-aware Go2 controller")
+    parser.add_argument(
+        "--imu-log",
+        default=None,
+        help="CSV path for IMU data (default: logs/imu_<UTC timestamp>.csv)",
+    )
+    parser.add_argument(
+        "--imu-interval",
+        type=float,
+        default=0.01,
+        help="IMU logging interval in seconds (default: 0.01)",
+    )
+    parser.add_argument("--ekf-log", default=None, help="CSV path for EKF experiment data")
+    parser.add_argument("--ekf-interval", type=float, default=0.01, help="EKF logging interval in seconds")
+    parser.add_argument(
+        "--ekf-contact-threshold",
+        type=float,
+        default=20.0,
+        help="Foot-force threshold in newtons for EKF contact detection (default: 20)",
+    )
+    args = parser.parse_args()
+
+    gait:Gait = TROT
+    # gait:Gait = CRAWL
+
     pid_controllers:list[PIDController] = get_pid_controllers()
 
     interrupt_flag = threading.Event()
@@ -54,6 +82,21 @@ def main():
     #     Start output layer on separate thread
     output_thread = threading.Thread(target=out_layer.connect, args=(interrupt_flag,))
     output_thread.start()
+    imu_logger = IMULogger(
+        output=out_layer,
+        path=args.imu_log,
+        sample_interval_s=args.imu_interval,
+    )
+    imu_log_path = imu_logger.start()
+    print(f"[M ]  IMU logging to {imu_log_path}")
+    ekf_logger = EKFLogger(
+        out_layer,
+        path=args.ekf_log,
+        sample_interval_s=args.ekf_interval,
+        contact_force_threshold=args.ekf_contact_threshold,
+    )
+    ekf_log_path = ekf_logger.start()
+    print(f"[M ]  EKF logging to {ekf_log_path}")
 
     # Gait switcher
     gait_switcher = GaitSwitcher()
@@ -144,16 +187,36 @@ def main():
                 engine.return_to_stand()
                 # print("[M ]  Joystick released; returning to standing pose")
                 motion_was_active = False
+            else:
+                command = (
+                    input_data.left_stick.delta_y,
+                    0,
+                    input_data.right_stick.delta_x,
+                )
+                command_is_active = float(np.linalg.norm(command)) > max(
+                    0.1,
+                    JOYSTICK_DEADZONE,
+                )
+                if command_is_active:
+                    engine.set_motion(*command)  # TODO: Add speed scale
+                    motion_was_active = True
+                elif motion_was_active:
+                    engine.stop_motion()
+                    engine.return_to_stand()
+                    print("[M ]  Joystick released; returning to standing pose")
+                    motion_was_active = False
 
 
-        # Delay
-        try:
             time.sleep(read_delay_ms / 1000)
-        except KeyboardInterrupt:
-            break  # Exit loop
-
-    print("[M ]  Input loop finished!")
-    interrupt_flag.set()  # Stop the clock thread
+    except KeyboardInterrupt:
+        print("\n[M ]  Stopping...")
+    finally:
+        interrupt_flag.set()
+        imu_logger.stop()
+        ekf_logger.stop()
+        if recovery_node is not None:
+            recovery_node.stop()
+        print("[M ]  Input loop finished!")
 
 
 if __name__ == "__main__":
