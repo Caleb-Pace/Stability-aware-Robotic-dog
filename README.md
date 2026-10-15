@@ -50,3 +50,12 @@ The CSV contains UTC timestamps, elapsed experiment time, and accelerometer
 (`m/s^2`) and gyroscope (`rad/s`) axes. This works with both the Unitree
 backend and the MuJoCo simulator. Samples are flushed as they are written,
 and the file is closed cleanly when the controller stops.
+
+To graph a completed experiment:
+
+```bash
+plot-imu logs/trot_trial_01.csv --save plots/trot_trial_01.png --no-show
+```
+
+Omit `--save` to only open the interactive Matplotlib window, or omit
+`--no-show` to both save the image and display it.
