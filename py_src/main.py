@@ -53,7 +53,13 @@ def main():
     args = parser.parse_args()
 
     if DISABLE_LOGGING:
-        print("Logging is disabled!")
+        msg = [
+            "##########################",
+            "## Logging is disabled! ##",
+            "##########################",
+            "",
+        ]
+        print("\n".join(msg))
 
 
     pid_controllers:list[PIDController] = get_pid_controllers()
