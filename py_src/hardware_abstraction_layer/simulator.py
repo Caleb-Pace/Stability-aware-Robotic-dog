@@ -12,7 +12,7 @@ from hardware_abstraction_layer import OutputLayer
 
 from data_structures.constants import JOINT_COUNT
 
-from control.pid import PIDController, TORQUE_MAX
+from control.pid import PIDController, TORQUE_MAX_TILED
 
 
 SCENE_PATH = os.path.expanduser('~/unitree_mujoco/unitree_robots/go2/scene.xml')
@@ -80,6 +80,9 @@ class Simulator(OutputLayer):
         target_angles = initial_pose.copy()
         requested_target_angles = initial_pose.copy()
 
+        # Persist feedforward torques (held until a new Position arrives, same as the target angles)
+        feedforward_torques = np.zeros(JOINT_COUNT)
+
         # Bounded catch-up setup
         sim_time = 0.0
         wall_origin = time.perf_counter()
@@ -94,8 +97,8 @@ class Simulator(OutputLayer):
 
                 while sim_time < target_sim:
 
-                    # Create/Clear feedforward torque buffer
-                    feedforward_torques = np.zeros(JOINT_COUNT)
+                    # # Create/Clear feedforward torque buffer
+                    # feedforward_torques = np.zeros(JOINT_COUNT)
 
                     # 1. Update targets if a new position has arrived
                     try:
@@ -120,11 +123,11 @@ class Simulator(OutputLayer):
                         applied_torques[i] = pid.update(target, angle, vel, DT)
 
                     # 4. Send the calculated applied torques to MuJoCo
-                    torque_limits = np.tile(np.asarray(TORQUE_MAX), JOINT_COUNT // 3)
+                    # data.ctrl[CTRL_INDEXES] = applied_torques + feedforward_torques
                     data.ctrl[CTRL_INDEXES] = np.clip(
                         applied_torques + feedforward_torques,
-                        -torque_limits,
-                        torque_limits,
+                        -TORQUE_MAX_TILED,
+                        TORQUE_MAX_TILED,
                     )
 
                     # for leg in range(4):
@@ -170,6 +173,8 @@ class Simulator(OutputLayer):
         pass
 
 
+    # TODO: Later, dynamics model
+    # TODO: Place holder, remove
     def _get_feedforward_torques(self):
         return np.zeros(JOINT_COUNT, dtype=np.float64)
     

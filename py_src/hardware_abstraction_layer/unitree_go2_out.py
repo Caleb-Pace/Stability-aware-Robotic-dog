@@ -4,8 +4,8 @@ import threading
 from data_structures import Position
 from hardware_abstraction_layer import OutputLayer
 
-from control.pid import KP, KD
-from control.pid import TORQUE_MAX
+import numpy as np
+from control.pid import KP, KD, TORQUE_MAX_TILED
 
 try:
     from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
@@ -131,10 +131,12 @@ try:
                 # m.kd   = 5.0
                 m.kp   = KP[i % 3]
                 m.kd   = KD[i % 3]
-                m.tau  = max(-TORQUE_MAX[i % 3], min(
-                    TORQUE_MAX[i % 3],
+                # m.tau  = 0  # TODO: Remove, temporary to match example
+                m.tau  = np.clip(
                     float(position.feedforward_torques[i]),
-                ))
+                    -TORQUE_MAX_TILED[i],
+                    TORQUE_MAX_TILED[i],
+                )
 
             # Calculate CRC on the populated command structure
             self.low_cmd.crc = self.crc.Crc(self.low_cmd)
