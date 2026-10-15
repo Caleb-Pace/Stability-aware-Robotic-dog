@@ -5,6 +5,7 @@ from data_structures import Position
 from hardware_abstraction_layer import OutputLayer
 
 from control.pid import KP, KD
+from control.pid import TORQUE_MAX
 
 try:
     from unitree_sdk2py.core.channel import ChannelPublisher, ChannelSubscriber, ChannelFactoryInitialize
@@ -130,8 +131,10 @@ try:
                 # m.kd   = 5.0
                 m.kp   = KP[i % 3]
                 m.kd   = KD[i % 3]
-                m.tau  = 0  # TODO: Remove, temporary to match example
-                # m.tau  = position.feedforward_torques[i]  # TODO: Uncomment later when undestood
+                m.tau  = max(-TORQUE_MAX[i % 3], min(
+                    TORQUE_MAX[i % 3],
+                    float(position.feedforward_torques[i]),
+                ))
 
             # Calculate CRC on the populated command structure
             self.low_cmd.crc = self.crc.Crc(self.low_cmd)

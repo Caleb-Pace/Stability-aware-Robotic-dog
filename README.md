@@ -35,3 +35,14 @@ Windows *(PowerShell)*:
 pip install .
 ```
 ***Note:** use the editable flag (`-e`) for development.*
+
+## Dynamics safety
+
+The controller applies a conservative Go2 mass-property support model during
+stance. It distributes the mapped robot weight across feet whose planned
+height is at ground level, converts the vertical support force to joint torque
+with the leg Jacobian, and applies no dynamics feed-forward to swing legs.
+Feed-forward torque is limited to 35% of the published joint torque limits and
+slew-limited before it reaches either the simulator or the robot output layer.
+The simulator also clamps the combined PID and feed-forward torque to the
+published limits.

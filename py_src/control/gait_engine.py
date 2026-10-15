@@ -14,6 +14,7 @@ from data_structures.constants import LEG_COUNT, JOINT_COUNT
 from data_structures.gait_definition import Gait
 from control.stepper import step
 from kinematics.ik_solver import IK_Solver
+from control.dynamics import BasicDynamicsModel
 
 from control.actions import STAND
 
@@ -66,6 +67,7 @@ class GaitEngine:
         self.output = output  # Hardware abstraction
 
         self._ik = IK_Solver()
+        self._dynamics = BasicDynamicsModel()
 
         self._motion_command = np.zeros(3, dtype=np.float64)
         self._motion_lock = threading.Lock()
@@ -92,7 +94,11 @@ class GaitEngine:
         if None in target_motor_angles:
             return  # Early exit: IK - Failed
 
-        feedforward_torques = self._get_feedforward_torques()  # TODO: Implement properly
+        feedforward_torques = self._get_feedforward_torques(
+            foot_positions,
+            hip_origins,
+            target_motor_angles,
+        )
 
         # for leg in range(4):
         #     print(f"{leg}, {target_motor_angles[leg][0]}, {target_motor_angles[leg][1]}, {target_motor_angles[leg][2]}")  # TODO: Remove, for debugging
@@ -150,7 +156,11 @@ class GaitEngine:
 
         position = Position(
             target_motor_angles,
-            self._get_feedforward_torques(),
+            self._get_feedforward_torques(
+                foot_positions,
+                hip_origins,
+                target_motor_angles,
+            ),
         )
         self.output.send_position(position)
         self._last_position = position
@@ -382,7 +392,15 @@ class GaitEngine:
 
 
 
-    # TODO: Later, dynamics model
-    def _get_feedforward_torques(self):
-        return np.zeros(JOINT_COUNT, dtype=np.float64)
+    def _get_feedforward_torques(
+        self,
+        foot_positions: np.ndarray,
+        hip_origins: np.ndarray,
+        target_motor_angles: list,
+    ) -> np.ndarray:
+        return self._dynamics.compute_support_torques(
+            foot_positions,
+            hip_origins,
+            np.asarray(target_motor_angles, dtype=np.float64).reshape(JOINT_COUNT),
+        )
     
