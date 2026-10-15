@@ -368,13 +368,17 @@ class GaitEngine:
         self.perform_action(transition, step_interval_ms)
 
 
+    def transition_to_sit(self, step_interval_ms: float = 20.0) -> None:
+        pass
+
     def clear_instruction_queue(self):
         self._instruction_queue.queue.clear()
 
-    # # TODO: Need some sort of method, action to bring feet back to ground, for stabilisation.
-    # def abort(self):
-    #     self.clear_instruction_queue()
-    #     # TODO: Add stablise method
+    def abort(self) -> None:
+        self.clear_instruction_queue()
+        self.stop_motion()
+        self._current_instruction = None
+        
 
     def perform_action(self, action:LegTrajectories, step_interval_ms:float|None = None):
         instruction = Instruction(action, step_interval_ms)
