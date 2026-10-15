@@ -201,7 +201,7 @@ class GaitEngine:
             self._step_num            = 0
             #     Adjust clock time interval (for speed)
             if self._current_instruction:
-                print(f"[GE]  new step interval {self._current_instruction.step_interval_ms}ms")  # TODO: Remove, for debugging
+                # print(f"[GE]  new step interval {self._current_instruction.step_interval_ms}ms")  # TODO: Remove, for debugging
                 self._clock_interval_ms = self._current_instruction.step_interval_ms
 
         # Work instruction
@@ -214,7 +214,7 @@ class GaitEngine:
                 return  # Work to do
 
             # Performed instruction
-            print(f"[GE][DEBUG]:96  instruction complete")  # TODO: Remove, for debugging
+            # print(f"[GE][DEBUG]:96  instruction complete")  # TODO: Remove, for debugging
             # time.sleep(0.5)  # TODO: Remove, for testing
             self._current_instruction.repeat -= 1
             if self._current_instruction.repeat <= 0:  # Clear finished instruction
@@ -278,7 +278,7 @@ class GaitEngine:
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz
             )
-            print(f"[GE]  motion - update {frequency_hz}hz")  # TODO: Remove, for debugging
+            # print(f"[GE]  motion - update {frequency_hz}hz")  # TODO: Remove, for debugging
 
     def stop_motion(self) -> None:
         """Stop continuous gait advancement and clear the motion command."""
@@ -331,7 +331,7 @@ class GaitEngine:
     def perform_action(self, action:LegTrajectories, step_interval_ms:float|None = None):
         instruction = Instruction(action, step_interval_ms)
         self._instruction_queue.put(instruction)
-        print(f"[GE]  action requested")  # TODO: Remove, for debugging
+        # print(f"[GE]  action requested")  # TODO: Remove, for debugging
 
 
     def _calculate_move_distance_data(self, distance:float, speed:float) -> Tuple[float, int]:
@@ -345,7 +345,7 @@ class GaitEngine:
         cycle_distance = self.gait.loop.distance_covered
 
         # 3. Calculate steps needed to achieve that distance
-        print(f"[GE][DEBUG]:139 cycles = round({distance} / {cycle_distance})")
+        # print(f"[GE][DEBUG]:139 cycles = round({distance} / {cycle_distance})")
         cycles = round(distance / cycle_distance)
         steps  = (cycles * self.gait.loop.steps_in_gait)
 
@@ -356,7 +356,7 @@ class GaitEngine:
         step_interval    = movement_time / steps  # seconds / steps
         step_interval_ms = step_interval * 1_000 
 
-        print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval_ms}ms)")  # TODO: Remove, for debugging
+        # print(f"[GE]  move() | {{Distance}} target: {distance}m, best: {cycles * cycle_distance}m ({cycles} * {cycle_distance}) | {{Speed}} {speed}m/s (step interval: {step_interval_ms}ms)")  # TODO: Remove, for debugging
         return (step_interval_ms, cycles)
     
     def rotate(self, bearing:float):  # TODO: Note, potentially could add speed parameter.
