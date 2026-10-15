@@ -119,7 +119,7 @@ def main():
                 JOYSTICK_DEADZONE,
             )
             if command_is_active:
-                engine.set_motion(*command)  # TODO: Add speed scale
+                engine.set_motion(*command, 2)  # TODO: Add speed scale
                 motion_was_active = True
             elif motion_was_active:
                 engine.stop_motion()
