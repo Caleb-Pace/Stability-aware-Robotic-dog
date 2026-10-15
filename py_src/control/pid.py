@@ -6,8 +6,8 @@ from kinematics.ik_solver import _HIP_ABDUCTOR_TORQUE_LIMIT, _HIP_TORQUE_LIMIT, 
 # per leg: [hip (abductor), thigh, calf]
 # KP = [40.0, 40.0, 50.0]   # RL-style Go2 policies use ~20-25; IK/MPC trotting is usually 40-60
 # KD = [1.0,  1.0,  1.5]    # keep much lower than 5; raise only if you see oscillation
-KP = [60.0] * 3
-KD = [5] * 3
+KP = [50.0] * 3
+KD = [4.0] * 3
 KI = [0.0] * 3  # UNUSED
 TORQUE_MAX       = [_HIP_ABDUCTOR_TORQUE_LIMIT.maximum, _HIP_TORQUE_LIMIT.maximum, _KNEE_TORQUE_LIMIT.maximum]
 TORQUE_MAX_TILED = np.asarray( TORQUE_MAX * LEG_COUNT )
