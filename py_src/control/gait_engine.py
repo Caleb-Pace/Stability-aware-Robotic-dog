@@ -73,6 +73,7 @@ class GaitEngine:
         self.output = output  # Hardware abstraction
 
         self._ik = IK_Solver()
+        self._ik.PRINT_FAILS = False  # TODO: Remove, for debugging
         self._dynamics = BasicDynamicsModel()
 
         self._motion_command = np.zeros(3, dtype=np.float64)

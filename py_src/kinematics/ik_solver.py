@@ -7,7 +7,6 @@ from data_structures import AngleLimits, TorqueLimits, LegPose, LegPoseList
 from data_structures.gait_definition import LEG_COUNT
 
 
-
 # Zero offsets for angles #
 #     Based on: https://support.unitree.com/home/en/developer
 _ANGLE_ZERO_OFFSETS = np.array([
@@ -72,6 +71,9 @@ def get_unit_vectors_of_a_plane(normal_vector:Vector) -> Tuple[Vector, Vector]:
 
 
 class IK_Solver:
+    PRINT_FAILS:bool = True
+
+
     def __init__(self):
         pass
 
@@ -85,7 +87,8 @@ class IK_Solver:
         c = np.hypot(delta_y, delta_z)
         #     Safety check
         if c < _HIP_OFFSET:
-            print(f"IK failed - unreachable point! (Too close : {c} < {_HIP_OFFSET})")
+            if self.PRINT_FAILS:
+                print(f"IK failed - unreachable point! (Too close : {c} < {_HIP_OFFSET})")
             return None  # Early exit: unreachable point, too close
         
         alpha = np.arctan2(delta_z, delta_y) + _ANGLE_ZERO_OFFSETS[0]
@@ -111,7 +114,8 @@ class IK_Solver:
         r = np.hypot(local_x, local_z)  # range
         #     Safety check
         if np.round(r, _INPUT_ACCURACY) > _MAX_RANGE_LENGTH:
-            print(f"IK failed - unreachable point! (Too far : {np.round(r, _INPUT_ACCURACY)} > {_MAX_RANGE_LENGTH})")
+            if self.PRINT_FAILS:
+                print(f"IK failed - unreachable point! (Too far : {np.round(r, _INPUT_ACCURACY)} > {_MAX_RANGE_LENGTH})")
             return None  # Early exit: unreachable point, too far
 
         phi   = np.arctan2(local_z, local_x)
@@ -166,25 +170,31 @@ class IK_Solver:
         rounded_knee_angle     = np.round(knee_angle, _ANGLE_ACCURACY)
         
         if rounded_abductor_angle < _HIP_ABDUCTOR_ROT_RANGE.minimum:
-            print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} >= {_HIP_ABDUCTOR_ROT_RANGE.minimum})")
+            if self.PRINT_FAILS:
+                print(f"IK fail - joint angle limit hit! (abductor.min; {rounded_abductor_angle} >= {_HIP_ABDUCTOR_ROT_RANGE.minimum})")
             return None
         if rounded_abductor_angle > _HIP_ABDUCTOR_ROT_RANGE.maximum:
-            print(f"IK fail - joint angle limit hit! (abductor.max; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE.maximum})")
+            if self.PRINT_FAILS:
+                print(f"IK fail - joint angle limit hit! (abductor.max; {rounded_abductor_angle} <= {_HIP_ABDUCTOR_ROT_RANGE.maximum})")
             return None
         
         _hip_rot_range = _FRONT_HIP_ROT_RANGE if is_front_leg else _BACK_HIP_ROT_RANGE
         if rounded_hip_angle < _hip_rot_range.minimum:
-            print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} >= {_hip_rot_range.minimum})")
+            if self.PRINT_FAILS:
+                print(f"IK fail - joint angle limit hit! (hip.min; {rounded_hip_angle} >= {_hip_rot_range.minimum})")
             return None
         if rounded_hip_angle > _hip_rot_range.maximum:
-            print(f"IK fail - joint angle limit hit! (hip.max; {rounded_hip_angle} <= {_hip_rot_range.maximum})")
+            if self.PRINT_FAILS:
+                print(f"IK fail - joint angle limit hit! (hip.max; {rounded_hip_angle} <= {_hip_rot_range.maximum})")
             return None
         
         if rounded_knee_angle < _KNEE_ROT_RANGE.minimum:
-            print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} >= {_KNEE_ROT_RANGE.minimum})")
+            if self.PRINT_FAILS:
+                print(f"IK fail - joint angle limit hit! (knee.min; {rounded_knee_angle} >= {_KNEE_ROT_RANGE.minimum})")
             return None
         if rounded_knee_angle > _KNEE_ROT_RANGE.maximum:
-            print(f"IK fail - joint angle limit hit! (knee.max; {rounded_knee_angle} <= {_KNEE_ROT_RANGE.maximum})")
+            if self.PRINT_FAILS:
+                print(f"IK fail - joint angle limit hit! (knee.max; {rounded_knee_angle} <= {_KNEE_ROT_RANGE.maximum})")
             return None
 
         return result
