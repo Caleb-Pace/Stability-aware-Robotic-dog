@@ -5,7 +5,7 @@ JOINT_COUNT:int = LEG_COUNT * 3  # LEG_COUNT * (Abductor, Hip, Knee)
 
 SIT_PITCH    = -0.01
 SIT_HEIGHT   = 0.092
-STAND_HEIGHT = 0.32
+STAND_HEIGHT = 0.27
 CRAWL_HEIGHT = 0.22
 
 # Leg offsets from body origin #
