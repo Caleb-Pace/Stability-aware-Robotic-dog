@@ -4,7 +4,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from control.actions import STAND
+from control.actions import *  # pyright: ignore[reportWildcardImportFromLibrary]
 from control.gait_engine import GaitEngine
 from data_structures.leg_trajectories import LegTrajectories
 from hardware_abstraction_layer.output_layer import OutputLayer
@@ -29,7 +29,7 @@ class Go2LowLevelRecoveryNode:
     system is implemented.
     """
 
-    _STABLE_REARM_TIME = 1.0
+    _STABLE_REARM_TIME = 0.5
     _RECOVERY_LOCKOUT_TIME = 2.0
 
     def __init__(
@@ -42,7 +42,7 @@ class Go2LowLevelRecoveryNode:
         self.ekf = UnitreeGo2StabilityEKF(dt=0.002)
         self.output = output
         self.engine = engine
-        self.action_builder = action_builder or (lambda _estimate: STAND)
+        self.action_builder = action_builder or (lambda _estimate: CATCH_BASIC)
         self.manage_output = manage_output
         self.ekf_enabled = False
         self._recovery_requested = False
