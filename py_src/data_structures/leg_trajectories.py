@@ -32,7 +32,8 @@ class LegTrajectories:
                        orientations:npt.NDArray[np.float64],
                        leg_phase_offset:npt.NDArray[np.float64],
                        leg_control_points:npt.NDArray[np.object_],
-                       should_interpolate:bool = True):  # Note: only set to false if defining all points manually.
+                       should_interpolate:bool = True,    # Note: only set to false if defining all points manually.
+                       allow_below_ground_plane:bool=False):  # Only for specialise trajectories, like recovery
         # Shape checks
         #     (Leg)
         required_shape = (LEG_COUNT,)
@@ -62,7 +63,7 @@ class LegTrajectories:
             self.foot_trajectories = leg_control_points.tolist()
             self.time_anchors      = []
     
-        self.calculate_foot_trajectories(sample_count, should_interpolate)
+        self.calculate_foot_trajectories(sample_count, should_interpolate, allow_below_ground_plane)
 
     def _calculate_last_time_anchor(self, leg:int, alpha:float = 0.5) -> float:
         """
@@ -217,7 +218,7 @@ class LegTrajectories:
 
 
     # TODO: Rename
-    def calculate_foot_trajectories(self, sample_count:int, should_interpolate:bool = True) -> None:
+    def calculate_foot_trajectories(self, sample_count:int, should_interpolate:bool = True, allow_below_ground_plane:bool=False) -> None:
         ALPHA = 0.5  # Centripedal knot spacing
         self.steps_in_gait = sample_count
 
@@ -236,10 +237,12 @@ class LegTrajectories:
                 data = self._control_points[leg]
 
                 self.foot_trajectories[leg], self.time_anchors[leg] = self._interpolate(interpolator, data, True)
+                
                 # Never command a foot below the ground plane.
-                self.foot_trajectories[leg][:, 2] = np.maximum(
-                    self.foot_trajectories[leg][:, 2], _GROUND_LEVEL
-                )
+                if not allow_below_ground_plane:
+                    self.foot_trajectories[leg][:, 2] = np.maximum(
+                        self.foot_trajectories[leg][:, 2], _GROUND_LEVEL
+                    )
 
         # Store phase offsets in terms of steps
         self._calculate_phase_offsets_as_steps()
