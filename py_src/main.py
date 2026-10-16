@@ -162,7 +162,7 @@ def main():
 
             if y_btn.is_just_pressed(input_data.y_btn_down):
                 engine.perform_action(BACK_TO_SIDE, 1)
-                engine.perform_action(N0, 100)
+                engine.perform_action(N0, 60)
                 engine.perform_action(N1, 20)
                 engine.perform_action(N2, 10)
                 engine.perform_action(N3, 10)

@@ -50,9 +50,9 @@ BACK_TO_SIDE = LegTrajectories(
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
         np.array([[0.0, 0.0, 0.0], [ -0.1,   -0.02,  0.09]]),
-        np.array([[0.0, 0.0, 0.0], [ -0.174,  0.005,  0.05]]),
+        np.array([[0.0, 0.0, 0.0], [ -0.205,  0.005,  0.05]]),
         np.array([[0.0, 0.0, 0.0], [ -0.1,   -0.02,  0.09]]),
-        np.array([[0.0, 0.0, 0.0], [ -0.175,  0.005,  0.05]]),
+        np.array([[0.0, 0.0, 0.0], [ -0.205,  0.005,  0.05]]),
     ], dtype=object),
     allow_below_ground_plane=True
 )
@@ -63,9 +63,9 @@ N0 = LegTrajectories(
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
         np.array([[ -0.1,   -0.02,  0.09]]),
-        np.array([[ -0.174,  0.005,  0.05]]),
+        np.array([[ -0.205,  0.005,  0.05], [ -0.174,  0.005,  0.05]]),
         np.array([[ -0.1,   -0.02,  0.09]]),
-        np.array([[ -0.175,  0.005,  0.05]]),
+        np.array([[ -0.205,  0.005,  0.05], [ -0.175,  0.005,  0.05]]),
     ], dtype=object),
     allow_below_ground_plane=True
 )
@@ -76,9 +76,9 @@ N1 = LegTrajectories(
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
         np.array([[ -0.1,   -0.01,  0.09], [ -0.1,     0.01, -0.3]]),
-        np.array([[ -0.205,  0.01,  0.05], [ -0.205,  -0.01,  0.05]]),
+        np.array([[ -0.174,  0.01,  0.05], [ -0.205,  -0.01,  0.05]]),
         np.array([[ -0.1,   -0.01,  0.09], [ -0.1,     0.01, -0.3]]),
-        np.array([[ -0.205,  0.01,  0.05], [ -0.205,  -0.01,  0.05]]),
+        np.array([[ -0.175,  0.01,  0.05], [ -0.205,  -0.01,  0.05]]),
     ], dtype=object),
     allow_below_ground_plane=True
 )
