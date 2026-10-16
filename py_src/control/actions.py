@@ -118,46 +118,13 @@ N4 = LegTrajectories(
         np.array([[-0.05,  -0.05,  0.05], [0.0, 0.0,  -0.02], [0.0, 0.0, 0.0]]),
         np.array([[-0.1,   0.015, -0.08], [-0.1,  0.0, -0.05], [0.0, 0.0, 0.0]]),
         np.array([[-0.05,  -0.05,  0.05], [0.0, 0.0,  -0.02], [0.0, 0.0, 0.0]]),
-        # np.array([[-0.1,   0.015, -0.2], [-0.1, 0.0, -0.20]]),
-        # np.array([[-0.05, -0.05,  0.05], [ -0.15, -0.03,  0.05]]),
-        # np.array([[-0.1,   0.015, -0.2], [-0.1, 0.0, -0.20]]),
-        # np.array([[-0.05, -0.05,  0.05], [ -0.15, -0.03,  0.05]]),
-        # np.array([[-0.1,   0.015, -0.25], [-0.1, 0.015, -0.20]]),
-        # np.array([[-0.05, -0.05,  0.05], [0.0,  -0.05,  0.0]]),
-        # np.array([[-0.1,   0.015, -0.25], [-0.1, 0.015, -0.20]]),
-        # np.array([[-0.05, -0.05,  0.05], [0.0,  -0.05,  0.0]]),
-    ], dtype=object),
-    allow_below_ground_plane=True
-)
-
-GET_UP_FROM_FALL = LegTrajectories(
-    sample_count       = 48,
-    heights            = np.array([SIT_HEIGHT, 0.09], dtype=float),
-    orientations       = np.array([[0, 0, 0]], dtype=float),
-    leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
-    leg_control_points = np.array([
-        # np.array([[0.0, 0.0, 0.0], [-0.175,  -0.01, 0.09]]),
-        # np.array([[0.0, 0.0, 0.0], [-0.205,  -0.01, 0.05]]),
-        
-        np.array([[0.0, 0.0, 0.0], [ -0.1,   -0.01,  0.09], [ -0.1,     0.01, -0.3]]),
-        np.array([[0.0, 0.0, 0.0], [ -0.205,  0.01,  0.05], [ -0.205,  -0.01,  0.05]]),
-        np.array([[0.0, 0.0, 0.0], [ -0.1,   -0.01,  0.09], [ -0.1,     0.01, -0.3]]),
-        np.array([[0.0, 0.0, 0.0], [ -0.205,  0.01,  0.05], [ -0.205,  -0.01,  0.05]]),
-        
-        # np.array([[0.0, 0.0, 0.0], [ 0, 0, -0.1]]),
-        # np.array([[0.0, 0.0, 0.0], [ -0.05,   0,  -0.1]]),
-        # np.array([[0.0, 0.0, 0.0], [ 0, 0, -0.1]]),
-        # np.array([[0.0, 0.0, 0.0], [ -0.05,   0,  -0.1]]),
-
-        # np.array([[0.0, 0.0, 0.0], [ 0.0,   -0.02,  0.09]]),
-        # np.array([[0.0, 0.0, 0.0], [-0.174,  0.00, -0.09]]),
     ], dtype=object),
     allow_below_ground_plane=True
 )
 
 CATCH_BASIC = LegTrajectories(
     sample_count       = 24,
-    heights            = np.array([(SIT_HEIGHT+0.1), STAND_HEIGHT], dtype=float),
+    heights            = np.array([(SIT_HEIGHT+0.05), STAND_HEIGHT], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([
