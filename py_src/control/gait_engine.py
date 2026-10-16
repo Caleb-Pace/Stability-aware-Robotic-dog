@@ -38,6 +38,13 @@ class Instruction:
         self.repeat     = repeat
 
 class GaitEngine:
+    STRAFE_STEPS = 176
+    STRAFE_LIFT_STEPS = 32
+    STRAFE_STEP_WIDTH = 0.20
+    STRAFE_LIFT_HEIGHT = 0.16
+    STRAFE_HIP_SHIFT = 0.05
+    STRAFE_SETTLE_STEPS = 8
+
     _instruction_queue:Queue
     _current_instruction:Instruction|None
     # _current_pose =  # Stores current position of all end-effectors
@@ -118,8 +125,6 @@ class GaitEngine:
         forward walking and corrected turn direction.
         """
         trajectory = self.gait.loop
-        self._step_num %= trajectory.steps_in_gait
-        foot_positions = step(trajectory, self._step_num).copy()
 
         with self._motion_lock:
             forward, lateral, yaw = self._motion_command
@@ -127,6 +132,14 @@ class GaitEngine:
         command_magnitude = float(np.linalg.norm([forward, lateral, yaw]))
         if command_magnitude == 0.0:
             return
+
+        if abs(lateral) > max(abs(forward), abs(yaw)):
+            self._step_num %= self.STRAFE_STEPS
+            self._send_strafe_position(lateral)
+            return
+
+        self._step_num %= trajectory.steps_in_gait
+        foot_positions = step(trajectory, self._step_num).copy()
 
         stride_profile = foot_positions[:, 0].copy()
         
@@ -175,13 +188,123 @@ class GaitEngine:
         self.output.send_position(position)
         self._last_position = position
 
+    def _send_strafe_position(self, lateral: float) -> None:
+        """Move laterally in two planted pairs without dragging a foot.
+
+        The pair on the side of travel moves first and remains planted while
+        the opposite pair is lifted and moved to the same lateral target.
+        Every horizontal foot displacement is performed while that foot is
+        above the ground.
+        """
+        phase = self._step_num % self.STRAFE_STEPS
+        # Match the controller's positive horizontal axis to body-frame Y.
+        direction = float(np.sign(lateral))
+        target_y = direction * self.STRAFE_STEP_WIDTH
+        foot_positions = np.zeros((LEG_COUNT, 3), dtype=np.float64)
+
+        destination_legs = (1, 3) if direction > 0.0 else (0, 2)
+        opposite_legs = (0, 2) if direction > 0.0 else (1, 3)
+
+        def move_pair(
+            legs: tuple[int, int],
+            start_step: int,
+            move_step: int,
+        ) -> None:
+            progress = np.clip(
+                (phase - start_step) / self.STRAFE_LIFT_STEPS,
+                0.0,
+                1.0,
+            )
+            smooth_progress = progress * progress * (3.0 - 2.0 * progress)
+            for leg in legs:
+                foot_positions[leg, 1] = target_y * smooth_progress
+                foot_positions[leg, 2] = self.STRAFE_LIFT_HEIGHT * (
+                    smooth_progress if phase < move_step else 1.0 - smooth_progress
+                )
+
+        move_pair(destination_legs, 0, self.STRAFE_LIFT_STEPS)
+        if phase >= self.STRAFE_LIFT_STEPS:
+            for leg in destination_legs:
+                foot_positions[leg, 1] = target_y
+                foot_positions[leg, 2] = 0.0
+
+        second_pair_start = 72
+        if phase >= second_pair_start:
+            move_pair(
+                opposite_legs,
+                second_pair_start,
+                second_pair_start + self.STRAFE_LIFT_STEPS,
+            )
+            if phase >= second_pair_start + self.STRAFE_LIFT_STEPS:
+                for leg in opposite_legs:
+                    foot_positions[leg, 1] = target_y
+                    foot_positions[leg, 2] = 0.0
+
+        def reset_pair(legs: tuple[int, int], start_step: int) -> None:
+            if phase < start_step:
+                return
+            progress = np.clip(
+                (phase - start_step) / self.STRAFE_LIFT_STEPS,
+                0.0,
+                1.0,
+            )
+            smooth_progress = progress * progress * (3.0 - 2.0 * progress)
+            lift = self.STRAFE_LIFT_HEIGHT * np.sin(np.pi * progress)
+            for leg in legs:
+                foot_positions[leg, 1] = target_y * (1.0 - smooth_progress)
+                foot_positions[leg, 2] = lift
+
+        # Let the second pair finish and settle before recentring either pair.
+        destination_reset_start = (
+            second_pair_start
+            + self.STRAFE_LIFT_STEPS
+            + self.STRAFE_SETTLE_STEPS
+        )
+        opposite_reset_start = (
+            destination_reset_start + self.STRAFE_LIFT_STEPS
+            - self.STRAFE_SETTLE_STEPS
+        )
+        reset_pair(destination_legs, destination_reset_start)
+        reset_pair(opposite_legs, opposite_reset_start)
+
+        trajectory = self.gait.loop
+        hip_origins = np.asarray(
+            trajectory.leg_origins_by_step[
+                self._step_num % trajectory.steps_in_gait
+            ]
+        ).copy()
+        hip_origins[:, 1] += direction * self.STRAFE_HIP_SHIFT
+        self._last_motion_foot_positions = foot_positions.copy()
+        target_motor_angles = self._ik.solve(foot_positions, hip_origins)
+        if None in target_motor_angles:
+            return
+
+        position = Position(
+            target_motor_angles,
+            self._get_feedforward_torques(
+                foot_positions,
+                hip_origins,
+                target_motor_angles,
+            ),
+        )
+        self.output.send_position(position)
+        self._last_position = position
+
     def _step(self):
         with self._motion_lock:
             continuous_motion = bool(np.any(self._motion_command))
 
         if continuous_motion and self._current_instruction is None:
             self._send_motion_position()
-            self._step_num = (self._step_num + 1) % self.gait.loop.steps_in_gait
+            with self._motion_lock:
+                forward, lateral, yaw = self._motion_command
+            strafe_active = abs(lateral) > max(abs(forward), abs(yaw))
+            phase_steps = (
+                self.STRAFE_STEPS
+                if strafe_active
+                else self.gait.loop.steps_in_gait
+            )
+            self._step_num = (self._step_num + 1) % phase_steps
             return
 
         # # TODO: Remove, for debugging
@@ -275,6 +398,13 @@ class GaitEngine:
 
         magnitude = float(np.linalg.norm(command))
         if magnitude > 0.0:
+            if abs(command[1]) > max(abs(command[0]), abs(command[2])):
+                # Strafe phases need time to transfer weight and settle.
+                strafe_frequency_hz = 0.35 + 0.65 * min(1.0, abs(command[1]))
+                self._clock_interval_ms = 1000.0 / (
+                    self.STRAFE_STEPS * strafe_frequency_hz
+                )
+                return
             frequency_hz = 1.0 + 3.0 * min(1.0, magnitude)
             self._clock_interval_ms = 1000.0 / (
                 self.gait.loop.steps_in_gait * frequency_hz

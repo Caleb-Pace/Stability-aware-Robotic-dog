@@ -180,8 +180,7 @@ def main():
             else:
                 command = (
                     input_data.left_stick.delta_y,
-                    0,
-                    # input_data.left_stick.delta_x,
+                    input_data.left_stick.delta_x,
                     input_data.right_stick.delta_x,
                 )
                 # Keep the release state latched through small controller readings.
@@ -202,7 +201,7 @@ def main():
                 else:
                     command = (
                         input_data.left_stick.delta_y,
-                        0,
+                        input_data.left_stick.delta_x,
                         input_data.right_stick.delta_x,
                     )
                     command_is_active = float(np.linalg.norm(command)) > max(
