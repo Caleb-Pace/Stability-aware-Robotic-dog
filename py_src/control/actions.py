@@ -11,8 +11,8 @@ SIT = LegTrajectories(
     leg_control_points = np.array([
         np.array([[0.0, 0.0, 0.0]]),
         np.array([[0.0, 0.0, 0.0]]),
-        np.array([[0.0, 0.0, 0.0], [0.0, 0.01, 0.0]]),
-        np.array([[0.0, 0.0, 0.0], [0.0, 0.01, 0.0]]),
+        np.array([[0.0, 0.0, 0.0], [0.0, 0.02, 0.0]]),
+        np.array([[0.0, 0.0, 0.0], [0.0, 0.02, 0.0]]),
     ], dtype=object)
 )
 
@@ -24,8 +24,8 @@ STAND = LegTrajectories(
     leg_control_points = np.array([
         np.array([[0.0, 0.0, 0.0]]),
         np.array([[0.0, 0.0, 0.0]]),
-        np.array([[0.0, 0.01, 0.0], [0.0, 0.0, 0.0]]),
-        np.array([[0.0, 0.01, 0.0], [0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.02, 0.0], [0.0, 0.0, 0.0]]),
+        np.array([[0.0, 0.02, 0.0], [0.0, 0.0, 0.0]]),
     ], dtype=object)
 )
 
