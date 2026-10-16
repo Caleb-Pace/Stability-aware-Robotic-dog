@@ -56,9 +56,9 @@ GET_UP_FROM_FALL = LegTrajectories(
     ], dtype=object)
 )
 
-CATCH = LegTrajectories(
+CATCH_BASIC = LegTrajectories(
     sample_count       = 24,
-    heights            = np.array([(STAND_HEIGHT-0.15), STAND_HEIGHT], dtype=float),
+    heights            = np.array([(SIT_HEIGHT+0.1), STAND_HEIGHT], dtype=float),
     orientations       = np.array([[0, 0, 0]], dtype=float),
     leg_phase_offset   = np.array([0, 0, 0, 0], dtype=float),
     leg_control_points = np.array([

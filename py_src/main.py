@@ -157,7 +157,7 @@ def main():
                 # print(f"[M ]  Turning test triggered!")
 
             if x_btn.is_just_pressed(input_data.x_btn_down):
-                engine.perform_action(CATCH, 5)
+                engine.perform_action(CATCH_BASIC, 5)
                 print(f"[M ]  Catch action triggered!")
 
             if y_btn.is_just_pressed(input_data.y_btn_down):
